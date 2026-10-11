@@ -1,1 +1,4 @@
-[sources]
+[sources.mane_summary]
+url = "https://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/release_1.5/MANE.GRCh38.v1.5.summary.txt.gz"
+version = "MANE v1.5"
+sha256 = "d10ace2720681a3b2e0eefd9da4f551274a6b4141ac9bfd6a2565dfb6e9ad55c"

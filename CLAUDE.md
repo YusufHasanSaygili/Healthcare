@@ -422,25 +422,25 @@ Priority tests:
 
 # 16. Completion Report
 
-Report only:
+Report only, in Turkish, using these Turkish headings:
 
-## Changed
+## Değişenler
 - Files changed
 - Data schema / API changes
 - Behavior added
 
-## Verification
+## Doğrulama
 - Build / test commands run and results
 - Key numbers or metrics from the summary JSON, if any
 
-## Decisions
+## Kararlar
 - Assumptions made
 - Durable decisions introduced
 
-## Remaining
+## Kalanlar
 - Known risks
 - Deferred work
-- **Try it:** what the user should run and what they should see
+- **Dene:** what the user should run and what they should see
 - Next task
 
 Then: tick the box in `TASKS.md`, update the "Current task" line, add at most 3 lines to "Completion Notes", run

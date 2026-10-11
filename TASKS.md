@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 0.2 Shared infrastructure
+**Current task:** 1.1 Reference genome and MANE Select
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -32,7 +32,7 @@ Rules:
     excludes `data/` and `artifacts/`
   - Try it: `uv run healthcare doctor` shows the RTX 4070 Ti and "CUDA: available"
 
-- [ ] **0.2 Shared infrastructure**
+- [x] **0.2 Shared infrastructure**
   - Download helper: resume, checksum verification, skip if present, `--force`
   - File logging (`logs/`), small summary JSON writer, path settings, `--chrom` / `--limit` sample mode
   - Acceptance: an interrupted download resumes; a summary JSON is produced; tests pass
@@ -249,3 +249,4 @@ Rules:
 
 (At most 3 lines per finished task: date, task, key result / decision.)
 - 2026-10-11 · 0.1 · Python 3.12 (uv), PyTorch 2.14.1+cu130 on RTX 4070 Ti; `healthcare doctor` CLI; Graphify installed (AST-only `graphify update .`, hooks active).
+- 2026-10-11 · 0.2 · Stdlib downloader (resume, sha256, skip, `--force`), `healthcare download`, summaries in `logs/summaries/`; first source MANE v1.5 summary pinned. `--chrom`/`--limit` deferred to 1.1.

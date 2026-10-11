@@ -7,7 +7,7 @@ from pyfaidx import Fasta
 
 from healthcare import __version__, doctor
 from healthcare.annotate.snv import TranscriptIndex, parse_snv
-from healthcare.data import annotations, clinvar, gnomad, mane
+from healthcare.data import annotations, clinvar, conservation, gnomad, mane
 from healthcare.data.download import ChecksumMismatch, download
 from healthcare.data.sources import load_sources
 from healthcare.paths import DATA_DIR
@@ -190,6 +190,40 @@ def run_frequency(variant: str) -> int:
     return 0
 
 
+CONSERVATION_DIR = DATA_DIR / "processed" / "conservation"
+
+
+def run_build_conservation(chrom: str | None, force: bool, workers: int) -> int:
+    sources = load_sources()
+    chroms = [chrom] if chrom else [*map(str, range(1, 23)), "X", "Y"]
+    paths = {c: {t: sources[f"{t}_chr{c}"].path for t in conservation.TRACKS} for c in chroms}
+    if not TRANSCRIPTS.exists():
+        print("missing inputs: run `healthcare build-transcripts` first")
+        return 2
+    log_path = start_log("build-conservation")
+    summary = {"log": log_path} | conservation.build(
+        paths, pl.read_parquet(TRANSCRIPTS), CONSERVATION_DIR, workers, force
+    )
+    summary_path = write_summary("build-conservation", summary)
+    print(f"chromosomes done: {summary['chromosomes_done']}/24, rows: {summary['rows_total']}")
+    print(f"summary: {summary_path}")
+    return 0
+
+
+def run_conservation(variant: str) -> int:
+    try:
+        chrom, pos, _, _ = parse_snv(variant)
+    except ValueError as error:
+        print(error)
+        return 2
+    started = time.perf_counter()
+    result = conservation.lookup_conservation(CONSERVATION_DIR, chrom, pos)
+    elapsed_ms = (time.perf_counter() - started) * 1000
+    print(result if result else "position is outside MANE CDS +/-20 bp")
+    print(f"query: {elapsed_ms:.1f} ms")
+    return 0
+
+
 def add_sample_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--chrom", help="Process a single chromosome, e.g. 22")
     parser.add_argument("--limit", type=int, help="Process at most N records")
@@ -230,6 +264,16 @@ def main(argv: list[str] | None = None) -> int:
         "frequency", help="Look up a variant's gnomAD exome frequency, e.g. 17:43063931 G>A"
     )
     frequency_parser.add_argument("variant")
+    conservation_parser = commands.add_parser(
+        "build-conservation", help="Convert UCSC phyloP/phastCons wigFix to Parquet (CDS +/-20 bp)"
+    )
+    conservation_parser.add_argument("--chrom", help="Process a single chromosome, e.g. 22")
+    conservation_parser.add_argument("--force", action="store_true", help="Rebuild even if present")
+    conservation_parser.add_argument("--workers", type=int, default=6, help="Parallel chromosomes")
+    lookup_parser = commands.add_parser(
+        "conservation", help="Look up phyloP/phastCons at a position, e.g. 17:43063931 G>A"
+    )
+    lookup_parser.add_argument("variant")
     args = parser.parse_args(argv)
     if args.command == "doctor":
         return doctor.run()
@@ -247,6 +291,10 @@ def main(argv: list[str] | None = None) -> int:
         return run_build_gnomad(args.chrom, args.limit, args.force, args.workers)
     if args.command == "frequency":
         return run_frequency(args.variant)
+    if args.command == "build-conservation":
+        return run_build_conservation(args.chrom, args.force, args.workers)
+    if args.command == "conservation":
+        return run_conservation(args.variant)
     return 2
 
 

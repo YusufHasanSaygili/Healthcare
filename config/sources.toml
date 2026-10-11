@@ -281,3 +281,243 @@ md5 = "3e156c7a8d7c3c8c4e9e14cacd7e6556"
 url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/tsv/exomes/gnomad.exomes.v4.1.allele_number_all_sites.tsv.bgz"
 version = "gnomAD v4.1 exomes allele number at all sites"
 md5 = "ee71ce1ccfa5c1d9dd86e1ee1b1d11e2"
+
+[sources.phylop_chr1]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr1.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "857d9a7edff1c791e2d8773495153cec"
+
+[sources.phylop_chr2]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr2.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "647973c110db694b677db092992eaada"
+
+[sources.phylop_chr3]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr3.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "235d0a481bc739db6881bee726d42994"
+
+[sources.phylop_chr4]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr4.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "b9f8e27c36f33c331a54eea4e7795bca"
+
+[sources.phylop_chr5]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr5.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "74a2271246f137f229234c1303df8394"
+
+[sources.phylop_chr6]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr6.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "03341c6b491058daad2b6489446f2c3f"
+
+[sources.phylop_chr7]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr7.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "cb309544db52652eb43aeb35e61ed44c"
+
+[sources.phylop_chr8]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr8.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "049e122383e49ff4121bcea58efe8d3b"
+
+[sources.phylop_chr9]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr9.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "4eee22ad193e4f188b7b862175cb687b"
+
+[sources.phylop_chr10]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr10.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "cd0d845cc1cc96139f7bc49b6850f974"
+
+[sources.phylop_chr11]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr11.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "aec8ce770af233fd17b41d9f41c6481f"
+
+[sources.phylop_chr12]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr12.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "fad8fbdbde80b6bae573c881217dad5e"
+
+[sources.phylop_chr13]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr13.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "dc1dbea7003e64e65ff27fe4ec68fb2d"
+
+[sources.phylop_chr14]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr14.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "2758d7caa0f1dc242b9ad16cdc86656f"
+
+[sources.phylop_chr15]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr15.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "2a3f4b782246527d6e7e6dc1ec3959f2"
+
+[sources.phylop_chr16]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr16.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "d87a991b403ad4f944001dfd719b4998"
+
+[sources.phylop_chr17]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr17.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "cc4c88f80c581a6c604e7a4b4a559b52"
+
+[sources.phylop_chr18]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr18.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "7f43b42c00694ea872fa72afe6ae34e6"
+
+[sources.phylop_chr19]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr19.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "bb5a50a8cd334b8b1c6f501de9e1f374"
+
+[sources.phylop_chr20]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr20.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "833c1165cec869a1b08c7c4001eeb963"
+
+[sources.phylop_chr21]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr21.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "613c80b5e40a41634643d5a030092896"
+
+[sources.phylop_chr22]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chr22.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "f3aa1ddbea9b999dbb4a65c3a574009d"
+
+[sources.phylop_chrX]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chrX.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "6d3ce1e99ac313d4995ab8549b5523ec"
+
+[sources.phylop_chrY]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.100way.phyloP100way/chrY.phyloP100way.wigFix.gz"
+version = "UCSC hg38 phyloP100way"
+md5 = "97e9a052fd6874c88d5a105c96a60450"
+
+[sources.phastcons_chr1]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr1.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "c2394f572744f2be4ea94b836c86d6d5"
+
+[sources.phastcons_chr2]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr2.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "cfcd9f8c35684979a66d25258fad46b8"
+
+[sources.phastcons_chr3]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr3.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "065542a76b80c38e230aaa310b0641aa"
+
+[sources.phastcons_chr4]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr4.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "bca53d0baa16d12eaae28e6ad1c97149"
+
+[sources.phastcons_chr5]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr5.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "1c8fdfd0ba5386342ce7b257e3bf776a"
+
+[sources.phastcons_chr6]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr6.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "723dbb9374d48d0af82570f0efa0d66a"
+
+[sources.phastcons_chr7]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr7.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "d070e971edab19becd87d8ab4691fb26"
+
+[sources.phastcons_chr8]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr8.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "f47c04e40309a99300709f8e59874efc"
+
+[sources.phastcons_chr9]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr9.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "c6c76ffbb4cbad6d2600318cd11f75c0"
+
+[sources.phastcons_chr10]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr10.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "25b77af8da45ece78dc9f0f72832ce86"
+
+[sources.phastcons_chr11]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr11.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "e7a3653dd4e36dc1a415d019127e805e"
+
+[sources.phastcons_chr12]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr12.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "45abe3b56df0bc86075e78e74735f237"
+
+[sources.phastcons_chr13]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr13.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "a27efb029f04246785cefc0dd25a34df"
+
+[sources.phastcons_chr14]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr14.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "a2a730f7cc1e729d9d007350e07e901b"
+
+[sources.phastcons_chr15]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr15.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "b2f28d08c8c9771825202ae1cb669abe"
+
+[sources.phastcons_chr16]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr16.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "5ead164d6253b2f7f3148e1570b014b4"
+
+[sources.phastcons_chr17]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr17.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "61c5728fea5095474e2a271e1cd3081c"
+
+[sources.phastcons_chr18]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr18.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "9832064a1ab9474e21cfdd7ff0fcfd36"
+
+[sources.phastcons_chr19]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr19.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "d7d0bc930e4c435ad0d91f7f51a64678"
+
+[sources.phastcons_chr20]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr20.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "d0a593b42d4f568571d0d6dc81af7ce8"
+
+[sources.phastcons_chr21]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr21.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "d02d491ade3a9c304d1cd338ca51a766"
+
+[sources.phastcons_chr22]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chr22.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "db03b9c27a584b2e6f0aa316e83a5d48"
+
+[sources.phastcons_chrX]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chrX.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "560b3aaebf7167d26fd3bf31e02109c2"
+
+[sources.phastcons_chrY]
+url = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phastCons100way/hg38.100way.phastCons/chrY.phastCons100way.wigFix.gz"
+version = "UCSC hg38 phastCons100way"
+md5 = "d37e66bb85d448b6f89fb6fdc1810b9e"

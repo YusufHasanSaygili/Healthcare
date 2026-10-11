@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 1.5 Evolutionary conservation
+**Current task:** 1.6 UniProt protein region features
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -82,7 +82,7 @@ Rules:
   - Acceptance: coverage built by `build-gnomad`; low-coverage share of labeled missense measured
   - Try it: the share of labeled missense variants at low-coverage positions is read from the summary
 
-- [ ] **1.5 Evolutionary conservation**
+- [x] **1.5 Evolutionary conservation**
   - UCSC hg38 phyloP100way (and phastCons100way) wigFix files → Parquet keeping only MANE CDS ±20 bp positions
   - Acceptance: chromosome 22 validation; known-position test; disk usage in the summary
   - Try it: a position's phyloP value is queried
@@ -276,3 +276,4 @@ Rules:
 - 2026-10-11 · 1.3 · SNV annotator: missense HGVS agreement 175,203/175,203 (100%), consequence agreement 99.999%; missense train set 183,375 (53,371 P / 130,004 B, 14,934 genes). `/code-review`: 8 findings, all fixed.
 - 2026-10-11 · 1.4a · gnomAD v4.1 exomes: 183.7M variants → 2.2 GB Parquet (24 chr, md5-verified), DuckDB lookup ~40 ms; 17,481 MANE constraint rows (no `mis_pphen`). Missense: 91% of benign vs 33% of pathogenic seen in gnomAD. Leakage audit PASS.
 - 2026-10-12 · 1.4b · Targeted genomes dropped: tabix leaf bins (16 kb ≈ 3 MB) make it ~full download; exome covers 99.96% of 41.1M CDS±20 positions, only 0.7% B / 0.3% P labeled missense at low coverage. `coverage.parquet` added instead; genomes moved to O.5.
+- 2026-10-12 · 1.5 · UCSC phyloP100way + phastCons100way for 41.1M CDS±20 positions (99.99% filled) → 203 MB; lookup ~8 ms. Labeled missense median phyloP: benign 0.90 vs pathogenic 7.64.

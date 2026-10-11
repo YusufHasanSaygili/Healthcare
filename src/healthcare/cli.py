@@ -7,7 +7,7 @@ from pyfaidx import Fasta
 
 from healthcare import __version__, doctor
 from healthcare.annotate.snv import TranscriptIndex, parse_snv
-from healthcare.data import annotations, clinvar, conservation, gnomad, mane
+from healthcare.data import annotations, clinvar, conservation, gnomad, mane, uniprot
 from healthcare.data.download import ChecksumMismatch, download
 from healthcare.data.sources import load_sources
 from healthcare.paths import DATA_DIR
@@ -224,6 +224,41 @@ def run_conservation(variant: str) -> int:
     return 0
 
 
+UNIPROT_FEATURES = DATA_DIR / "processed" / "uniprot" / "features.parquet"
+
+
+def run_build_uniprot(force: bool) -> int:
+    source = load_sources()["uniprot_human"]
+    if UNIPROT_FEATURES.exists() and not force:
+        print(f"skipped: {UNIPROT_FEATURES} exists (use --force)")
+        return 0
+    if not source.path.exists() or not TRANSCRIPTS.exists():
+        print("missing inputs: run `healthcare download uniprot_human` and build-transcripts")
+        return 2
+    log_path = start_log("build-uniprot")
+    summary = {"log": log_path} | uniprot.build(
+        source.path, pl.read_parquet(TRANSCRIPTS), UNIPROT_FEATURES
+    )
+    summary_path = write_summary("build-uniprot", summary)
+    print(f"matched MANE proteins: {summary['match_rate']:.1%}, features: {summary['features']}")
+    print(f"summary: {summary_path}")
+    return 0
+
+
+def run_protein_features(gene: str) -> int:
+    table = pl.read_parquet(UNIPROT_FEATURES).filter(pl.col("gene_name") == gene.upper())
+    if table.is_empty():
+        print(f"no curated UniProt features mapped for {gene}")
+        return 0
+    with pl.Config(tbl_rows=60, tbl_formatting="ASCII_MARKDOWN", fmt_str_lengths=40):
+        print(
+            table.filter(~pl.col("feature_type").is_in(["HELIX", "STRAND", "TURN"])).select(
+                "feature_type", "start", "end", "note"
+            )
+        )
+    return 0
+
+
 def add_sample_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--chrom", help="Process a single chromosome, e.g. 22")
     parser.add_argument("--limit", type=int, help="Process at most N records")
@@ -274,6 +309,14 @@ def main(argv: list[str] | None = None) -> int:
         "conservation", help="Look up phyloP/phastCons at a position, e.g. 17:43063931 G>A"
     )
     lookup_parser.add_argument("variant")
+    uniprot_parser = commands.add_parser(
+        "build-uniprot", help="Map curated UniProt Swiss-Prot features onto MANE proteins"
+    )
+    uniprot_parser.add_argument("--force", action="store_true", help="Rebuild even if present")
+    features_parser = commands.add_parser(
+        "protein-features", help="Show curated UniProt regions for a gene, e.g. BRCA1"
+    )
+    features_parser.add_argument("gene")
     args = parser.parse_args(argv)
     if args.command == "doctor":
         return doctor.run()
@@ -295,6 +338,10 @@ def main(argv: list[str] | None = None) -> int:
         return run_build_conservation(args.chrom, args.force, args.workers)
     if args.command == "conservation":
         return run_conservation(args.variant)
+    if args.command == "build-uniprot":
+        return run_build_uniprot(args.force)
+    if args.command == "protein-features":
+        return run_protein_features(args.gene)
     return 2
 
 

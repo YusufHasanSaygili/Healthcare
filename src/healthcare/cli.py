@@ -1,11 +1,12 @@
 import argparse
 import sys
+import time
 
 from pyfaidx import Fasta
 
 from healthcare import __version__, doctor
 from healthcare.annotate.snv import TranscriptIndex, parse_snv
-from healthcare.data import annotations, clinvar, mane
+from healthcare.data import annotations, clinvar, gnomad, mane
 from healthcare.data.download import ChecksumMismatch, download
 from healthcare.data.sources import load_sources
 from healthcare.paths import DATA_DIR
@@ -138,6 +139,51 @@ def run_annotate(variant: str) -> int:
     return 0
 
 
+def run_build_gnomad(chrom: str | None, limit: int | None, force: bool, workers: int) -> int:
+    sources = load_sources()
+    names = {
+        name.removeprefix("gnomad_exomes_chr"): source.path
+        for name, source in sources.items()
+        if name.startswith("gnomad_exomes_chr")
+    }
+    if chrom:
+        names = {chrom: names[chrom]}
+    if not sources["gnomad_constraint"].path.exists():
+        print("missing raw file, run: healthcare download gnomad_constraint")
+        return 2
+    suffix = f".n{limit}" if limit else ""
+    log_path = start_log("build-gnomad")
+    summary = {"log": log_path} | gnomad.build(
+        names,
+        sources["gnomad_constraint"].path,
+        DATA_DIR / "processed" / f"gnomad{suffix}",
+        workers,
+        limit,
+        force,
+    )
+    summary_path = write_summary("build-gnomad", summary)
+    done, rows = len(summary["chromosomes_done"]), summary["exome_rows_total"]
+    print(f"chromosomes done: {done}/24, rows: {rows}")
+    print(f"summary: {summary_path}")
+    return 0
+
+
+def run_frequency(variant: str) -> int:
+    try:
+        chrom, pos, ref, alt = parse_snv(variant)
+    except ValueError as error:
+        print(error)
+        return 2
+    started = time.perf_counter()
+    result = gnomad.lookup_frequency(
+        DATA_DIR / "processed" / "gnomad" / "exomes", chrom, pos, ref, alt
+    )
+    elapsed_ms = (time.perf_counter() - started) * 1000
+    print(result if result else "not observed in gnomAD v4.1 exomes")
+    print(f"query: {elapsed_ms:.1f} ms")
+    return 0
+
+
 def add_sample_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--chrom", help="Process a single chromosome, e.g. 22")
     parser.add_argument("--limit", type=int, help="Process at most N records")
@@ -169,6 +215,15 @@ def main(argv: list[str] | None = None) -> int:
     annotations_parser.add_argument("--force", action="store_true", help="Rebuild even if present")
     annotate_parser = commands.add_parser("annotate", help="Annotate one SNV, e.g. 17:43045712 G>A")
     annotate_parser.add_argument("variant")
+    gnomad_parser = commands.add_parser(
+        "build-gnomad", help="Convert downloaded gnomAD exome VCFs and constraint to Parquet"
+    )
+    add_sample_args(gnomad_parser)
+    gnomad_parser.add_argument("--workers", type=int, default=4, help="Parallel chromosomes")
+    frequency_parser = commands.add_parser(
+        "frequency", help="Look up a variant's gnomAD exome frequency, e.g. 17:43063931 G>A"
+    )
+    frequency_parser.add_argument("variant")
     args = parser.parse_args(argv)
     if args.command == "doctor":
         return doctor.run()
@@ -182,6 +237,10 @@ def main(argv: list[str] | None = None) -> int:
         return run_build_annotations(args.limit, args.force)
     if args.command == "annotate":
         return run_annotate(args.variant)
+    if args.command == "build-gnomad":
+        return run_build_gnomad(args.chrom, args.limit, args.force, args.workers)
+    if args.command == "frequency":
+        return run_frequency(args.variant)
     return 2
 
 

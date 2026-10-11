@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 1.4 gnomAD allele frequencies and gene constraint
+**Current task:** 1.4b Targeted gnomAD genome frequencies
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -68,13 +68,20 @@ Rules:
   - Try it: the agreement report is read; a few known variants are run through the CLI and show the expected amino
     acid change
 
-- [ ] **1.4 gnomAD allele frequencies and gene constraint**
+- [x] **1.4a gnomAD allele frequencies and gene constraint** (exomes; raw kept on A:)
   - gnomAD v4.x exome (and genome if needed) sites VCFs streamed chromosome by chromosome → Parquet
     (chrom, pos, ref, alt, AC, AN, AF, nhomalt, grpmax AF)
   - Gene constraint table (LOEUF, missense Z)
   - Raw files deleted only with the user's approval and `--delete-raw`
   - Acceptance: validated on `--chrom 22`, then a full background run; disk usage in the summary
   - Try it: a known variant's frequency comes back from a DuckDB query in milliseconds
+
+- [ ] **1.4b Targeted gnomAD genome frequencies**
+  - gnomAD v4.1 genome VCFs fetched with the tabix index (.tbi) and HTTP range requests, only for MANE CDS ±20 bp
+    (~10 GB instead of 563 GB); same parser and schema as exomes
+  - Also an "observed / covered" signal so missing exome frequency is not mistaken for "very rare"
+  - Acceptance: chr22 validated against a full download of the same region; disk usage and request count in summary
+  - Try it: a variant poorly covered in exomes returns a genome frequency
 
 - [ ] **1.5 Evolutionary conservation**
   - UCSC hg38 phyloP100way (and phastCons100way) wigFix files → Parquet keeping only MANE CDS ±20 bp positions
@@ -93,6 +100,9 @@ Rules:
   - Labeled missense variants + frequency, conservation, gene constraint, UniProt regions, amino acid physicochemistry
     (Grantham, BLOSUM62, hydrophobicity, volume, charge change), relative protein position
   - No ESM yet
+  - Missing gnomAD frequency handled explicitly (fill 0 for not observed and/or a flag); the no-allele-frequency
+    ablation drops every frequency-derived column (`af`, `ac`, `an`, `nhomalt`, `af_grpmax`, `grpmax`, `filter_pass`,
+    missingness flags)
   - Acceptance: per-feature missing-value rate in the summary; no column comes from a forbidden source or from ClinVar
     classification fields
   - Try it: the feature table schema and missing-value report are read
@@ -262,3 +272,4 @@ Rules:
 - 2026-10-11 · 1.2 · ClinVar 2025-10-06: 1.52M labels (282k P / 1.24M B), 2.07M VUS; temporal (new in 2026-10-04): 186,768 (44k P); 3,392 VUS resolved, 28 flips. Leakage audit PASS; metadata columns prefixed `clinvar_`/`validation_`.
 - 2026-10-11 · 1.2 · Fixed `.gitignore`/`.graphifyignore` (`data/` was hiding `src/healthcare/data/`; `mane.py` was missing from the 1.1 commit).
 - 2026-10-11 · 1.3 · SNV annotator: missense HGVS agreement 175,203/175,203 (100%), consequence agreement 99.999%; missense train set 183,375 (53,371 P / 130,004 B, 14,934 genes). `/code-review`: 8 findings, all fixed.
+- 2026-10-11 · 1.4a · gnomAD v4.1 exomes: 183.7M variants → 2.2 GB Parquet (24 chr, md5-verified), DuckDB lookup ~40 ms; 17,481 MANE constraint rows (no `mis_pphen`). Missense: 91% of benign vs 33% of pathogenic seen in gnomAD. Leakage audit PASS.

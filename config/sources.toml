@@ -31,3 +31,128 @@ md5 = "c665dba2aa11f745fc38a6973af8025e"
 [sources.clinvar_summary_2025]
 url = "https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2025-10.txt.gz"
 version = "ClinVar variant_summary 2025-10 (HGVS validation only)"
+
+[sources.gnomad_exomes_chr1]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr1.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "848be4d85c953bc73a8e4f0c97026a72"
+
+[sources.gnomad_exomes_chr2]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr2.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "e2f5d891a3374e88d1c3136f94bed0ea"
+
+[sources.gnomad_exomes_chr3]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr3.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "a35b949b32453b4b5abd7b1de42e298a"
+
+[sources.gnomad_exomes_chr4]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr4.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "c7c7008a73acbb8fea68b82951842832"
+
+[sources.gnomad_exomes_chr5]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr5.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "c1016f56be62deb2e947fed4d31302dd"
+
+[sources.gnomad_exomes_chr6]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr6.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "f96bc8711ed085d63b8bd5396664adbc"
+
+[sources.gnomad_exomes_chr7]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr7.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "c41cd52571b001cf7d3e388a668e4dff"
+
+[sources.gnomad_exomes_chr8]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr8.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "a47777fe141c01876cb170f2c2f2e6b6"
+
+[sources.gnomad_exomes_chr9]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr9.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "c5abd4d8aff12f2bf8b4ec844769782f"
+
+[sources.gnomad_exomes_chr10]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr10.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "4befc8dc50ead888e8af24f556c9fdd6"
+
+[sources.gnomad_exomes_chr11]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr11.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "3833ce3ab046afe92c9b55df93a61ec8"
+
+[sources.gnomad_exomes_chr12]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr12.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "e530a9ed203cdcc914621ab7430774bb"
+
+[sources.gnomad_exomes_chr13]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr13.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "af1eab40c8be47c8c7c04dc73e0333e4"
+
+[sources.gnomad_exomes_chr14]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr14.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "d0e0fa71d94bf016a061ba4dc0bd869f"
+
+[sources.gnomad_exomes_chr15]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr15.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "01b116e34b3815cfd1d3afa53a29a41b"
+
+[sources.gnomad_exomes_chr16]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr16.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "44137843b2df39c8a654427181bda919"
+
+[sources.gnomad_exomes_chr17]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr17.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "c61978218ab3eaa07b571eb9959f39d2"
+
+[sources.gnomad_exomes_chr18]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr18.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "1ec708d5cae9657ccee0626763ed9946"
+
+[sources.gnomad_exomes_chr19]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr19.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "50a37cfa9a9a3e030388bcf15bdabb79"
+
+[sources.gnomad_exomes_chr20]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr20.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "605680cd99e469bdf5f0045bd22359c9"
+
+[sources.gnomad_exomes_chr21]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr21.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "7ca6d51a42425b857eddb46d7bc5832d"
+
+[sources.gnomad_exomes_chr22]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chr22.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "dcf191563e69054a71bd4dc77862799a"
+
+[sources.gnomad_exomes_chrX]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chrX.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "5b7b17d3d4cff22c20480a908c861a28"
+
+[sources.gnomad_exomes_chrY]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/exomes/gnomad.exomes.v4.1.sites.chrY.vcf.bgz"
+version = "gnomAD v4.1 exomes"
+md5 = "d500cf5a73c53f02d1b95f1e092f2e49"
+
+[sources.gnomad_constraint]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/constraint/gnomad.v4.1.constraint_metrics.tsv"
+version = "gnomAD v4.1 constraint"
+md5 = "14df4b2acb581fcbbb2a82a3a555fd35"

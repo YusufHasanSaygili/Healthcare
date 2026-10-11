@@ -2,3 +2,18 @@
 url = "https://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/release_1.5/MANE.GRCh38.v1.5.summary.txt.gz"
 version = "MANE v1.5"
 sha256 = "d10ace2720681a3b2e0eefd9da4f551274a6b4141ac9bfd6a2565dfb6e9ad55c"
+
+[sources.grch38_fasta]
+url = "https://ftp.ensembl.org/pub/release-115/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz"
+version = "Ensembl release 115, GRCh38 primary assembly"
+sha256 = "d8c3af0094a7bba6125763bad779ec18a81483c739c6ed122094bdf86c187b92"
+
+[sources.mane_gtf]
+url = "https://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/release_1.5/MANE.GRCh38.v1.5.ensembl_genomic.gtf.gz"
+version = "MANE v1.5"
+sha256 = "71d4b3c89c9d948683bf0db5d81b00d9ae9f3b943177b74cbd87e68f08e34d66"
+
+[sources.mane_protein]
+url = "https://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/release_1.5/MANE.GRCh38.v1.5.ensembl_protein.faa.gz"
+version = "MANE v1.5"
+sha256 = "49b71a5acb492cf692f990b584134528877f47b39d4539e1b9f05f607498b71a"

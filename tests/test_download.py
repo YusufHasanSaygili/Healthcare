@@ -5,9 +5,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
 
-from healthcare.download import ChecksumMismatch, download
+from healthcare.data.download import ChecksumMismatch, download
+from healthcare.data.sources import load_sources
 from healthcare.runlog import write_summary
-from healthcare.sources import load_sources
 
 PAYLOAD = bytes(range(256)) * 4096
 PAYLOAD_SHA256 = hashlib.sha256(PAYLOAD).hexdigest()

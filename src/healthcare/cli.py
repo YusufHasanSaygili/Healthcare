@@ -2,9 +2,11 @@ import argparse
 import sys
 
 from healthcare import __version__, doctor
-from healthcare.download import ChecksumMismatch, download
+from healthcare.data import mane
+from healthcare.data.download import ChecksumMismatch, download
+from healthcare.data.sources import load_sources
+from healthcare.paths import DATA_DIR
 from healthcare.runlog import start_log, write_summary
-from healthcare.sources import load_sources
 
 
 def run_download(names: list[str], force: bool) -> int:
@@ -32,6 +34,41 @@ def run_download(names: list[str], force: bool) -> int:
     return 1 if failed else 0
 
 
+def run_build_transcripts(chrom: str | None, limit: int | None, force: bool) -> int:
+    sources = load_sources()
+    parts = [f"chr{chrom}" if chrom else "", f"n{limit}" if limit else ""]
+    suffix = "".join(f".{part}" for part in parts if part)
+    output = DATA_DIR / "processed" / f"transcripts{suffix}.parquet"
+    if output.exists() and not force:
+        print(f"skipped: {output} exists (use --force)")
+        return 0
+    required = ("grch38_fasta", "mane_gtf", "mane_protein")
+    missing = [name for name in required if not sources[name].path.exists()]
+    if missing:
+        print(f"missing raw files, run: healthcare download {' '.join(missing)}")
+        return 2
+    log_path = start_log("build-transcripts")
+    summary = {"log": log_path} | mane.build(
+        sources["grch38_fasta"].path,
+        sources["mane_gtf"].path,
+        sources["mane_protein"].path,
+        DATA_DIR / "interim" / "reference" / "GRCh38.primary_assembly.fa",
+        output,
+        chrom,
+        limit,
+    )
+    summary_path = write_summary("build-transcripts", summary)
+    print(f"transcripts: {summary['transcripts']}, match rate: {summary['translation_match_rate']}")
+    print(f"summary: {summary_path}")
+    return 0
+
+
+def add_sample_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--chrom", help="Process a single chromosome, e.g. 22")
+    parser.add_argument("--limit", type=int, help="Process at most N records")
+    parser.add_argument("--force", action="store_true", help="Rebuild even if output exists")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="healthcare")
     parser.add_argument("--version", action="version", version=__version__)
@@ -40,11 +77,17 @@ def main(argv: list[str] | None = None) -> int:
     download_parser = commands.add_parser("download", help="Download pinned data sources")
     download_parser.add_argument("sources", nargs="*", help="Source names (default: all)")
     download_parser.add_argument("--force", action="store_true", help="Redownload even if present")
+    transcripts_parser = commands.add_parser(
+        "build-transcripts", help="Build the MANE Select transcript table and verify translations"
+    )
+    add_sample_args(transcripts_parser)
     args = parser.parse_args(argv)
     if args.command == "doctor":
         return doctor.run()
     if args.command == "download":
         return run_download(args.sources, args.force)
+    if args.command == "build-transcripts":
+        return run_build_transcripts(args.chrom, args.limit, args.force)
     return 2
 
 

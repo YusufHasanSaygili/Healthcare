@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 1.1 Reference genome and MANE Select
+**Current task:** 1.2 ClinVar labels
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -41,7 +41,7 @@ Rules:
 
 ## Phase 1 — Data and Our Own Variant Annotator
 
-- [ ] **1.1 Reference genome and MANE Select**
+- [x] **1.1 Reference genome and MANE Select**
   - GRCh38 primary assembly FASTA (pyfaidx index), MANE Select GTF/GFF and protein FASTA (versions pinned)
   - Transcript table (Parquet): gene, strand, exons, CDS boundaries
   - Acceptance: protein translated from the CDS matches the MANE protein FASTA for ≥99% of transcripts; mismatches
@@ -250,3 +250,4 @@ Rules:
 (At most 3 lines per finished task: date, task, key result / decision.)
 - 2026-10-11 · 0.1 · Python 3.12 (uv), PyTorch 2.14.1+cu130 on RTX 4070 Ti; `healthcare doctor` CLI; Graphify installed (AST-only `graphify update .`, hooks active).
 - 2026-10-11 · 0.2 · Stdlib downloader (resume, sha256, skip, `--force`), `healthcare download`, summaries in `logs/summaries/`; first source MANE v1.5 summary pinned. `--chrom`/`--limit` deferred to 1.1.
+- 2026-10-11 · 1.1 · 19,229 MANE v1.5 transcripts on 1–22/X/Y, CDS translation match 99.995% (non-ATG starts and selenocysteine accepted, flagged in `translation_note`); 60 genes annotated only on fix/alt patches are excluded.

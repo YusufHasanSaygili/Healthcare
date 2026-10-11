@@ -10,6 +10,7 @@ from healthcare.annotate.snv import TranscriptIndex, parse_snv
 from healthcare.data import annotations, clinvar, conservation, gnomad, mane, uniprot
 from healthcare.data.download import ChecksumMismatch, download
 from healthcare.data.sources import load_sources
+from healthcare.features import missense
 from healthcare.paths import DATA_DIR
 from healthcare.runlog import start_log, write_summary
 
@@ -259,6 +260,36 @@ def run_protein_features(gene: str) -> int:
     return 0
 
 
+def run_build_features(force: bool) -> int:
+    out_dir = DATA_DIR / "processed" / "features"
+    if (out_dir / "missense_train_labels.parquet").exists() and not force:
+        print(f"skipped: {out_dir} exists (use --force)")
+        return 0
+    processed = DATA_DIR / "processed"
+    inputs = missense.Inputs(
+        transcripts=TRANSCRIPTS,
+        gnomad_exomes=processed / "gnomad" / "exomes",
+        coverage=processed / "gnomad" / "coverage.parquet",
+        conservation=CONSERVATION_DIR,
+        constraint=processed / "gnomad" / "constraint.parquet",
+        uniprot=UNIPROT_FEATURES,
+    )
+    missing = [str(p) for p in vars(inputs).values() if not p.exists()]
+    if missing:
+        print(f"missing inputs: {', '.join(missing)}")
+        return 2
+    log_path = start_log("build-features")
+    summary = {"log": log_path} | missense.build(
+        processed / "annotations", processed / "clinvar", inputs, out_dir
+    )
+    summary_path = write_summary("build-features", summary)
+    train = summary["train_labels"]
+    print(f"train rows: {train['rows']} ({train['pathogenic']} pathogenic)")
+    print(f"features: {summary['feature_columns']}")
+    print(f"summary: {summary_path}")
+    return 0
+
+
 def add_sample_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--chrom", help="Process a single chromosome, e.g. 22")
     parser.add_argument("--limit", type=int, help="Process at most N records")
@@ -317,6 +348,10 @@ def main(argv: list[str] | None = None) -> int:
         "protein-features", help="Show curated UniProt regions for a gene, e.g. BRCA1"
     )
     features_parser.add_argument("gene")
+    features_build_parser = commands.add_parser(
+        "build-features", help="Build the missense feature tables (train, temporal, VUS)"
+    )
+    features_build_parser.add_argument("--force", action="store_true", help="Rebuild if present")
     args = parser.parse_args(argv)
     if args.command == "doctor":
         return doctor.run()
@@ -342,6 +377,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_build_uniprot(args.force)
     if args.command == "protein-features":
         return run_protein_features(args.gene)
+    if args.command == "build-features":
+        return run_build_features(args.force)
     return 2
 
 

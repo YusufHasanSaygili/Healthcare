@@ -486,6 +486,9 @@ A task is complete only when:
 | 2026-10-11 | Repository fully English, no code comments/docstrings; single bilingual README; UI may offer Turkish. | User's explicit requirement; international CV presentation. |
 | 2026-10-11 | ClinVar: training = October 2025 release (cumulative); temporal test = variants first added between October 2025 and October 2026; reclassified variants reported separately, never mixed into the test set. | Honest "future variants" test; reclassifications are a distinct, interesting finding. |
 | 2026-10-11 | `/code-review` at the end of tasks 1.3, 5.1, 7.2, 8.1 only. | Fresh-eyes review where bugs are costly, without per-task token cost. |
+| 2026-10-12 | Model features are exactly the `f_`-prefixed columns; IDs, `label` and everything else are never fed to a model. | Whitelist makes ClinVar metadata leakage structurally impossible. |
+| 2026-10-12 | gnomAD absence: AF = 0 when the position is covered in exomes, null + `f_gnomad_covered = 0` when not; the no-AF ablation drops every column in `FREQUENCY_FEATURES`. | Separates "not observed" from "not measured" without a hidden frequency back door. |
+| 2026-10-12 | Variants annotated in more than one MANE gene are dropped (no ClinVar-based tie-break). | Same rule at training and inference; keeps gene-disjoint splits clean. |
 | 2026-10-11 | Environment: Windows 11, uv, Docker available / no WSL2, data on A: (990 Pro). | User's hardware. |
 
 ## graphify

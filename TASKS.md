@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 2.1 Missense feature table
+**Current task:** 2.2 Gene-disjoint split and temporal test
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -95,7 +95,7 @@ Rules:
 
 ## Phase 2 — Dataset and Split
 
-- [ ] **2.1 Missense feature table** 🔍
+- [x] **2.1 Missense feature table** 🔍
   - Labeled missense variants + frequency, conservation, gene constraint, UniProt regions, amino acid physicochemistry
     (Grantham, BLOSUM62, hydrophobicity, volume, charge change), relative protein position
   - No ESM yet
@@ -109,8 +109,10 @@ Rules:
 - [ ] **2.2 Gene-disjoint split and temporal test** 🔍
   - Gene-disjoint train / validation / test with a fixed seed (about 70 / 15 / 15, class balance considered)
   - Temporal test: variants added to ClinVar after the training release and absent from training
-  - Split on the MANE gene assigned by our annotator (never ClinVar's GENEINFO); variants mapping to several genes
-    are handled explicitly
+  - Split on the MANE gene assigned by our annotator (never ClinVar's GENEINFO); genes sharing any coding position
+    are merged into one split group (connected components); test that no `(chrom,pos)` appears in two sets
+  - Watch gene memorization: `f_protein_length` + `f_gene_*` identify most genes; compare train/val gap and an
+    ablation without gene-level features in 3.1
   - Temporal metrics also reported on the gene-disjoint subset (temporal variants whose genes are in validation/test),
     since most temporal genes also appear in training
   - Split file + hash; automated tests verifying gene and variant overlap
@@ -150,8 +152,11 @@ Rules:
 
 - [ ] **5.1 Dual tower model**
   - PyTorch: protein tower (ESM representation) + measurement tower + fusion head; tower dropout; variant type input
-  - Hyperparameter sweep (hidden size e.g. d128/d256/d384, depth, dropout, tower-dropout rate) × several seeds,
-    all logged to one results table; the winner is chosen on validation only and reported as mean ± std over seeds
+  - Overnight sweep (12–16 h budget, measured first on 3–4 trial runs): random or Bayesian search (Optuna only if
+    the user approves the library) over hidden size (e.g. d128–d512), depth, dropout, tower-dropout rate, ESM input
+    form, learning rate, batch size; one seed per config, all runs appended to one results table
+  - Confirmation round: top ~10 configs re-trained with 5 seeds; winner = best validation mean with low seed variance
+    (guards against winner's curse); optional gene-grouped 5-fold CV inside training data
   - Early stopping on validation
   - Acceptance: validation metrics reported side by side with LightGBM; `/code-review` on the task diff passes
   - Try it: dual tower vs LightGBM validation table is read
@@ -278,3 +283,4 @@ Rules:
 - 2026-10-12 · 1.4b · Targeted genomes dropped: tabix leaf bins (16 kb ≈ 3 MB) make it ~full download; exome covers 99.96% of 41.1M CDS±20 positions, only 0.7% B / 0.3% P labeled missense at low coverage. `coverage.parquet` added instead; genomes moved to O.5.
 - 2026-10-12 · 1.5 · UCSC phyloP100way + phastCons100way for 41.1M CDS±20 positions (99.99% filled) → 203 MB; lookup ~8 ms. Labeled missense median phyloP: benign 0.90 vs pathogenic 7.64.
 - 2026-10-12 · 1.6 · UniProt 2026_03: 17,384/19,229 MANE proteins matched by exact sequence (90.4%), 461k curated features (VARIANT/MUTAGEN and purely automatic evidence excluded). Key-region share: benign 17.5% vs pathogenic 36.1%.
+- 2026-10-12 · 2.1 · Missense features: train 183,343 (53,354 P, 14,934 genes), temporal 18,205, VUS 1.88M; 40 `f_` columns. Multi-gene variants dropped (32 train). Leakage audit PASS; absence from gnomAD is a strong signal (63% P vs 8% B).

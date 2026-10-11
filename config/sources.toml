@@ -156,3 +156,128 @@ md5 = "d500cf5a73c53f02d1b95f1e092f2e49"
 url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/constraint/gnomad.v4.1.constraint_metrics.tsv"
 version = "gnomAD v4.1 constraint"
 md5 = "14df4b2acb581fcbbb2a82a3a555fd35"
+
+[sources.gnomad_genomes_tbi_chr1]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr1.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "02c67bb77109f1638650c0cfa389efd3"
+
+[sources.gnomad_genomes_tbi_chr2]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr2.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "495c2e6b578719dc77c6fdca2e799875"
+
+[sources.gnomad_genomes_tbi_chr3]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr3.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "7c1561073864f92ce76682f5a8049d17"
+
+[sources.gnomad_genomes_tbi_chr4]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr4.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "2ae3b1436d71057eb513a233c73b6278"
+
+[sources.gnomad_genomes_tbi_chr5]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr5.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "4cb33aebe76d6daecf97f61e52da80dc"
+
+[sources.gnomad_genomes_tbi_chr6]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr6.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "59132364c566098d6c9640fda7374b9c"
+
+[sources.gnomad_genomes_tbi_chr7]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr7.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "7a73677be3fe16da3bdd051602c1f3de"
+
+[sources.gnomad_genomes_tbi_chr8]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr8.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "dd27f62d7160200e4b30b939f45b69c0"
+
+[sources.gnomad_genomes_tbi_chr9]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr9.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "c8db53ed8db04a0b5a95ff485e602e14"
+
+[sources.gnomad_genomes_tbi_chr10]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr10.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "8e1b974d66d41a2105c8aeb6c2b30bab"
+
+[sources.gnomad_genomes_tbi_chr11]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr11.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "cfcc3e35ebba2aba1fa01d5511f1677c"
+
+[sources.gnomad_genomes_tbi_chr12]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr12.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "bfac8b89bfebb82c155875ca28bff2e8"
+
+[sources.gnomad_genomes_tbi_chr13]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr13.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "fba3906439434b68c0e48c14d8a2d548"
+
+[sources.gnomad_genomes_tbi_chr14]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr14.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "12f370988f353e643133c516bd7f00c4"
+
+[sources.gnomad_genomes_tbi_chr15]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr15.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "c7c41dcc9e053954af7562ea0200a040"
+
+[sources.gnomad_genomes_tbi_chr16]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr16.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "94c1a5a500f088eef4670ebff98b0f41"
+
+[sources.gnomad_genomes_tbi_chr17]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr17.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "1cd1d1ba0e320cb609f033b7b6e5da47"
+
+[sources.gnomad_genomes_tbi_chr18]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr18.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "565b78fa172f1e20617ec9c66bdabc45"
+
+[sources.gnomad_genomes_tbi_chr19]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr19.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "b8af5ad748507cc4291165f705b4056b"
+
+[sources.gnomad_genomes_tbi_chr20]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr20.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "c6d3ce76c55d9bd41d849b7dd5ccad05"
+
+[sources.gnomad_genomes_tbi_chr21]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr21.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "83cf6b974c7e13c12279c0f195d4ce48"
+
+[sources.gnomad_genomes_tbi_chr22]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chr22.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "44f5ef4f99bfed0ec833686c8ba3abb0"
+
+[sources.gnomad_genomes_tbi_chrX]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chrX.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "4895e179e13fe52ff411e52b7fd695ca"
+
+[sources.gnomad_genomes_tbi_chrY]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/vcf/genomes/gnomad.genomes.v4.1.sites.chrY.vcf.bgz.tbi"
+version = "gnomAD v4.1 genomes (index only; VCF read by range requests)"
+md5 = "3e156c7a8d7c3c8c4e9e14cacd7e6556"
+
+[sources.gnomad_exomes_an_all_sites]
+url = "https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1/tsv/exomes/gnomad.exomes.v4.1.allele_number_all_sites.tsv.bgz"
+version = "gnomAD v4.1 exomes allele number at all sites"
+md5 = "ee71ce1ccfa5c1d9dd86e1ee1b1d11e2"

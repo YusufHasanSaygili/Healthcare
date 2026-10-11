@@ -1,6 +1,7 @@
 import gzip
 import re
 import time
+from bisect import bisect_right
 from collections.abc import Iterable, Iterator
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
@@ -9,6 +10,8 @@ import duckdb
 import polars as pl
 import pyarrow as pa
 import pyarrow.parquet as pq
+
+from healthcare.data.mane import merge_intervals
 
 INFO_FIELDS = {"AC": int, "AN": int, "AF": float, "nhomalt": int, "AF_grpmax": float, "grpmax": str}
 FORBIDDEN = re.compile(r"cadd|revel|spliceai|pangolin|polyphen|pphen|sift", re.IGNORECASE)
@@ -28,6 +31,7 @@ SCHEMA = pa.schema(
     ]
 )
 BATCH_ROWS = 500_000
+REGION_PADDING = 20
 VERSION = "gnomAD v4.1 exomes"
 assert not any(FORBIDDEN.search(name) for name in SCHEMA.names)
 CONSTRAINT_COLUMNS = {
@@ -133,6 +137,8 @@ def read_constraint(path: Path) -> pl.DataFrame:
 def build(
     vcfs: dict[str, Path],
     constraint_tsv: Path,
+    an_tsv: Path,
+    transcripts: pl.DataFrame,
     out_dir: Path,
     workers: int,
     limit: int | None = None,
@@ -153,6 +159,12 @@ def build(
         converted = {chrom: future.result() for chrom, future in futures.items()}
     constraint = read_constraint(constraint_tsv)
     constraint.write_parquet(out_dir / "constraint.parquet")
+    coverage_path = out_dir / "coverage.parquet"
+    coverage = (
+        build_coverage(an_tsv, transcripts, coverage_path)
+        if force or not coverage_path.exists()
+        else {"skipped": True}
+    )
     done = sorted(path.stem.removeprefix("chr") for path in exome_dir.glob("chr*.parquet"))
     return {
         "version": VERSION,
@@ -164,6 +176,7 @@ def build(
         ),
         "exome_bytes_total": sum(path.stat().st_size for path in exome_dir.glob("chr*.parquet")),
         "constraint_genes": constraint.height,
+        "coverage": coverage,
         "seconds": round(time.monotonic() - started, 1),
     }
 
@@ -182,3 +195,48 @@ def lookup_frequency(exome_dir: Path, chrom: str, pos: int, ref: str, alt: str) 
     return dict(
         zip(["filter_pass", "ac", "an", "af", "nhomalt", "af_grpmax", "grpmax"], row, strict=True)
     )
+
+
+def coding_regions(transcripts: pl.DataFrame, padding: int = REGION_PADDING) -> dict[str, list]:
+    regions: dict[str, list[tuple[int, int]]] = {}
+    for chrom, starts, ends in transcripts.select("chrom", "cds_starts", "cds_ends").iter_rows():
+        regions.setdefault(chrom, []).extend(
+            (max(1, start - padding), end + padding)
+            for start, end in zip(starts, ends, strict=True)
+        )
+    return {chrom: merge_intervals(intervals) for chrom, intervals in regions.items()}
+
+
+def in_regions(starts: list[int], ends: list[int], pos: int) -> bool:
+    index = bisect_right(starts, pos) - 1
+    return index >= 0 and pos <= ends[index]
+
+
+def build_coverage(an_tsv: Path, transcripts: pl.DataFrame, output: Path) -> dict:
+    started = time.monotonic()
+    regions = coding_regions(transcripts)
+    bounds = {c: ([s for s, _ in r], [e for _, e in r]) for c, r in regions.items()}
+    chroms, positions, numbers = [], [], []
+    with gzip.open(an_tsv, "rt", encoding="utf-8") as handle:
+        next(handle)
+        for line in handle:
+            locus, an, _ = line.split("	", 2)
+            chrom, pos = locus.removeprefix("chr").split(":")
+            if chrom in bounds and in_regions(*bounds[chrom], int(pos)):
+                chroms.append(chrom)
+                positions.append(int(pos))
+                numbers.append(int(an))
+    table = pl.DataFrame(
+        {"chrom": chroms, "pos": positions, "exome_an": numbers},
+        schema={"chrom": pl.String, "pos": pl.Int64, "exome_an": pl.Int64},
+    )
+    output.parent.mkdir(parents=True, exist_ok=True)
+    table.write_parquet(output)
+    region_bases = sum(e - s + 1 for rs in regions.values() for s, e in rs)
+    return {
+        "positions": table.height,
+        "region_bases": region_bases,
+        "covered_fraction": round(table.height / region_bases, 4),
+        "an_zero_fraction": round((table["exome_an"] == 0).mean(), 4),
+        "seconds": round(time.monotonic() - started, 1),
+    }

@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 1.4b Targeted gnomAD genome frequencies
+**Current task:** 1.5 Evolutionary conservation
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -76,12 +76,11 @@ Rules:
   - Acceptance: validated on `--chrom 22`, then a full background run; disk usage in the summary
   - Try it: a known variant's frequency comes back from a DuckDB query in milliseconds
 
-- [ ] **1.4b Targeted gnomAD genome frequencies**
-  - gnomAD v4.1 genome VCFs fetched with the tabix index (.tbi) and HTTP range requests, only for MANE CDS ±20 bp
-    (~10 GB instead of 563 GB); same parser and schema as exomes
-  - Also an "observed / covered" signal so missing exome frequency is not mistaken for "very rare"
-  - Acceptance: chr22 validated against a full download of the same region; disk usage and request count in summary
-  - Try it: a variant poorly covered in exomes returns a genome frequency
+- [x] **1.4b Exome coverage signal** (replaces targeted genomes, see O.5)
+  - Exome allele number at every MANE CDS ±20 bp position (`coverage.parquet`), so "not observed" can be told apart
+    from "not measured"
+  - Acceptance: coverage built by `build-gnomad`; low-coverage share of labeled missense measured
+  - Try it: the share of labeled missense variants at low-coverage positions is read from the summary
 
 - [ ] **1.5 Evolutionary conservation**
   - UCSC hg38 phyloP100way (and phastCons100way) wigFix files → Parquet keeping only MANE CDS ±20 bp positions
@@ -260,6 +259,9 @@ Rules:
   with the wild-type method.
 - [ ] **O.3 ESM-2 3B comparison:** measure the larger model's contribution and cost.
 - [ ] **O.4 Our own small masked protein model:** compare ESM with a small protein language model trained from scratch.
+- [ ] **O.5 Targeted gnomAD genome frequencies:** fetch genome records for MANE CDS ±20 bp with the tabix reader
+  (`data/tabix.py`) and in-window bisection over BGZF blocks (16 kb leaf bins are ~3 MB each, so whole-bin fetching
+  is not viable). Only worth it if results are poor at low-coverage positions (<1% of labeled missense).
 
 ---
 
@@ -273,3 +275,4 @@ Rules:
 - 2026-10-11 · 1.2 · Fixed `.gitignore`/`.graphifyignore` (`data/` was hiding `src/healthcare/data/`; `mane.py` was missing from the 1.1 commit).
 - 2026-10-11 · 1.3 · SNV annotator: missense HGVS agreement 175,203/175,203 (100%), consequence agreement 99.999%; missense train set 183,375 (53,371 P / 130,004 B, 14,934 genes). `/code-review`: 8 findings, all fixed.
 - 2026-10-11 · 1.4a · gnomAD v4.1 exomes: 183.7M variants → 2.2 GB Parquet (24 chr, md5-verified), DuckDB lookup ~40 ms; 17,481 MANE constraint rows (no `mis_pphen`). Missense: 91% of benign vs 33% of pathogenic seen in gnomAD. Leakage audit PASS.
+- 2026-10-12 · 1.4b · Targeted genomes dropped: tabix leaf bins (16 kb ≈ 3 MB) make it ~full download; exome covers 99.96% of 41.1M CDS±20 positions, only 0.7% B / 0.3% P labeled missense at low coverage. `coverage.parquet` added instead; genomes moved to O.5.

@@ -2,6 +2,7 @@ import argparse
 import sys
 import time
 
+import polars as pl
 from pyfaidx import Fasta
 
 from healthcare import __version__, doctor
@@ -148,14 +149,19 @@ def run_build_gnomad(chrom: str | None, limit: int | None, force: bool, workers:
     }
     if chrom:
         names = {chrom: names[chrom]}
-    if not sources["gnomad_constraint"].path.exists():
-        print("missing raw file, run: healthcare download gnomad_constraint")
+    required = ("gnomad_constraint", "gnomad_exomes_an_all_sites")
+    if not all(sources[name].path.exists() for name in required) or not TRANSCRIPTS.exists():
+        print(
+            f"missing inputs: run `healthcare download {' '.join(required)}` and build-transcripts"
+        )
         return 2
     suffix = f".n{limit}" if limit else ""
     log_path = start_log("build-gnomad")
     summary = {"log": log_path} | gnomad.build(
         names,
         sources["gnomad_constraint"].path,
+        sources["gnomad_exomes_an_all_sites"].path,
+        pl.read_parquet(TRANSCRIPTS),
         DATA_DIR / "processed" / f"gnomad{suffix}",
         workers,
         limit,

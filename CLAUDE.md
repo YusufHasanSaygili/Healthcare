@@ -290,6 +290,12 @@ Agent tool only at these moments, reviews only the relevant code and summaries, 
 When invoking it, name the files and summary files to review; do not have it scan the whole project.
 🔴 Critical findings are fixed before moving on. 🟡 and 🟢 findings are reported briefly to the user.
 
+## Code Review
+
+Run the built-in `/code-review` skill at the end of tasks where a bug is expensive downstream: **1.3** and **8.1**
+(our annotator), **5.1** (dual tower model) and **7.2** (API). Review only the task's diff. Fix confirmed findings
+before the completion report; mention the rest briefly. Do not run it on other tasks unless the user asks.
+
 ---
 
 # 9. Context and Token Efficiency
@@ -478,6 +484,8 @@ A task is complete only when:
 | 2026-10-11 | Gene-disjoint split + temporal test + locked test set; LightGBM baseline. | Honest evaluation; prevents memorization and leakage. |
 | 2026-10-11 | Backend Python (FastAPI + ONNX Runtime + DuckDB), frontend React + TypeScript + Vite. | UI decoupled from backend; speed on large data is solved in the query layer. |
 | 2026-10-11 | Repository fully English, no code comments/docstrings; single bilingual README; UI may offer Turkish. | User's explicit requirement; international CV presentation. |
+| 2026-10-11 | ClinVar: training = October 2025 release (cumulative); temporal test = variants first added between October 2025 and October 2026; reclassified variants reported separately, never mixed into the test set. | Honest "future variants" test; reclassifications are a distinct, interesting finding. |
+| 2026-10-11 | `/code-review` at the end of tasks 1.3, 5.1, 7.2, 8.1 only. | Fresh-eyes review where bugs are costly, without per-task token cost. |
 | 2026-10-11 | Environment: Windows 11, uv, Docker available / no WSL2, data on A: (990 Pro). | User's hardware. |
 
 ## graphify

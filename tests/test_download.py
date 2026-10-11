@@ -81,6 +81,14 @@ def test_restarts_when_server_ignores_range(server, tmp_path):
     assert dest.read_bytes() == PAYLOAD
 
 
+def test_verifies_md5(server, tmp_path):
+    dest = tmp_path / "file.bin"
+    result = download(server, dest, md5=hashlib.md5(PAYLOAD).hexdigest())
+    assert result["verified"]
+    with pytest.raises(ChecksumMismatch):
+        download(server, tmp_path / "other.bin", md5="0" * 32)
+
+
 def test_checksum_mismatch_leaves_no_file(server, tmp_path):
     dest = tmp_path / "file.bin"
     with pytest.raises(ChecksumMismatch):

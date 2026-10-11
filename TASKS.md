@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 1.2 ClinVar labels
+**Current task:** 1.3 Our own variant annotator: SNVs
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -49,9 +49,10 @@ Rules:
   - Try it: the summary JSON shows transcript count and translation agreement; a sample gene's (e.g. BRCA1) protein
     sequence is verified
 
-- [ ] **1.2 ClinVar labels** 🔍
-  - A ClinVar GRCh38 VCF release pinned for training (roughly one year old monthly release) + the current release for
-    the temporal test
+- [x] **1.2 ClinVar labels** 🔍
+  - ClinVar GRCh38 VCF: October 2025 release for training + October 2026 release for the temporal test
+    (variants first added in between); variants whose label changed between the two releases go to a separate
+    reclassification table, never into the test set
   - Labeling rules from CLAUDE.md Section 7; REF check against the reference genome; deduplication
   - VUS records in a separate table; HGVS protein and molecular consequence fields kept in separate columns for
     validation only
@@ -63,7 +64,7 @@ Rules:
   - SNV types: missense, synonymous, stop-gained, stop-lost, start-lost, canonical splice (±1/2), intronic / out of scope
   - Unit tests for both strands, codon boundaries and exon edges
   - Acceptance: missense agreement with the ClinVar HGVS protein field ≥99%; mismatching examples written to the
-    summary and reviewed
+    summary and reviewed; `/code-review` on the task diff passes
   - Try it: the agreement report is read; a few known variants are run through the CLI and show the expected amino
     acid change
 
@@ -99,6 +100,10 @@ Rules:
 - [ ] **2.2 Gene-disjoint split and temporal test** 🔍
   - Gene-disjoint train / validation / test with a fixed seed (about 70 / 15 / 15, class balance considered)
   - Temporal test: variants added to ClinVar after the training release and absent from training
+  - Split on the MANE gene assigned by our annotator (never ClinVar's GENEINFO); variants mapping to several genes
+    are handled explicitly
+  - Temporal metrics also reported on the gene-disjoint subset (temporal variants whose genes are in validation/test),
+    since most temporal genes also appear in training
   - Split file + hash; automated tests verifying gene and variant overlap
   - Acceptance: overlap tests pass; no 🔴 findings from the leakage-auditor
   - Try it: the split summary shows gene / variant / class counts per set and overlap = 0
@@ -107,6 +112,7 @@ Rules:
 
 - [ ] **3.1 LightGBM baseline**
   - Train on the training set, early stopping on validation; metrics **on the validation set only**
+  - Small hyperparameter sweep selected on validation only
   - Feature importance with shap; ablation without allele frequency
   - Acceptance: validation metrics and importance plot under `reports/`; test set not opened
   - Try it: validation ROC-AUC / PR-AUC / MCC and top features are read
@@ -135,8 +141,10 @@ Rules:
 
 - [ ] **5.1 Dual tower model**
   - PyTorch: protein tower (ESM representation) + measurement tower + fusion head; tower dropout; variant type input
-  - Early stopping on validation; multiple seeds
-  - Acceptance: validation metrics reported side by side with LightGBM
+  - Hyperparameter sweep (hidden size e.g. d128/d256/d384, depth, dropout, tower-dropout rate) × several seeds,
+    all logged to one results table; the winner is chosen on validation only and reported as mean ± std over seeds
+  - Early stopping on validation
+  - Acceptance: validation metrics reported side by side with LightGBM; `/code-review` on the task diff passes
   - Try it: dual tower vs LightGBM validation table is read
 
 - [ ] **5.2 Calibration and the "Uncertain" band**
@@ -171,7 +179,7 @@ Rules:
 - [ ] **7.2 FastAPI**
   - `/api/health`, `/api/predict`, `/api/predict/batch` (size- and row-limited VCF upload), `/api/model-card`
   - pydantic schemas; `127.0.0.1` only; CORS limited to the local Vite origin; uploads never written to disk
-  - Acceptance: API tests (valid / invalid input, size limit)
+  - Acceptance: API tests (valid / invalid input, size limit); `/code-review` on the task diff passes
   - Try it: a single-variant query from the `/docs` page
 
 - [ ] **7.3 Web skeleton**
@@ -200,7 +208,7 @@ Rules:
 
 - [ ] **8.1 Extend the annotator to indels**
   - Left-normalization, frameshift, in-frame insertion / deletion, canonical splice effects of indels
-  - Acceptance: per-type agreement report against ClinVar HGVS; unit tests
+  - Acceptance: per-type agreement report against ClinVar HGVS; unit tests; `/code-review` on the task diff passes
   - Try it: known frameshift and in-frame variants are run through the CLI
 
 - [ ] **8.2 Type-specific features** 🔍
@@ -251,3 +259,5 @@ Rules:
 - 2026-10-11 · 0.1 · Python 3.12 (uv), PyTorch 2.14.1+cu130 on RTX 4070 Ti; `healthcare doctor` CLI; Graphify installed (AST-only `graphify update .`, hooks active).
 - 2026-10-11 · 0.2 · Stdlib downloader (resume, sha256, skip, `--force`), `healthcare download`, summaries in `logs/summaries/`; first source MANE v1.5 summary pinned. `--chrom`/`--limit` deferred to 1.1.
 - 2026-10-11 · 1.1 · 19,229 MANE v1.5 transcripts on 1–22/X/Y, CDS translation match 99.995% (non-ATG starts and selenocysteine accepted, flagged in `translation_note`); 60 genes annotated only on fix/alt patches are excluded.
+- 2026-10-11 · 1.2 · ClinVar 2025-10-06: 1.52M labels (282k P / 1.24M B), 2.07M VUS; temporal (new in 2026-10-04): 186,768 (44k P); 3,392 VUS resolved, 28 flips. Leakage audit PASS; metadata columns prefixed `clinvar_`/`validation_`.
+- 2026-10-11 · 1.2 · Fixed `.gitignore`/`.graphifyignore` (`data/` was hiding `src/healthcare/data/`; `mane.py` was missing from the 1.1 commit).

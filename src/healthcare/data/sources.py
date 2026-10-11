@@ -13,6 +13,7 @@ class Source:
     url: str
     version: str
     sha256: str | None = None
+    md5: str | None = None
 
     @property
     def path(self) -> Path:

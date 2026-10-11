@@ -1,6 +1,6 @@
-data/
-artifacts/
-logs/
+/data/
+/artifacts/
+/logs/
 graphify-out/
 .venv/
 __pycache__/

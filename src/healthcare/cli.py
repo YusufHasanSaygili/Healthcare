@@ -2,7 +2,7 @@ import argparse
 import sys
 
 from healthcare import __version__, doctor
-from healthcare.data import mane
+from healthcare.data import clinvar, mane
 from healthcare.data.download import ChecksumMismatch, download
 from healthcare.data.sources import load_sources
 from healthcare.paths import DATA_DIR
@@ -22,7 +22,7 @@ def run_download(names: list[str], force: bool) -> int:
         source = sources[name]
         try:
             results[name] = {"version": source.version} | download(
-                source.url, source.path, source.sha256, force
+                source.url, source.path, source.sha256, force, source.md5
             )
         except (ChecksumMismatch, OSError) as error:
             results[name] = {"status": "failed", "error": str(error)}
@@ -63,6 +63,32 @@ def run_build_transcripts(chrom: str | None, limit: int | None, force: bool) -> 
     return 0
 
 
+def run_build_clinvar(force: bool) -> int:
+    sources = load_sources()
+    out_dir = DATA_DIR / "processed" / "clinvar"
+    reference = DATA_DIR / "interim" / "reference" / "GRCh38.primary_assembly.fa"
+    if (out_dir / "train_labels.parquet").exists() and not force:
+        print(f"skipped: {out_dir} exists (use --force)")
+        return 0
+    required = ("clinvar_2025", "clinvar_2026", "clinvar_summary_2025")
+    missing = [name for name in required if not sources[name].path.exists()]
+    if missing or not reference.exists():
+        print("missing inputs: run `healthcare download` and `healthcare build-transcripts` first")
+        return 2
+    log_path = start_log("build-clinvar")
+    summary = {"log": log_path} | clinvar.build(
+        sources["clinvar_2025"].path,
+        sources["clinvar_2026"].path,
+        sources["clinvar_summary_2025"].path,
+        reference,
+        out_dir,
+    )
+    summary_path = write_summary("build-clinvar", summary)
+    print(f"train labels: {summary['train_labels']}, temporal labels: {summary['temporal_labels']}")
+    print(f"summary: {summary_path}")
+    return 0
+
+
 def add_sample_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--chrom", help="Process a single chromosome, e.g. 22")
     parser.add_argument("--limit", type=int, help="Process at most N records")
@@ -81,6 +107,12 @@ def main(argv: list[str] | None = None) -> int:
         "build-transcripts", help="Build the MANE Select transcript table and verify translations"
     )
     add_sample_args(transcripts_parser)
+    clinvar_parser = commands.add_parser(
+        "build-clinvar", help="Build ClinVar training, VUS, temporal and reclassification tables"
+    )
+    clinvar_parser.add_argument(
+        "--force", action="store_true", help="Rebuild even if output exists"
+    )
     args = parser.parse_args(argv)
     if args.command == "doctor":
         return doctor.run()
@@ -88,6 +120,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_download(args.sources, args.force)
     if args.command == "build-transcripts":
         return run_build_transcripts(args.chrom, args.limit, args.force)
+    if args.command == "build-clinvar":
+        return run_build_clinvar(args.force)
     return 2
 
 

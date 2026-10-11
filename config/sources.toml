@@ -17,3 +17,17 @@ sha256 = "71d4b3c89c9d948683bf0db5d81b00d9ae9f3b943177b74cbd87e68f08e34d66"
 url = "https://ftp.ncbi.nlm.nih.gov/refseq/MANE/MANE_human/release_1.5/MANE.GRCh38.v1.5.ensembl_protein.faa.gz"
 version = "MANE v1.5"
 sha256 = "49b71a5acb492cf692f990b584134528877f47b39d4539e1b9f05f607498b71a"
+
+[sources.clinvar_2025]
+url = "https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2025/clinvar_20251006.vcf.gz"
+version = "ClinVar 2025-10-06 (training)"
+md5 = "b3737280b4b5a9e4a3e187ece89a7581"
+
+[sources.clinvar_2026]
+url = "https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar_20261004.vcf.gz"
+version = "ClinVar 2026-10-04 (temporal test)"
+md5 = "c665dba2aa11f745fc38a6973af8025e"
+
+[sources.clinvar_summary_2025]
+url = "https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2025-10.txt.gz"
+version = "ClinVar variant_summary 2025-10 (HGVS validation only)"

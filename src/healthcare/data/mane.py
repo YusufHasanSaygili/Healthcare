@@ -154,6 +154,7 @@ def build_transcript_table(
                 "cds_starts": [s for s, _ in coding],
                 "cds_ends": [e for _, e in coding],
                 "cds_length": len(cds),
+                "cds_sequence": cds,
                 "protein": official,
                 "translation_note": note,
                 "translation_matches": is_accepted(note),

@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 1.3 Our own variant annotator: SNVs
+**Current task:** 1.4 gnomAD allele frequencies and gene constraint
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -59,7 +59,7 @@ Rules:
   - Acceptance: unit tests for labeling rules; summary JSON with class × stars × type distribution
   - Try it: the summary shows how many pathogenic / benign / VUS records exist and their type distribution
 
-- [ ] **1.3 Our own variant annotator: SNVs**
+- [x] **1.3 Our own variant annotator: SNVs**
   - Genomic SNV → MANE transcript → codon → amino acid change and protein position
   - SNV types: missense, synonymous, stop-gained, stop-lost, start-lost, canonical splice (±1/2), intronic / out of scope
   - Unit tests for both strands, codon boundaries and exon edges
@@ -261,3 +261,4 @@ Rules:
 - 2026-10-11 · 1.1 · 19,229 MANE v1.5 transcripts on 1–22/X/Y, CDS translation match 99.995% (non-ATG starts and selenocysteine accepted, flagged in `translation_note`); 60 genes annotated only on fix/alt patches are excluded.
 - 2026-10-11 · 1.2 · ClinVar 2025-10-06: 1.52M labels (282k P / 1.24M B), 2.07M VUS; temporal (new in 2026-10-04): 186,768 (44k P); 3,392 VUS resolved, 28 flips. Leakage audit PASS; metadata columns prefixed `clinvar_`/`validation_`.
 - 2026-10-11 · 1.2 · Fixed `.gitignore`/`.graphifyignore` (`data/` was hiding `src/healthcare/data/`; `mane.py` was missing from the 1.1 commit).
+- 2026-10-11 · 1.3 · SNV annotator: missense HGVS agreement 175,203/175,203 (100%), consequence agreement 99.999%; missense train set 183,375 (53,371 P / 130,004 B, 14,934 genes). `/code-review`: 8 findings, all fixed.

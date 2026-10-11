@@ -1,8 +1,11 @@
 import argparse
 import sys
 
+from pyfaidx import Fasta
+
 from healthcare import __version__, doctor
-from healthcare.data import clinvar, mane
+from healthcare.annotate.snv import TranscriptIndex, parse_snv
+from healthcare.data import annotations, clinvar, mane
 from healthcare.data.download import ChecksumMismatch, download
 from healthcare.data.sources import load_sources
 from healthcare.paths import DATA_DIR
@@ -89,6 +92,52 @@ def run_build_clinvar(force: bool) -> int:
     return 0
 
 
+TRANSCRIPTS = DATA_DIR / "processed" / "transcripts.parquet"
+REFERENCE = DATA_DIR / "interim" / "reference" / "GRCh38.primary_assembly.fa"
+
+
+def run_build_annotations(limit: int | None, force: bool) -> int:
+    suffix = f".n{limit}" if limit else ""
+    out_dir = DATA_DIR / "processed" / f"annotations{suffix}"
+    if (out_dir / "train_labels.parquet").exists() and not force:
+        print(f"skipped: {out_dir} exists (use --force)")
+        return 0
+    clinvar_dir = DATA_DIR / "processed" / "clinvar"
+    if not TRANSCRIPTS.exists() or not (clinvar_dir / "train_labels.parquet").exists():
+        print("missing inputs: run `healthcare build-transcripts` and `healthcare build-clinvar`")
+        return 2
+    log_path = start_log("build-annotations")
+    summary = {"log": log_path} | annotations.build(TRANSCRIPTS, clinvar_dir, out_dir, limit)
+    summary_path = write_summary("build-annotations", summary)
+    print(f"missense agreement: {summary['train_labels'].get('missense_agreement')}")
+    print(f"summary: {summary_path}")
+    return 0
+
+
+def run_annotate(variant: str) -> int:
+    try:
+        chrom, pos, ref, alt = parse_snv(variant)
+    except ValueError as error:
+        print(error)
+        return 2
+    sequence = Fasta(str(REFERENCE))[chrom]
+    if pos > len(sequence):
+        print(f"position {pos} is beyond the end of chromosome {chrom} ({len(sequence)})")
+        return 2
+    genome_ref = sequence[pos - 1 : pos].seq.upper()
+    if genome_ref != ref:
+        print(f"REF mismatch: the reference genome has {genome_ref} at {chrom}:{pos}, not {ref}")
+        return 2
+    index = TranscriptIndex(annotations.load_transcripts(TRANSCRIPTS))
+    results = index.annotate(chrom, pos, ref, alt)
+    if not results:
+        print("no MANE Select transcript overlaps this position (out of scope)")
+    for result in results:
+        details = f" {result.hgvs_p} (c.{result.cds_position})" if result.hgvs_p else ""
+        print(f"{result.gene_name} {result.transcript_id}: {result.consequence}{details}")
+    return 0
+
+
 def add_sample_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--chrom", help="Process a single chromosome, e.g. 22")
     parser.add_argument("--limit", type=int, help="Process at most N records")
@@ -113,6 +162,13 @@ def main(argv: list[str] | None = None) -> int:
     clinvar_parser.add_argument(
         "--force", action="store_true", help="Rebuild even if output exists"
     )
+    annotations_parser = commands.add_parser(
+        "build-annotations", help="Annotate ClinVar SNVs with our MANE-based annotator"
+    )
+    annotations_parser.add_argument("--limit", type=int, help="Annotate at most N rows per table")
+    annotations_parser.add_argument("--force", action="store_true", help="Rebuild even if present")
+    annotate_parser = commands.add_parser("annotate", help="Annotate one SNV, e.g. 17:43045712 G>A")
+    annotate_parser.add_argument("variant")
     args = parser.parse_args(argv)
     if args.command == "doctor":
         return doctor.run()
@@ -122,6 +178,10 @@ def main(argv: list[str] | None = None) -> int:
         return run_build_transcripts(args.chrom, args.limit, args.force)
     if args.command == "build-clinvar":
         return run_build_clinvar(args.force)
+    if args.command == "build-annotations":
+        return run_build_annotations(args.limit, args.force)
+    if args.command == "annotate":
+        return run_annotate(args.variant)
     return 2
 
 

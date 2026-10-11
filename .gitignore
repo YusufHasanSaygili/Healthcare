@@ -1,0 +1,15 @@
+data/
+artifacts/
+logs/
+graphify-out/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+web/node_modules/
+web/dist/
+.env
+.env.*
+!.env.example
+.claude/settings.local.json

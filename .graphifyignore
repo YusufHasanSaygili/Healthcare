@@ -1,0 +1,6 @@
+data/
+artifacts/
+logs/
+web/node_modules/
+.venv/
+.claude/

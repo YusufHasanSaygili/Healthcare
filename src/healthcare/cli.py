@@ -11,7 +11,8 @@ from healthcare.data import annotations, clinvar, conservation, gnomad, mane, un
 from healthcare.data.download import ChecksumMismatch, download
 from healthcare.data.sources import load_sources
 from healthcare.features import missense
-from healthcare.paths import DATA_DIR, REPORTS_DIR
+from healthcare.models import baseline
+from healthcare.paths import ARTIFACTS_DIR, DATA_DIR, REPORTS_DIR
 from healthcare.runlog import start_log, write_summary
 from healthcare.split import genes as gene_split
 
@@ -317,6 +318,20 @@ def run_build_split(force: bool) -> int:
     return 0
 
 
+def run_train_baseline(trials: int) -> int:
+    splits_dir = DATA_DIR / "processed" / "splits"
+    if not (splits_dir / "missense_open.parquet").exists():
+        print("missing inputs: run `healthcare build-split` first")
+        return 2
+    log_path = start_log("train-baseline")
+    report = baseline.run(splits_dir, ARTIFACTS_DIR / "models", REPORTS_DIR, trials)
+    write_summary("train-baseline", {"log": log_path} | report)
+    validation = report["validation"]
+    print(f"validation ROC-AUC {validation['roc_auc']:.4f}, PR-AUC {validation['pr_auc']:.4f}")
+    print(f"report: {REPORTS_DIR / 'baseline_lightgbm.json'}")
+    return 0
+
+
 def add_sample_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--chrom", help="Process a single chromosome, e.g. 22")
     parser.add_argument("--limit", type=int, help="Process at most N records")
@@ -383,6 +398,10 @@ def main(argv: list[str] | None = None) -> int:
         "build-split", help="Create (once) the gene-disjoint train/validation/test split"
     )
     split_parser.add_argument("--force", action="store_true", help="Regenerate the pinned split")
+    baseline_parser = commands.add_parser(
+        "train-baseline", help="Train the LightGBM baseline with a small sweep (validation only)"
+    )
+    baseline_parser.add_argument("--trials", type=int, default=30, help="Random-search trials")
     args = parser.parse_args(argv)
     if args.command == "doctor":
         return doctor.run()
@@ -412,6 +431,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_build_features(args.force)
     if args.command == "build-split":
         return run_build_split(args.force)
+    if args.command == "train-baseline":
+        return run_train_baseline(args.trials)
     return 2
 
 

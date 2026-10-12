@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 3.1 LightGBM baseline
+**Current task:** 4.1 ESM-2 setup and single-protein trial
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -121,7 +121,7 @@ Rules:
 
 ## Phase 3 — Baseline Model
 
-- [ ] **3.1 LightGBM baseline**
+- [x] **3.1 LightGBM baseline**
   - Train on the training set, early stopping on validation; metrics **on the validation set only**
   - Small hyperparameter sweep selected on validation only
   - Feature importance with shap; ablation without allele frequency
@@ -285,3 +285,4 @@ Rules:
 - 2026-10-12 · 1.6 · UniProt 2026_03: 17,384/19,229 MANE proteins matched by exact sequence (90.4%), 461k curated features (VARIANT/MUTAGEN and purely automatic evidence excluded). Key-region share: benign 17.5% vs pathogenic 36.1%.
 - 2026-10-12 · 2.1 · Missense features: train 183,343 (53,354 P, 14,934 genes), temporal 18,205, VUS 1.88M; 40 `f_` columns. Multi-gene variants dropped (32 train). Leakage audit PASS; absence from gnomAD is a strong signal (63% P vs 8% B).
 - 2026-10-12 · 2.2 · Split pinned (sha256): train 128,340 / val 27,502 / test 27,501 variants, 29.1% P each; all 19,229 MANE genes assigned, CDS-overlapping genes grouped (32 merged groups), 0 overlaps. Test + temporal only in `splits/locked/`, readable via `load_split(allow_locked=True)`. Temporal test_gene subset: 2,919. Leakage audit PASS (5 findings fixed).
+- 2026-10-12 · 3.1 · LightGBM baseline (30-trial sweep, early stopping on 10% held-out train genes): validation ROC-AUC 0.985 [0.982–0.987], PR-AUC 0.963, MCC 0.873. No-AF 0.944, no-gene-level 0.983 (no gene memorization). Test not opened.

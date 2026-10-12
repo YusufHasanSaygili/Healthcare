@@ -332,6 +332,26 @@ def run_train_baseline(trials: int) -> int:
     return 0
 
 
+def run_esm_trial(gene: str, change: str | None) -> int:
+    from healthcare.esm import trial
+
+    log_path = start_log("esm-trial")
+    summary = {"log": log_path} | trial.run(
+        TRANSCRIPTS,
+        DATA_DIR / "processed" / "splits",
+        ARTIFACTS_DIR / "hf",
+        gene.upper(),
+        trial.parse_protein_change(change) if change else None,
+    )
+    summary_path = write_summary("esm-trial", summary)
+    print(f"{summary['gene']}: {summary['protein_length']} aa in {summary['seconds']} s")
+    if "variant" in summary:
+        print(f"{summary['variant']['change']}: LLR {summary['variant']['llr']}")
+    print(f"peak GPU memory: {summary['peak_gpu_memory_gib']} GiB")
+    print(f"summary: {summary_path}")
+    return 0
+
+
 def add_sample_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--chrom", help="Process a single chromosome, e.g. 22")
     parser.add_argument("--limit", type=int, help="Process at most N records")
@@ -402,6 +422,9 @@ def main(argv: list[str] | None = None) -> int:
         "train-baseline", help="Train the LightGBM baseline with a small sweep (validation only)"
     )
     baseline_parser.add_argument("--trials", type=int, default=30, help="Random-search trials")
+    esm_parser = commands.add_parser("esm-trial", help="Run ESM-2 on one MANE protein")
+    esm_parser.add_argument("--gene", default="BRCA1")
+    esm_parser.add_argument("--change", default="p.Arg1699Trp", help="Protein change to score")
     args = parser.parse_args(argv)
     if args.command == "doctor":
         return doctor.run()
@@ -433,6 +456,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_build_split(args.force)
     if args.command == "train-baseline":
         return run_train_baseline(args.trials)
+    if args.command == "esm-trial":
+        return run_esm_trial(args.gene, args.change)
     return 2
 
 

@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 4.1 ESM-2 setup and single-protein trial
+**Current task:** 4.2 Precompute for all MANE proteins
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -130,7 +130,7 @@ Rules:
 
 ## Phase 4 — ESM-2 (Protein Tower)
 
-- [ ] **4.1 ESM-2 setup and single-protein trial**
+- [x] **4.1 ESM-2 setup and single-protein trial**
   - `facebook/esm2_t33_650M_UR50D` on GPU; wild-type probabilities and per-residue representations for one protein
   - Windowing strategy for proteins longer than 1022 amino acids
   - Acceptance: runtime and GPU memory measured; long-protein test passes
@@ -286,3 +286,4 @@ Rules:
 - 2026-10-12 · 2.1 · Missense features: train 183,343 (53,354 P, 14,934 genes), temporal 18,205, VUS 1.88M; 40 `f_` columns. Multi-gene variants dropped (32 train). Leakage audit PASS; absence from gnomAD is a strong signal (63% P vs 8% B).
 - 2026-10-12 · 2.2 · Split pinned (sha256): train 128,340 / val 27,502 / test 27,501 variants, 29.1% P each; all 19,229 MANE genes assigned, CDS-overlapping genes grouped (32 merged groups), 0 overlaps. Test + temporal only in `splits/locked/`, readable via `load_split(allow_locked=True)`. Temporal test_gene subset: 2,919. Leakage audit PASS (5 findings fixed).
 - 2026-10-12 · 3.1 · LightGBM baseline (30-trial sweep, early stopping on 10% held-out train genes): validation ROC-AUC 0.985 [0.982–0.987], PR-AUC 0.963, MCC 0.873. No-AF 0.944, no-gene-level 0.983 (no gene memorization). Test not opened.
+- 2026-10-12 · 4.1 · ESM-2 650M (pinned revision, safetensors, fp16) on RTX 4070 Ti: BRCA1 1,863 aa in 0.12 s, TTN 35,991 aa (70 windows) in 2.6 s, peak 1.35 GiB. Wild-type-marginal LLR: R1699W −13.9; open-split BRCA1 median LLR benign −3.8 vs pathogenic −11.2.

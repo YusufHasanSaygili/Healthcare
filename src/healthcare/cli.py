@@ -352,6 +352,21 @@ def run_esm_trial(gene: str, change: str | None) -> int:
     return 0
 
 
+ESM_STORE = ARTIFACTS_DIR / "esm"
+
+
+def run_build_esm(limit: int | None) -> int:
+    from healthcare.esm import store
+
+    log_path = start_log("build-esm")
+    summary = {"log": log_path} | store.build(TRANSCRIPTS, ESM_STORE, ARTIFACTS_DIR / "hf", limit)
+    summary_path = write_summary("build-esm", summary)
+    done, total = summary["proteins_done"], summary["proteins_requested"]
+    print(f"proteins done: {done}/{total}, errors: {summary['errors']}")
+    print(f"summary: {summary_path}")
+    return 0
+
+
 def add_sample_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--chrom", help="Process a single chromosome, e.g. 22")
     parser.add_argument("--limit", type=int, help="Process at most N records")
@@ -425,6 +440,10 @@ def main(argv: list[str] | None = None) -> int:
     esm_parser = commands.add_parser("esm-trial", help="Run ESM-2 on one MANE protein")
     esm_parser.add_argument("--gene", default="BRCA1")
     esm_parser.add_argument("--change", default="p.Arg1699Trp", help="Protein change to score")
+    build_esm_parser = commands.add_parser(
+        "build-esm", help="Precompute ESM-2 log-probabilities and embeddings for MANE proteins"
+    )
+    build_esm_parser.add_argument("--limit", type=int, help="Only the N shortest proteins")
     args = parser.parse_args(argv)
     if args.command == "doctor":
         return doctor.run()
@@ -458,6 +477,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_train_baseline(args.trials)
     if args.command == "esm-trial":
         return run_esm_trial(args.gene, args.change)
+    if args.command == "build-esm":
+        return run_build_esm(args.limit)
     return 2
 
 

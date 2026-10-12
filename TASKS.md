@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 4.2 Precompute for all MANE proteins
+**Current task:** 4.3 ESM features and contribution
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -136,7 +136,7 @@ Rules:
   - Acceptance: runtime and GPU memory measured; long-protein test passes
   - Try it: one protein's output and compute time appear in the summary
 
-- [ ] **4.2 Precompute for all MANE proteins**
+- [x] **4.2 Precompute for all MANE proteins**
   - Resumable background batch job; storage format and size (fp16, dimensionality reduction if needed) decided at the
     start of the task (ask the user if a new library is needed)
   - Acceptance: processed protein count, error count and total disk usage in the summary
@@ -287,3 +287,4 @@ Rules:
 - 2026-10-12 · 2.2 · Split pinned (sha256): train 128,340 / val 27,502 / test 27,501 variants, 29.1% P each; all 19,229 MANE genes assigned, CDS-overlapping genes grouped (32 merged groups), 0 overlaps. Test + temporal only in `splits/locked/`, readable via `load_split(allow_locked=True)`. Temporal test_gene subset: 2,919. Leakage audit PASS (5 findings fixed).
 - 2026-10-12 · 3.1 · LightGBM baseline (30-trial sweep, early stopping on 10% held-out train genes): validation ROC-AUC 0.985 [0.982–0.987], PR-AUC 0.963, MCC 0.873. No-AF 0.944, no-gene-level 0.983 (no gene memorization). Test not opened.
 - 2026-10-12 · 4.1 · ESM-2 650M (pinned revision, safetensors, fp16) on RTX 4070 Ti: BRCA1 1,863 aa in 0.12 s, TTN 35,991 aa (70 windows) in 2.6 s, peak 1.35 GiB. Wild-type-marginal LLR: R1699W −13.9; open-split BRCA1 median LLR benign −3.8 vs pathogenic −11.2.
+- 2026-10-12 · 4.2 · ESM-2 store: 19,228 proteins (11.1M residues), 0 errors, 11 min; full fp16 embeddings 28.5 GB + log-probs 0.45 GB per protein `.npy`, memory-mapped read ~9 ms.

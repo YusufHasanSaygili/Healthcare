@@ -1,6 +1,8 @@
 {
   "model": "LightGBM baseline (missense, phase 1)",
   "lightgbm_version": "4.7.0",
+  "esm_model": "facebook/esm2_t33_650M_UR50D",
+  "esm_revision": "08e4846e537177426273712802403f7ba8261b6c",
   "seed": 20261012,
   "rows": {
     "fit": 115294,
@@ -19,30 +21,55 @@
     "lambda_l2": 1.0,
     "max_depth": 6
   },
-  "best_iteration": 618,
+  "best_iteration": 560,
   "validation": {
-    "roc_auc": 0.9849,
-    "pr_auc": 0.9625,
-    "mcc": 0.8733,
-    "balanced_accuracy": 0.9269,
-    "brier": 0.0409,
-    "ece": 0.0284,
+    "roc_auc": 0.9899,
+    "pr_auc": 0.9762,
+    "mcc": 0.9025,
+    "balanced_accuracy": 0.9435,
+    "brier": 0.0318,
+    "ece": 0.0236,
     "threshold": 0.5,
     "n": 27502,
     "positives": 8003
   },
   "validation_gene_bootstrap_95ci": {
     "roc_auc": [
-      0.9822,
-      0.9871
+      0.9879,
+      0.9914
     ],
     "pr_auc": [
-      0.955,
-      0.9685
+      0.9711,
+      0.9799
     ]
   },
   "ablations": {
     "full": {
+      "features": 45,
+      "fit": {
+        "roc_auc": 0.9955,
+        "pr_auc": 0.9899,
+        "mcc": 0.9308,
+        "balanced_accuracy": 0.9649,
+        "brier": 0.0216,
+        "ece": 0.0113,
+        "threshold": 0.5,
+        "n": 115294,
+        "positives": 33478
+      },
+      "validation": {
+        "roc_auc": 0.9899,
+        "pr_auc": 0.9762,
+        "mcc": 0.9025,
+        "balanced_accuracy": 0.9435,
+        "brier": 0.0318,
+        "ece": 0.0236,
+        "threshold": 0.5,
+        "n": 27502,
+        "positives": 8003
+      }
+    },
+    "no_esm": {
       "features": 40,
       "fit": {
         "roc_auc": 0.9941,
@@ -68,6 +95,31 @@
       }
     },
     "no_frequency": {
+      "features": 38,
+      "fit": {
+        "roc_auc": 0.9766,
+        "pr_auc": 0.9515,
+        "mcc": 0.8296,
+        "balanced_accuracy": 0.9102,
+        "brier": 0.0518,
+        "ece": 0.0207,
+        "threshold": 0.5,
+        "n": 115294,
+        "positives": 33478
+      },
+      "validation": {
+        "roc_auc": 0.9617,
+        "pr_auc": 0.9081,
+        "mcc": 0.7679,
+        "balanced_accuracy": 0.8786,
+        "brier": 0.0691,
+        "ece": 0.0181,
+        "threshold": 0.5,
+        "n": 27502,
+        "positives": 8003
+      }
+    },
+    "no_frequency_no_esm": {
       "features": 33,
       "fit": {
         "roc_auc": 0.9681,
@@ -93,50 +145,75 @@
       }
     },
     "no_gene_level": {
-      "features": 32,
+      "features": 37,
       "fit": {
-        "roc_auc": 0.9838,
-        "pr_auc": 0.9622,
-        "mcc": 0.853,
-        "balanced_accuracy": 0.9242,
-        "brier": 0.0444,
-        "ece": 0.0106,
+        "roc_auc": 0.9891,
+        "pr_auc": 0.9748,
+        "mcc": 0.8848,
+        "balanced_accuracy": 0.9417,
+        "brier": 0.0356,
+        "ece": 0.009,
         "threshold": 0.5,
         "n": 115294,
         "positives": 33478
       },
       "validation": {
-        "roc_auc": 0.9825,
-        "pr_auc": 0.9561,
-        "mcc": 0.8084,
-        "balanced_accuracy": 0.8786,
-        "brier": 0.056,
-        "ece": 0.0559,
+        "roc_auc": 0.9887,
+        "pr_auc": 0.9732,
+        "mcc": 0.8711,
+        "balanced_accuracy": 0.9188,
+        "brier": 0.0408,
+        "ece": 0.0422,
         "threshold": 0.5,
         "n": 27502,
         "positives": 8003
       }
     },
     "no_frequency_no_gene_level": {
-      "features": 25,
+      "features": 30,
       "fit": {
-        "roc_auc": 0.9493,
-        "pr_auc": 0.8924,
-        "mcc": 0.7285,
-        "balanced_accuracy": 0.8574,
-        "brier": 0.0799,
-        "ece": 0.012,
+        "roc_auc": 0.9681,
+        "pr_auc": 0.9327,
+        "mcc": 0.7927,
+        "balanced_accuracy": 0.8918,
+        "brier": 0.0622,
+        "ece": 0.0104,
         "threshold": 0.5,
         "n": 115294,
         "positives": 33478
       },
       "validation": {
-        "roc_auc": 0.943,
-        "pr_auc": 0.8594,
-        "mcc": 0.6628,
-        "balanced_accuracy": 0.8077,
-        "brier": 0.0914,
-        "ece": 0.0437,
+        "roc_auc": 0.9597,
+        "pr_auc": 0.9019,
+        "mcc": 0.7493,
+        "balanced_accuracy": 0.8605,
+        "brier": 0.0737,
+        "ece": 0.0317,
+        "threshold": 0.5,
+        "n": 27502,
+        "positives": 8003
+      }
+    },
+    "esm_only": {
+      "features": 5,
+      "fit": {
+        "roc_auc": 0.9105,
+        "pr_auc": 0.8478,
+        "mcc": 0.6694,
+        "balanced_accuracy": 0.8185,
+        "brier": 0.098,
+        "ece": 0.0041,
+        "threshold": 0.5,
+        "n": 115294,
+        "positives": 33478
+      },
+      "validation": {
+        "roc_auc": 0.9035,
+        "pr_auc": 0.842,
+        "mcc": 0.6827,
+        "balanced_accuracy": 0.818,
+        "brier": 0.0967,
+        "ece": 0.0223,
         "threshold": 0.5,
         "n": 27502,
         "positives": 8003
@@ -146,79 +223,79 @@
   "top_features": [
     {
       "feature": "f_gnomad_af_grpmax",
-      "mean_abs_shap": 1.1945
+      "mean_abs_shap": 1.2116
     },
     {
       "feature": "f_phylop",
-      "mean_abs_shap": 1.1634
+      "mean_abs_shap": 0.8172
+    },
+    {
+      "feature": "f_esm_llr",
+      "mean_abs_shap": 0.5891
+    },
+    {
+      "feature": "f_esm_mut_log_prob",
+      "mean_abs_shap": 0.4654
     },
     {
       "feature": "f_phastcons",
-      "mean_abs_shap": 0.5074
+      "mean_abs_shap": 0.4017
     },
     {
       "feature": "f_gnomad_af",
-      "mean_abs_shap": 0.4839
+      "mean_abs_shap": 0.3946
     },
     {
       "feature": "f_protein_length",
-      "mean_abs_shap": 0.358
+      "mean_abs_shap": 0.3154
     },
     {
       "feature": "f_gnomad_ac",
-      "mean_abs_shap": 0.2511
+      "mean_abs_shap": 0.3098
     },
     {
       "feature": "f_gnomad_nhomalt",
-      "mean_abs_shap": 0.2474
-    },
-    {
-      "feature": "f_gene_lof_oe",
-      "mean_abs_shap": 0.2314
-    },
-    {
-      "feature": "f_aa_ref",
-      "mean_abs_shap": 0.2029
+      "mean_abs_shap": 0.2183
     },
     {
       "feature": "f_gene_pli",
-      "mean_abs_shap": 0.2012
+      "mean_abs_shap": 0.1865
     },
     {
-      "feature": "f_aa_alt",
-      "mean_abs_shap": 0.1893
+      "feature": "f_aa_ref",
+      "mean_abs_shap": 0.1715
     },
     {
-      "feature": "f_blosum62",
-      "mean_abs_shap": 0.1754
+      "feature": "f_gene_lof_oe",
+      "mean_abs_shap": 0.1565
     }
   ],
   "sweep_top5": [
     {
       "trial": 18,
-      "roc_auc": 0.9849,
-      "pr_auc": 0.9625
-    },
-    {
-      "trial": 10,
-      "roc_auc": 0.9848,
-      "pr_auc": 0.9617
+      "roc_auc": 0.9899,
+      "pr_auc": 0.9762
     },
     {
       "trial": 2,
-      "roc_auc": 0.9847,
-      "pr_auc": 0.9618
+      "roc_auc": 0.9897,
+      "pr_auc": 0.9756
+    },
+    {
+      "trial": 8,
+      "roc_auc": 0.9897,
+      "pr_auc": 0.976
     },
     {
       "trial": 16,
-      "roc_auc": 0.9847,
-      "pr_auc": 0.9623
+      "roc_auc": 0.9897,
+      "pr_auc": 0.9754
     },
     {
-      "trial": 5,
-      "roc_auc": 0.9845,
-      "pr_auc": 0.9615
+      "trial": 17,
+      "roc_auc": 0.9897,
+      "pr_auc": 0.9759
     }
   ],
-  "seconds": 66.0
+  "seconds": 106.2
 }

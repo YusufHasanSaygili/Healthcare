@@ -187,6 +187,11 @@ def load_split(splits_dir: Path, name: str, allow_locked: bool = False) -> pl.Da
     return pl.read_parquet(splits_dir / "locked" / f"missense_{name}.parquet")
 
 
+def identity_hash(labeled: pl.DataFrame) -> str:
+    identity = labeled.select(*KEY, "gene_name", "label").sort(KEY)
+    return hashlib.sha256(identity.write_csv().encode()).hexdigest()
+
+
 def check_pin(genes_path: Path, report_path: Path, train_hash: str, force: bool) -> bool:
     report = json.loads(report_path.read_text()) if report_path.exists() else None
     if force or (report is None and not genes_path.exists()):
@@ -195,9 +200,9 @@ def check_pin(genes_path: Path, report_path: Path, train_hash: str, force: bool)
         raise RuntimeError(f"{genes_path} is missing but {report_path} pins it; use --force")
     if report is None or report.get("genes_file_sha256") != file_hash(genes_path):
         raise RuntimeError(f"{genes_path} does not match the hash in {report_path}")
-    if report.get("train_labels_sha256") != train_hash:
+    if report.get("train_identity_sha256") != train_hash:
         raise RuntimeError(
-            "the training feature table changed since the split was pinned; use --force"
+            "training variants, genes or labels changed since the split was pinned; use --force"
         )
     return False
 
@@ -206,10 +211,10 @@ def build(
     features_dir: Path, transcripts_path: Path, splits_dir: Path, report_path: Path, force: bool
 ) -> dict:
     train_path = features_dir / "missense_train_labels.parquet"
-    train_hash = file_hash(train_path)
+    labeled = pl.read_parquet(train_path)
+    train_hash = identity_hash(labeled)
     genes_path = splits_dir / "genes.parquet"
     regenerate = check_pin(genes_path, report_path, train_hash, force)
-    labeled = pl.read_parquet(train_path)
     transcripts = pl.read_parquet(transcripts_path)
     if regenerate:
         splits_dir.mkdir(parents=True, exist_ok=True)
@@ -247,7 +252,7 @@ def build(
         "targets": TARGETS,
         "regenerated": regenerate,
         "genes_file_sha256": file_hash(genes_path),
-        "train_labels_sha256": train_hash,
+        "train_identity_sha256": train_hash,
         "mane_genes_assigned": genes.height,
         "gene_groups": genes["group"].n_unique(),
         "merged_gene_groups": genes.group_by("group").len().filter(pl.col("len") > 1).height,

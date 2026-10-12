@@ -7,7 +7,7 @@
   },
   "regenerated": false,
   "genes_file_sha256": "b2e9ddc06cb77bc8ae28418873709cd96044151ebb6d2a9de07cf83fd2b74066",
-  "train_labels_sha256": "0fb2893b46bd3309a85131df0fbbd591e1a47b208ebaa29debdba6d0bab10931",
+  "train_identity_sha256": "094057d6185f1e40a0cda0dca0b31b843ea2b1b78e08aa34aad6d8d4d659dd69",
   "mane_genes_assigned": 19229,
   "gene_groups": 19157,
   "merged_gene_groups": 32,

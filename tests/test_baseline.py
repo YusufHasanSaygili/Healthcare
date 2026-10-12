@@ -63,3 +63,19 @@ def test_early_stopping_genes_are_deterministic_and_gene_grouped():
     first = baseline.early_stopping_genes(train)
     assert first == baseline.early_stopping_genes(train)
     assert len(first) == 10
+
+
+def test_esm_contribution_deltas():
+    def block(auc):
+        return {"validation": {"roc_auc": auc, "pr_auc": auc - 0.1}}
+
+    ablations = {
+        "full": block(0.99),
+        "no_esm": block(0.98),
+        "no_frequency": block(0.96),
+        "no_frequency_no_esm": block(0.94),
+        "esm_only": block(0.9),
+    }
+    result = baseline.esm_contribution(ablations)
+    assert result["comparison"]["without_frequency"]["delta_roc_auc"] == pytest.approx(0.02)
+    assert result["esm_revision"] and result["test_set_opened"] is False

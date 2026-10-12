@@ -1,0 +1,72 @@
+{
+  "split": "validation (gene-disjoint)",
+  "test_set_opened": false,
+  "seed": 20261012,
+  "esm_model": "facebook/esm2_t33_650M_UR50D",
+  "esm_revision": "08e4846e537177426273712802403f7ba8261b6c",
+  "comparison": {
+    "with_frequency": {
+      "with_esm": {
+        "roc_auc": 0.9899,
+        "pr_auc": 0.9762,
+        "mcc": 0.9025,
+        "balanced_accuracy": 0.9435,
+        "brier": 0.0318,
+        "ece": 0.0236,
+        "threshold": 0.5,
+        "n": 27502,
+        "positives": 8003
+      },
+      "without_esm": {
+        "roc_auc": 0.9849,
+        "pr_auc": 0.9625,
+        "mcc": 0.8733,
+        "balanced_accuracy": 0.9269,
+        "brier": 0.0409,
+        "ece": 0.0284,
+        "threshold": 0.5,
+        "n": 27502,
+        "positives": 8003
+      },
+      "delta_roc_auc": 0.005,
+      "delta_pr_auc": 0.0137
+    },
+    "without_frequency": {
+      "with_esm": {
+        "roc_auc": 0.9617,
+        "pr_auc": 0.9081,
+        "mcc": 0.7679,
+        "balanced_accuracy": 0.8786,
+        "brier": 0.0691,
+        "ece": 0.0181,
+        "threshold": 0.5,
+        "n": 27502,
+        "positives": 8003
+      },
+      "without_esm": {
+        "roc_auc": 0.9444,
+        "pr_auc": 0.8627,
+        "mcc": 0.7084,
+        "balanced_accuracy": 0.8489,
+        "brier": 0.0851,
+        "ece": 0.023,
+        "threshold": 0.5,
+        "n": 27502,
+        "positives": 8003
+      },
+      "delta_roc_auc": 0.0173,
+      "delta_pr_auc": 0.0454
+    }
+  },
+  "esm_only_5_features": {
+    "roc_auc": 0.9035,
+    "pr_auc": 0.842,
+    "mcc": 0.6827,
+    "balanced_accuracy": 0.818,
+    "brier": 0.0967,
+    "ece": 0.0223,
+    "threshold": 0.5,
+    "n": 27502,
+    "positives": 8003
+  }
+}

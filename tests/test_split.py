@@ -125,3 +125,22 @@ def test_temporal_subsets_and_shared_positions():
         "new_gene",
     ]
     assert labeled["shares_position_with_train"].to_list() == [True, False, False, False]
+
+
+def test_pin_allows_new_feature_columns_but_not_label_changes(tmp_path):
+    features, tx_path, splits, report = write_inputs(tmp_path)
+    gene_split.build(features, tx_path, splits, report, force=False)
+    train_path = features / "missense_train_labels.parquet"
+    original = pl.read_parquet(train_path)
+    original.with_columns(pl.lit(1.0).alias("f_new_feature")).write_parquet(train_path)
+    assert not gene_split.build(features, tx_path, splits, report, force=False)["regenerated"]
+    assert "f_new_feature" in gene_split.load_split(splits, "train").columns
+    flipped = original.with_columns(
+        pl.when(pl.int_range(pl.len()) == 0)
+        .then(1 - pl.col("label"))
+        .otherwise(pl.col("label"))
+        .alias("label")
+    )
+    flipped.write_parquet(train_path)
+    with pytest.raises(RuntimeError):
+        gene_split.build(features, tx_path, splits, report, force=False)

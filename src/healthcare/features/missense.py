@@ -6,6 +6,7 @@ import duckdb
 import polars as pl
 
 from healthcare.features.aminoacids import substitution_features
+from healthcare.features.esm_features import esm_features
 
 KEY = ["chrom", "pos", "ref", "alt"]
 CATEGORICAL_FEATURES = ["f_aa_ref", "f_aa_alt"]
@@ -53,6 +54,7 @@ class Inputs:
     conservation: Path
     constraint: Path
     uniprot: Path
+    esm_store: Path
 
 
 def resolve_transcripts(missense: pl.DataFrame) -> tuple[pl.DataFrame, int]:
@@ -163,7 +165,7 @@ def build(annotations_dir: Path, clinvar_dir: Path, inputs: Inputs, out_dir: Pat
         clinvar = clinvar.select(*KEY, *(["label"] if "label" in clinvar.columns else []))
         missense = annotations.join(clinvar, on=KEY)
         resolved, dropped = resolve_transcripts(missense)
-        table = finalize(join_sources(resolved, inputs))
+        table = finalize(esm_features(join_sources(resolved, inputs), inputs.esm_store))
         table.write_parquet(out_dir / f"missense_{name}.parquet")
         entry = {"rows": table.height, "dropped_multi_gene": dropped}
         if "label" in table.columns:

@@ -194,6 +194,7 @@ def run_frequency(variant: str) -> int:
 
 
 CONSERVATION_DIR = DATA_DIR / "processed" / "conservation"
+ESM_STORE = ARTIFACTS_DIR / "esm"
 
 
 def run_build_conservation(chrom: str | None, force: bool, workers: int) -> int:
@@ -275,6 +276,7 @@ def run_build_features(force: bool) -> int:
         conservation=CONSERVATION_DIR,
         constraint=processed / "gnomad" / "constraint.parquet",
         uniprot=UNIPROT_FEATURES,
+        esm_store=ESM_STORE,
     )
     missing = [str(p) for p in vars(inputs).values() if not p.exists()]
     if missing:
@@ -350,9 +352,6 @@ def run_esm_trial(gene: str, change: str | None) -> int:
     print(f"peak GPU memory: {summary['peak_gpu_memory_gib']} GiB")
     print(f"summary: {summary_path}")
     return 0
-
-
-ESM_STORE = ARTIFACTS_DIR / "esm"
 
 
 def run_build_esm(limit: int | None) -> int:

@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 4.3 ESM features and contribution
+**Current task:** 5.1 Dual tower model
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -142,7 +142,7 @@ Rules:
   - Acceptance: processed protein count, error count and total disk usage in the summary
   - Try it: ESM output for any protein is read from disk instantly
 
-- [ ] **4.3 ESM features and contribution** 🔍
+- [x] **4.3 ESM features and contribution** 🔍
   - Log-likelihood ratio we compute (wild-type vs mutant amino acid), position entropy, representation around the position
   - Scalar ESM features added to LightGBM to measure their contribution on validation
   - Acceptance: with/without ESM validation comparison under `reports/`
@@ -288,3 +288,4 @@ Rules:
 - 2026-10-12 · 3.1 · LightGBM baseline (30-trial sweep, early stopping on 10% held-out train genes): validation ROC-AUC 0.985 [0.982–0.987], PR-AUC 0.963, MCC 0.873. No-AF 0.944, no-gene-level 0.983 (no gene memorization). Test not opened.
 - 2026-10-12 · 4.1 · ESM-2 650M (pinned revision, safetensors, fp16) on RTX 4070 Ti: BRCA1 1,863 aa in 0.12 s, TTN 35,991 aa (70 windows) in 2.6 s, peak 1.35 GiB. Wild-type-marginal LLR: R1699W −13.9; open-split BRCA1 median LLR benign −3.8 vs pathogenic −11.2.
 - 2026-10-12 · 4.2 · ESM-2 store: 19,228 proteins (11.1M residues), 0 errors, 11 min; full fp16 embeddings 28.5 GB + log-probs 0.45 GB per protein `.npy`, memory-mapped read ~9 ms.
+- 2026-10-12 · 4.3 · 5 `f_esm_*` features (45 total). LightGBM validation ROC-AUC 0.985→0.990, PR-AUC 0.963→0.976; no-AF 0.944→0.962 (PR +0.045); ESM-only 0.904. Split pin now hashes (variant, gene, label) identity; assignments unchanged. Leakage audit PASS.

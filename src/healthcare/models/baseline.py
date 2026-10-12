@@ -7,6 +7,8 @@ import lightgbm as lgb
 import numpy as np
 import polars as pl
 
+from healthcare.esm.model import MODEL_ID as ESM_MODEL_ID
+from healthcare.esm.model import REVISION as ESM_REVISION
 from healthcare.evaluate.metrics import classification_metrics, gene_bootstrap, rounded
 from healthcare.features.aminoacids import ORDER
 from healthcare.features.missense import CATEGORICAL_FEATURES, FREQUENCY_FEATURES
@@ -17,11 +19,26 @@ EARLY_STOPPING_GENE_FRACTION = 0.1
 MAX_ROUNDS = 5000
 AMINO_ACID_CODES = {aa: i for i, aa in enumerate(ORDER + "U*X")}
 GENE_FEATURE_PREFIXES = ("f_gene_", "f_protein_length")
+ESM_PREFIX = ("f_esm_",)
 ABLATIONS = {
     "full": (),
+    "no_esm": ESM_PREFIX,
     "no_frequency": tuple(FREQUENCY_FEATURES),
+    "no_frequency_no_esm": (*FREQUENCY_FEATURES, *ESM_PREFIX),
     "no_gene_level": GENE_FEATURE_PREFIXES,
     "no_frequency_no_gene_level": (*FREQUENCY_FEATURES, *GENE_FEATURE_PREFIXES),
+    "esm_only": (
+        *FREQUENCY_FEATURES,
+        *GENE_FEATURE_PREFIXES,
+        "f_phylop",
+        "f_phastcons",
+        "f_uniprot_",
+        "f_grantham",
+        "f_blosum62",
+        "f_delta_",
+        "f_aa_",
+        "f_relative_",
+    ),
 }
 BASE_PARAMS = {
     "objective": "binary",
@@ -184,6 +201,8 @@ def run(splits_dir: Path, artifacts_dir: Path, reports_dir: Path, trials: int) -
     report = {
         "model": "LightGBM baseline (missense, phase 1)",
         "lightgbm_version": lgb.__version__,
+        "esm_model": ESM_MODEL_ID,
+        "esm_revision": ESM_REVISION,
         "seed": SEED,
         "rows": {
             "fit": data.fit.height,
@@ -211,4 +230,32 @@ def run(splits_dir: Path, artifacts_dir: Path, reports_dir: Path, trials: int) -
         "seconds": round(time.monotonic() - started, 1),
     }
     (reports_dir / "baseline_lightgbm.json").write_text(json.dumps(report, indent=2))
+    (reports_dir / "esm_contribution.json").write_text(
+        json.dumps(esm_contribution(ablations), indent=2)
+    )
     return report
+
+
+def esm_contribution(ablations: dict) -> dict:
+    pairs = {
+        "with_frequency": ("full", "no_esm"),
+        "without_frequency": ("no_frequency", "no_frequency_no_esm"),
+    }
+    comparison = {}
+    for name, (with_esm, without_esm) in pairs.items():
+        a, b = ablations[with_esm]["validation"], ablations[without_esm]["validation"]
+        comparison[name] = {
+            "with_esm": a,
+            "without_esm": b,
+            "delta_roc_auc": round(a["roc_auc"] - b["roc_auc"], 4),
+            "delta_pr_auc": round(a["pr_auc"] - b["pr_auc"], 4),
+        }
+    return {
+        "split": "validation (gene-disjoint)",
+        "test_set_opened": False,
+        "seed": SEED,
+        "esm_model": ESM_MODEL_ID,
+        "esm_revision": ESM_REVISION,
+        "comparison": comparison,
+        "esm_only_5_features": ablations["esm_only"]["validation"],
+    }

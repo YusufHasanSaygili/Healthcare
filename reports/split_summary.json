@@ -1,0 +1,66 @@
+{
+  "seed": 20261012,
+  "targets": {
+    "train": 0.7,
+    "validation": 0.15,
+    "test": 0.15
+  },
+  "regenerated": false,
+  "genes_file_sha256": "b2e9ddc06cb77bc8ae28418873709cd96044151ebb6d2a9de07cf83fd2b74066",
+  "train_labels_sha256": "0fb2893b46bd3309a85131df0fbbd591e1a47b208ebaa29debdba6d0bab10931",
+  "mane_genes_assigned": 19229,
+  "gene_groups": 19157,
+  "merged_gene_groups": 32,
+  "cds_overlap_groups_split_apart": 0,
+  "genes_per_split_all_mane": {
+    "test": 5138,
+    "train": 8933,
+    "validation": 5158
+  },
+  "splits": {
+    "test": {
+      "genes": 4493,
+      "variants": 27501,
+      "variant_share": 0.15,
+      "pathogenic": 8003,
+      "pathogenic_fraction": 0.291
+    },
+    "train": {
+      "genes": 5947,
+      "variants": 128340,
+      "variant_share": 0.7,
+      "pathogenic": 37348,
+      "pathogenic_fraction": 0.291
+    },
+    "validation": {
+      "genes": 4494,
+      "variants": 27502,
+      "variant_share": 0.15,
+      "pathogenic": 8003,
+      "pathogenic_fraction": 0.291
+    }
+  },
+  "overlaps": {
+    "genes_in_multiple_splits": 0,
+    "positions_in_multiple_splits": 0,
+    "variants_in_multiple_splits": 0
+  },
+  "temporal_variants_in_train_release": 0,
+  "temporal": {
+    "test_gene": {
+      "variants": 2919,
+      "pathogenic": 919,
+      "shares_position_with_train": 0
+    },
+    "train_gene": {
+      "variants": 12304,
+      "pathogenic": 4165,
+      "shares_position_with_train": 1055
+    },
+    "validation_gene": {
+      "variants": 2982,
+      "pathogenic": 1033,
+      "shares_position_with_train": 0
+    }
+  }
+}

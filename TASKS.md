@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 2.2 Gene-disjoint split and temporal test
+**Current task:** 3.1 LightGBM baseline
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -106,7 +106,7 @@ Rules:
     classification fields
   - Try it: the feature table schema and missing-value report are read
 
-- [ ] **2.2 Gene-disjoint split and temporal test** 🔍
+- [x] **2.2 Gene-disjoint split and temporal test** 🔍
   - Gene-disjoint train / validation / test with a fixed seed (about 70 / 15 / 15, class balance considered)
   - Temporal test: variants added to ClinVar after the training release and absent from training
   - Split on the MANE gene assigned by our annotator (never ClinVar's GENEINFO); genes sharing any coding position
@@ -284,3 +284,4 @@ Rules:
 - 2026-10-12 · 1.5 · UCSC phyloP100way + phastCons100way for 41.1M CDS±20 positions (99.99% filled) → 203 MB; lookup ~8 ms. Labeled missense median phyloP: benign 0.90 vs pathogenic 7.64.
 - 2026-10-12 · 1.6 · UniProt 2026_03: 17,384/19,229 MANE proteins matched by exact sequence (90.4%), 461k curated features (VARIANT/MUTAGEN and purely automatic evidence excluded). Key-region share: benign 17.5% vs pathogenic 36.1%.
 - 2026-10-12 · 2.1 · Missense features: train 183,343 (53,354 P, 14,934 genes), temporal 18,205, VUS 1.88M; 40 `f_` columns. Multi-gene variants dropped (32 train). Leakage audit PASS; absence from gnomAD is a strong signal (63% P vs 8% B).
+- 2026-10-12 · 2.2 · Split pinned (sha256): train 128,340 / val 27,502 / test 27,501 variants, 29.1% P each; all 19,229 MANE genes assigned, CDS-overlapping genes grouped (32 merged groups), 0 overlaps. Test + temporal only in `splits/locked/`, readable via `load_split(allow_locked=True)`. Temporal test_gene subset: 2,919. Leakage audit PASS (5 findings fixed).

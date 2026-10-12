@@ -11,8 +11,9 @@ from healthcare.data import annotations, clinvar, conservation, gnomad, mane, un
 from healthcare.data.download import ChecksumMismatch, download
 from healthcare.data.sources import load_sources
 from healthcare.features import missense
-from healthcare.paths import DATA_DIR
+from healthcare.paths import DATA_DIR, REPORTS_DIR
 from healthcare.runlog import start_log, write_summary
+from healthcare.split import genes as gene_split
 
 
 def run_download(names: list[str], force: bool) -> int:
@@ -290,6 +291,32 @@ def run_build_features(force: bool) -> int:
     return 0
 
 
+def run_build_split(force: bool) -> int:
+    features_dir = DATA_DIR / "processed" / "features"
+    if not (features_dir / "missense_train_labels.parquet").exists():
+        print("missing inputs: run `healthcare build-features` first")
+        return 2
+    log_path = start_log("build-split")
+    try:
+        summary = gene_split.build(
+            features_dir,
+            TRANSCRIPTS,
+            DATA_DIR / "processed" / "splits",
+            REPORTS_DIR / "split_summary.json",
+            force,
+        )
+    except RuntimeError as error:
+        print(error)
+        return 1
+    write_summary("build-split", {"log": log_path} | summary)
+    for name, stats in summary["splits"].items():
+        share = f"{stats['pathogenic_fraction']:.1%}"
+        print(f"{name}: {stats['genes']} genes, {stats['variants']} variants, {share} P")
+    print(f"overlaps: {summary['overlaps']}")
+    print(f"report: {REPORTS_DIR / 'split_summary.json'}")
+    return 0
+
+
 def add_sample_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--chrom", help="Process a single chromosome, e.g. 22")
     parser.add_argument("--limit", type=int, help="Process at most N records")
@@ -352,6 +379,10 @@ def main(argv: list[str] | None = None) -> int:
         "build-features", help="Build the missense feature tables (train, temporal, VUS)"
     )
     features_build_parser.add_argument("--force", action="store_true", help="Rebuild if present")
+    split_parser = commands.add_parser(
+        "build-split", help="Create (once) the gene-disjoint train/validation/test split"
+    )
+    split_parser.add_argument("--force", action="store_true", help="Regenerate the pinned split")
     args = parser.parse_args(argv)
     if args.command == "doctor":
         return doctor.run()
@@ -379,6 +410,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_protein_features(args.gene)
     if args.command == "build-features":
         return run_build_features(args.force)
+    if args.command == "build-split":
+        return run_build_split(args.force)
     return 2
 
 

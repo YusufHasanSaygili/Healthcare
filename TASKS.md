@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 5.3 ONNX export
+**Current task:** 6.1 Opening the test set
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -169,7 +169,7 @@ Rules:
   - Acceptance: thresholds and calibration come from the validation set only
   - Try it: calibration plot and chosen thresholds are read
 
-- [ ] **5.3 ONNX export**
+- [x] **5.3 ONNX export**
   - Dual tower + calibration → ONNX; inference with ONNX Runtime
   - Acceptance: PyTorch / ONNX parity test (within tolerance); single-variant CPU latency measured
   - Try it: sample prediction and latency via ONNX
@@ -293,3 +293,4 @@ Rules:
 - 2026-10-12 · 4.3 · 5 `f_esm_*` features (45 total). LightGBM validation ROC-AUC 0.985→0.990, PR-AUC 0.963→0.976; no-AF 0.944→0.962 (PR +0.045); ESM-only 0.904. Split pin now hashes (variant, gene, label) identity; assignments unchanged. Leakage audit PASS.
 - 2026-10-13 · 5.1 · Optuna sweep (40% random + 60% TPE, no pruning): 4,645 trials in 7.7 h (stopped by a CUDA driver error at 04:09; now handled). Winner #2636 (d512, window3 ESM): validation ROC-AUC 0.9890±0.0003 vs LightGBM 0.9899; no-AF 0.9637 vs 0.9617; ECE 0.016 vs 0.024. Sweep best 0.9903 shrank to 0.9890 over 5 seeds (winner's curse). `/code-review`: 7/8 fixed.
 - 2026-10-13 · 5.2 · Platt on ensemble logit (out-of-fold ECE 0.0149→0.0042, Brier 0.0299→0.0288). Decision on calibrated probability ≥0.90 / ≤0.10 (set-level 90% precision made the bands overlap). Out-of-fold validation: 23.2% LP (98.1% P), 65.1% LB (0.9% P), 11.7% Uncertain.
+- 2026-10-13 · 5.3 · Single `missense_v1.onnx` (14 MB): LightGBM + dual tower + Platt, preprocessing in-graph. Validation parity: dual tower 7e-7, final 7.5e-3 (float32 trees vs f_delta_* noise splits), 0 decision changes, ECE 0.0037. CPU single variant median 0.48 ms.

@@ -447,6 +447,22 @@ def run_calibrate() -> int:
     return 0
 
 
+def run_export_onnx() -> int:
+    from healthcare.models import export
+
+    log_path = start_log("export-onnx")
+    report = export.run(
+        DATA_DIR / "processed" / "splits", ESM_BLOCKS, ARTIFACTS_DIR / "models", REPORTS_DIR
+    )
+    write_summary("export-onnx", {"log": log_path} | report)
+    diff, timing = report["parity_max_abs_diff"], report["latency_cpu_single_variant"]
+    print(f"onnx: {ARTIFACTS_DIR / 'models' / report['file']} ({report['megabytes']} MB)")
+    mismatches = diff["decision_mismatches"]
+    print(f"parity max |diff| {diff['probability']:.2e}, decision mismatches {mismatches}")
+    print(f"single-variant CPU latency: median {timing['median_ms']} ms, p95 {timing['p95_ms']} ms")
+    return 0
+
+
 def add_sample_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--chrom", help="Process a single chromosome, e.g. 22")
     parser.add_argument("--limit", type=int, help="Process at most N records")
@@ -530,6 +546,7 @@ def main(argv: list[str] | None = None) -> int:
     sweep_parser.add_argument("--trials", type=int, help="Stop after N trials")
     commands.add_parser("confirm-dual-tower", help="Re-train top configs with 5 seeds")
     commands.add_parser("calibrate", help="Calibrate the ensemble on validation")
+    commands.add_parser("export-onnx", help="Export the calibrated ensemble to one ONNX file")
     args = parser.parse_args(argv)
     if args.command == "doctor":
         return doctor.run()
@@ -573,6 +590,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_confirm_dual_tower()
     if args.command == "calibrate":
         return run_calibrate()
+    if args.command == "export-onnx":
+        return run_export_onnx()
     return 2
 
 

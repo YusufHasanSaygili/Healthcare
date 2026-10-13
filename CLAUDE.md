@@ -156,7 +156,7 @@ The project lives on drive A: (Samsung 990 Pro, ~1 TB free); `data/` and `artifa
 | Protein language model | ESM-2 650M via Hugging Face `transformers` |
 | Data processing | polars, pyarrow, DuckDB, pyfaidx |
 | Classical ML | LightGBM, scikit-learn, shap (baseline explanations) |
-| Model export / inference | onnx, onnxruntime |
+| Model export / inference | onnx, onnxruntime, onnxmltools (LightGBM → ONNX, export only) |
 | Backend | FastAPI, uvicorn, pydantic |
 | Frontend | React + TypeScript + Vite; types generated from the FastAPI schema with `openapi-typescript` |
 | Testing / quality | pytest, ruff; frontend `tsc --noEmit`, `vite build`, Vitest |
@@ -493,6 +493,7 @@ A task is complete only when:
 | 2026-10-12 | Test and temporal rows live only in `data/processed/splits/locked/`; models read data through `split.genes.load_split`, which raises `LockedSplitError` for them unless `allow_locked=True` (final evaluation tasks only). | Makes the test lock a code-level guarantee, not a convention. |
 | 2026-10-13 | Final missense model = average of LightGBM and dual tower probabilities (validation ROC-AUC 0.9901; best or tied on gnomAD-seen and unseen subsets); frequency-based routing rejected (0.9894). Both models are also reported separately. | Ensemble is never worse and better calibrated than LightGBM alone. |
 | 2026-10-13 | Three-way decision on the per-variant calibrated probability: ≥ 0.90 "Likely pathogenic", ≤ 0.10 "Likely benign", otherwise "Uncertain" (ACMG Bayesian posterior). Calibrator (Platt on the ensemble logit) is fit on validation only; method picked by gene-grouped 5-fold out-of-fold Brier. | Set-level 90% precision made the two bands overlap (P ≥ 0.31, B ≤ 0.91), leaving no "Uncertain" band. |
+| 2026-10-13 | One ONNX file holds LightGBM (onnxmltools, opset 15) + dual tower (legacy `dynamo=False` exporter, no onnxscript) + mean + Platt; dual tower preprocessing runs inside the graph; input = raw `f_` features in LightGBM column order (NaN = missing) + ESM blocks. ONNX float32 tree comparisons are the model's definition. | Serving needs only onnxruntime; f_delta_* float64 noise splits cannot be reproduced in float32 (max LightGBM diff 0.014, 0 decision changes on validation). |
 | 2026-10-11 | Environment: Windows 11, uv, Docker available / no WSL2, data on A: (990 Pro). | User's hardware. |
 
 ## graphify

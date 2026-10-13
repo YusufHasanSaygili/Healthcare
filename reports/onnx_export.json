@@ -1,0 +1,72 @@
+{
+  "model": "Missense ensemble (LightGBM + dual tower + Platt), ONNX",
+  "test_set_opened": false,
+  "file": "missense_v1.onnx",
+  "megabytes": 14.21,
+  "opset": {
+    "ai.onnx": 15,
+    "ai.onnx.ml": 1
+  },
+  "versions": {
+    "onnx": "1.23.2",
+    "onnxruntime": "1.31.0",
+    "torch": "2.14.1+cu130",
+    "lightgbm": "4.7.0"
+  },
+  "inputs": {
+    "features": "['batch', 45]",
+    "protein": "['batch', 2560]"
+  },
+  "parity_rows": 27502,
+  "parity_max_abs_diff": {
+    "probability": 0.0074811,
+    "lightgbm": 0.0141112,
+    "dual_tower": 7e-07,
+    "decision_mismatches": 0
+  },
+  "parity_rows_over_1e-4": {
+    "probability": 429,
+    "lightgbm": 671,
+    "dual_tower": 0
+  },
+  "parity_note": "LightGBM differences come from float32 tree comparisons in ONNX: f_delta_* values that differ only by float64 rounding noise collapse to one float32 value",
+  "validation_onnx": {
+    "metrics": {
+      "roc_auc": 0.9901,
+      "pr_auc": 0.9775,
+      "mcc": 0.9112,
+      "balanced_accuracy": 0.9545,
+      "brier": 0.0287,
+      "ece": 0.0037,
+      "threshold": 0.5,
+      "n": 27502,
+      "positives": 8003
+    },
+    "decisions": {
+      "likely_benign": {
+        "share": 0.6506,
+        "n": 17894,
+        "pathogenic_fraction": 0.0087
+      },
+      "uncertain": {
+        "share": 0.1169,
+        "n": 3215,
+        "pathogenic_fraction": 0.4896
+      },
+      "likely_pathogenic": {
+        "share": 0.2325,
+        "n": 6393,
+        "pathogenic_fraction": 0.9812
+      },
+      "pathogenic_left_uncertain": 0.1967,
+      "benign_left_uncertain": 0.0842
+    }
+  },
+  "latency_cpu_single_variant": {
+    "runs": 200,
+    "median_ms": 0.48,
+    "p95_ms": 1.051,
+    "threads": 1
+  },
+  "seconds": 5.4
+}

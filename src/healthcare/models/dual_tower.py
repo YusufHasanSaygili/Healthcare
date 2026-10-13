@@ -206,7 +206,9 @@ def predict(model: DualTower, tensors: Tensors, batch: int = 8192) -> np.ndarray
     return np.concatenate(outputs)
 
 
-def train(data: Data, config: dict, seed: int, dropped: tuple[str, ...] = ()) -> dict:
+def train(
+    data: Data, config: dict, seed: int, dropped: tuple[str, ...] = (), history: bool = False
+) -> dict:
     started = time.monotonic()
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -219,6 +221,7 @@ def train(data: Data, config: dict, seed: int, dropped: tuple[str, ...] = ()) ->
     loss_fn = nn.BCEWithLogitsLoss()
     generator = torch.Generator(device=data.device).manual_seed(seed)
     best_loss, best_state, best_epoch, stale = float("inf"), None, 0, 0
+    epochs = []
     n = fit.labels.shape[0]
     for epoch in range(MAX_EPOCHS):
         model.train()
@@ -244,6 +247,19 @@ def train(data: Data, config: dict, seed: int, dropped: tuple[str, ...] = ()) ->
         if not np.isfinite(probabilities).all():
             raise FloatingPointError("non-finite predictions; training diverged")
         stop_loss = float(log_loss(stop.labels.cpu().numpy(), probabilities, labels=[0, 1]))
+        if history:
+            validation = tensors["validation"]
+            scores = classification_metrics(
+                validation.labels.cpu().numpy(), predict(model, validation)
+            )
+            epochs.append(
+                {
+                    "epoch": epoch + 1,
+                    "stop_loss": round(stop_loss, 5),
+                    "roc_auc": round(scores["roc_auc"], 4),
+                    "pr_auc": round(scores["pr_auc"], 4),
+                }
+            )
         if stop_loss < best_loss - 1e-5:
             best_loss, best_epoch, stale = stop_loss, epoch, 0
             best_state = {k: v.detach().clone() for k, v in model.state_dict().items()}
@@ -262,6 +278,7 @@ def train(data: Data, config: dict, seed: int, dropped: tuple[str, ...] = ()) ->
         "encoder": encoder,
         "validation": validation,
         "best_epoch": best_epoch,
+        "history": epochs,
         "stop_loss": best_loss,
         "parameters": sum(p.numel() for p in model.parameters()),
         "seconds": round(time.monotonic() - started, 1),

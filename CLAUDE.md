@@ -491,6 +491,8 @@ A task is complete only when:
 | 2026-10-12 | Variants annotated in more than one MANE gene are dropped (no ClinVar-based tie-break). | Same rule at training and inference; keeps gene-disjoint splits clean. |
 | 2026-10-12 | Gene split covers all 19,229 MANE genes; genes with overlapping CDS or a shared labeled position form one group; labeled groups are stratified greedily (variant + pathogenic counts), unlabeled groups get a seeded 70/15/15 draw. Pinned by sha256 of `genes.parquet` and of the training feature table. | Phase 2 never needs new assignments; overlapping genes cannot leak across sets. |
 | 2026-10-12 | Test and temporal rows live only in `data/processed/splits/locked/`; models read data through `split.genes.load_split`, which raises `LockedSplitError` for them unless `allow_locked=True` (final evaluation tasks only). | Makes the test lock a code-level guarantee, not a convention. |
+| 2026-10-13 | Final missense model = average of LightGBM and dual tower probabilities (validation ROC-AUC 0.9901; best or tied on gnomAD-seen and unseen subsets); frequency-based routing rejected (0.9894). Both models are also reported separately. | Ensemble is never worse and better calibrated than LightGBM alone. |
+| 2026-10-13 | "Likely pathogenic" / "Likely benign" thresholds target 90% precision on validation (ACMG-style "likely" ≈ 90%); everything between is "Uncertain". | Aligns the three-way decision with clinical genetics convention. |
 | 2026-10-11 | Environment: Windows 11, uv, Docker available / no WSL2, data on A: (990 Pro). | User's hardware. |
 
 ## graphify

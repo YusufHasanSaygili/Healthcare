@@ -162,7 +162,9 @@ Rules:
   - Try it: dual tower vs LightGBM validation table is read
 
 - [ ] **5.2 Calibration and the "Uncertain" band**
+  - Model = average of LightGBM and dual tower probabilities (decided 2026-10-13, see CLAUDE.md Decisions)
   - Calibration on validation (temperature scaling or isotonic); Likely pathogenic / Uncertain / Likely benign thresholds
+    at 90% precision on each side (ACMG-style); report the share of variants left Uncertain
   - Reliability plot, Brier, ECE
   - Acceptance: thresholds and calibration come from the validation set only
   - Try it: calibration plot and chosen thresholds are read

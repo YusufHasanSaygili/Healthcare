@@ -1,0 +1,281 @@
+{
+  "model": "Dual tower (missense, phase 1)",
+  "test_set_opened": false,
+  "study": "dual_tower_missense_v1",
+  "trials_completed": 4645,
+  "confirmation_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "selection": "highest validation ROC-AUC mean minus std over 5 seeds",
+  "note": "validation was also used to rank the top configs, so these numbers are mildly optimistic; the locked test set (task 6.1) gives the unbiased estimate",
+  "winner": {
+    "trial": 2636,
+    "params": {
+      "hidden": 512,
+      "tabular_depth": 3,
+      "fusion_depth": 2,
+      "aa_dim": 4,
+      "batch_size": 512,
+      "esm_form": "window3",
+      "dropout": 0.3756925792705057,
+      "tower_dropout": 0.2136558952815515,
+      "lr": 0.0022831367510608163,
+      "weight_decay": 0.000452066849651031
+    },
+    "seeds": {
+      "roc_auc": {
+        "mean": 0.989,
+        "std": 0.0003
+      },
+      "pr_auc": {
+        "mean": 0.9748,
+        "std": 0.0008
+      },
+      "mcc": {
+        "mean": 0.8968,
+        "std": 0.0023
+      },
+      "ece": {
+        "mean": 0.016,
+        "std": 0.0069
+      }
+    },
+    "parameters": 2927713
+  },
+  "top_candidates": [
+    {
+      "trial": 2636,
+      "sweep_roc_auc": 0.9903,
+      "score": 0.9887,
+      "roc_auc": {
+        "mean": 0.989,
+        "std": 0.0003
+      },
+      "pr_auc": {
+        "mean": 0.9748,
+        "std": 0.0008
+      }
+    },
+    {
+      "trial": 2851,
+      "sweep_roc_auc": 0.9903,
+      "score": 0.9887,
+      "roc_auc": {
+        "mean": 0.989,
+        "std": 0.0003
+      },
+      "pr_auc": {
+        "mean": 0.975,
+        "std": 0.0005
+      }
+    },
+    {
+      "trial": 1166,
+      "sweep_roc_auc": 0.9902,
+      "score": 0.9887,
+      "roc_auc": {
+        "mean": 0.989,
+        "std": 0.0003
+      },
+      "pr_auc": {
+        "mean": 0.9749,
+        "std": 0.0009
+      }
+    },
+    {
+      "trial": 2175,
+      "sweep_roc_auc": 0.9903,
+      "score": 0.9886,
+      "roc_auc": {
+        "mean": 0.989,
+        "std": 0.0004
+      },
+      "pr_auc": {
+        "mean": 0.9747,
+        "std": 0.0011
+      }
+    },
+    {
+      "trial": 2777,
+      "sweep_roc_auc": 0.9903,
+      "score": 0.9885,
+      "roc_auc": {
+        "mean": 0.9889,
+        "std": 0.0004
+      },
+      "pr_auc": {
+        "mean": 0.9748,
+        "std": 0.0008
+      }
+    },
+    {
+      "trial": 3838,
+      "sweep_roc_auc": 0.9903,
+      "score": 0.9885,
+      "roc_auc": {
+        "mean": 0.9889,
+        "std": 0.0004
+      },
+      "pr_auc": {
+        "mean": 0.9747,
+        "std": 0.001
+      }
+    },
+    {
+      "trial": 3944,
+      "sweep_roc_auc": 0.9903,
+      "score": 0.9884,
+      "roc_auc": {
+        "mean": 0.9889,
+        "std": 0.0005
+      },
+      "pr_auc": {
+        "mean": 0.9746,
+        "std": 0.001
+      }
+    },
+    {
+      "trial": 1147,
+      "sweep_roc_auc": 0.9902,
+      "score": 0.9884,
+      "roc_auc": {
+        "mean": 0.9888,
+        "std": 0.0004
+      },
+      "pr_auc": {
+        "mean": 0.9746,
+        "std": 0.0009
+      }
+    },
+    {
+      "trial": 1141,
+      "sweep_roc_auc": 0.9903,
+      "score": 0.9882,
+      "roc_auc": {
+        "mean": 0.9887,
+        "std": 0.0005
+      },
+      "pr_auc": {
+        "mean": 0.9743,
+        "std": 0.0013
+      }
+    },
+    {
+      "trial": 1233,
+      "sweep_roc_auc": 0.9902,
+      "score": 0.9882,
+      "roc_auc": {
+        "mean": 0.9887,
+        "std": 0.0005
+      },
+      "pr_auc": {
+        "mean": 0.9742,
+        "std": 0.0016
+      }
+    }
+  ],
+  "ablations": {
+    "no_frequency": {
+      "roc_auc": {
+        "mean": 0.9637,
+        "std": 0.0009
+      },
+      "pr_auc": {
+        "mean": 0.9162,
+        "std": 0.0018
+      },
+      "mcc": {
+        "mean": 0.7857,
+        "std": 0.0033
+      },
+      "ece": {
+        "mean": 0.0185,
+        "std": 0.0045
+      }
+    },
+    "no_protein_tower": {
+      "roc_auc": {
+        "mean": 0.9883,
+        "std": 0.0003
+      },
+      "pr_auc": {
+        "mean": 0.9727,
+        "std": 0.0011
+      },
+      "mcc": {
+        "mean": 0.8961,
+        "std": 0.0023
+      },
+      "ece": {
+        "mean": 0.0218,
+        "std": 0.0067
+      }
+    },
+    "no_esm": {
+      "roc_auc": {
+        "mean": 0.9829,
+        "std": 0.001
+      },
+      "pr_auc": {
+        "mean": 0.9589,
+        "std": 0.0027
+      },
+      "mcc": {
+        "mean": 0.8576,
+        "std": 0.0037
+      },
+      "ece": {
+        "mean": 0.0171,
+        "std": 0.0081
+      }
+    },
+    "no_frequency_no_esm": {
+      "roc_auc": {
+        "mean": 0.9409,
+        "std": 0.002
+      },
+      "pr_auc": {
+        "mean": 0.8558,
+        "std": 0.0047
+      },
+      "mcc": {
+        "mean": 0.6995,
+        "std": 0.0088
+      },
+      "ece": {
+        "mean": 0.0173,
+        "std": 0.0037
+      }
+    }
+  },
+  "lightgbm_validation": {
+    "full": {
+      "roc_auc": 0.9899,
+      "pr_auc": 0.9762,
+      "mcc": 0.9025,
+      "balanced_accuracy": 0.9435,
+      "brier": 0.0318,
+      "ece": 0.0236,
+      "threshold": 0.5,
+      "n": 27502,
+      "positives": 8003
+    },
+    "no_frequency": {
+      "roc_auc": 0.9617,
+      "pr_auc": 0.9081,
+      "mcc": 0.7679,
+      "balanced_accuracy": 0.8786,
+      "brier": 0.0691,
+      "ece": 0.0181,
+      "threshold": 0.5,
+      "n": 27502,
+      "positives": 8003
+    }
+  },
+  "esm_revision": "08e4846e537177426273712802403f7ba8261b6c",
+  "seconds": 304.8
+}

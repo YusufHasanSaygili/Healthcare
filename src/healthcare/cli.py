@@ -366,6 +366,71 @@ def run_build_esm(limit: int | None) -> int:
     return 0
 
 
+SWEEP_DIR = ARTIFACTS_DIR / "sweeps"
+ESM_BLOCKS = ARTIFACTS_DIR / "esm_variants" / "open.npy"
+
+
+def run_prepare_dual_tower() -> int:
+    import polars as pl
+
+    from healthcare.esm import variant_inputs
+
+    splits_dir = DATA_DIR / "processed" / "splits"
+    table = pl.read_parquet(splits_dir / "missense_open.parquet")
+    log_path = start_log("prepare-dual-tower")
+    summary = {"log": log_path} | variant_inputs.build(table, ESM_STORE, ESM_BLOCKS)
+    write_summary("prepare-dual-tower", summary)
+    rows, size, missing = summary["rows"], summary["gigabytes"], summary["missing"]
+    print(f"ESM blocks: {rows} variants, {size} GB, missing {missing}")
+    return 0
+
+
+def dual_tower_data():
+    from healthcare.models import dual_tower
+
+    return dual_tower.Data(DATA_DIR / "processed" / "splits", ESM_BLOCKS)
+
+
+def run_sweep_dual_tower(hours: float, trials: int | None) -> int:
+    from healthcare.keepawake import prevent_idle_sleep
+    from healthcare.models import sweep
+
+    prevent_idle_sleep()
+
+    log_path = start_log("sweep-dual-tower")
+    summary = {"log": log_path} | sweep.run_sweep(
+        dual_tower_data(),
+        SWEEP_DIR / "dual_tower.journal",
+        SWEEP_DIR / "dual_tower_trials.jsonl",
+        hours,
+        trials,
+    )
+    summary_path = write_summary("sweep-dual-tower", summary)
+    total, now = summary["trials_completed_total"], summary["trials_this_run"]
+    print(f"trials completed: {total} (this run {now})")
+    if summary["best"]:
+        print(f"best validation ROC-AUC so far: {summary['best'][0]['roc_auc']:.4f}")
+    print(f"summary: {summary_path}")
+    return 0
+
+
+def run_confirm_dual_tower() -> int:
+    from healthcare.keepawake import prevent_idle_sleep
+    from healthcare.models import sweep
+
+    prevent_idle_sleep()
+
+    log_path = start_log("confirm-dual-tower")
+    report = sweep.run_confirmation(
+        dual_tower_data(), SWEEP_DIR / "dual_tower.journal", ARTIFACTS_DIR / "models", REPORTS_DIR
+    )
+    write_summary("confirm-dual-tower", {"log": log_path} | report)
+    roc = report["winner"]["seeds"]["roc_auc"]
+    print(f"winner validation ROC-AUC {roc['mean']:.4f} +/- {roc['std']:.4f}")
+    print(f"report: {REPORTS_DIR / 'dual_tower.json'}")
+    return 0
+
+
 def add_sample_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--chrom", help="Process a single chromosome, e.g. 22")
     parser.add_argument("--limit", type=int, help="Process at most N records")
@@ -443,6 +508,11 @@ def main(argv: list[str] | None = None) -> int:
         "build-esm", help="Precompute ESM-2 log-probabilities and embeddings for MANE proteins"
     )
     build_esm_parser.add_argument("--limit", type=int, help="Only the N shortest proteins")
+    commands.add_parser("prepare-dual-tower", help="Precompute ESM input blocks for open splits")
+    sweep_parser = commands.add_parser("sweep-dual-tower", help="Resumable dual tower sweep")
+    sweep_parser.add_argument("--hours", type=float, default=12.0, help="Time budget")
+    sweep_parser.add_argument("--trials", type=int, help="Stop after N trials")
+    commands.add_parser("confirm-dual-tower", help="Re-train top configs with 5 seeds")
     args = parser.parse_args(argv)
     if args.command == "doctor":
         return doctor.run()
@@ -478,6 +548,12 @@ def main(argv: list[str] | None = None) -> int:
         return run_esm_trial(args.gene, args.change)
     if args.command == "build-esm":
         return run_build_esm(args.limit)
+    if args.command == "prepare-dual-tower":
+        return run_prepare_dual_tower()
+    if args.command == "sweep-dual-tower":
+        return run_sweep_dual_tower(args.hours, args.trials)
+    if args.command == "confirm-dual-tower":
+        return run_confirm_dual_tower()
     return 2
 
 

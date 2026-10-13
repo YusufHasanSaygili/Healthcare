@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 5.2 Calibration and the "Uncertain" band
+**Current task:** 5.3 ONNX export
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -161,7 +161,7 @@ Rules:
   - Acceptance: validation metrics reported side by side with LightGBM; `/code-review` on the task diff passes
   - Try it: dual tower vs LightGBM validation table is read
 
-- [ ] **5.2 Calibration and the "Uncertain" band**
+- [x] **5.2 Calibration and the "Uncertain" band**
   - Model = average of LightGBM and dual tower probabilities (decided 2026-10-13, see CLAUDE.md Decisions)
   - Calibration on validation (temperature scaling or isotonic); Likely pathogenic / Uncertain / Likely benign thresholds
     at 90% precision on each side (ACMG-style); report the share of variants left Uncertain
@@ -292,3 +292,4 @@ Rules:
 - 2026-10-12 · 4.2 · ESM-2 store: 19,228 proteins (11.1M residues), 0 errors, 11 min; full fp16 embeddings 28.5 GB + log-probs 0.45 GB per protein `.npy`, memory-mapped read ~9 ms.
 - 2026-10-12 · 4.3 · 5 `f_esm_*` features (45 total). LightGBM validation ROC-AUC 0.985→0.990, PR-AUC 0.963→0.976; no-AF 0.944→0.962 (PR +0.045); ESM-only 0.904. Split pin now hashes (variant, gene, label) identity; assignments unchanged. Leakage audit PASS.
 - 2026-10-13 · 5.1 · Optuna sweep (40% random + 60% TPE, no pruning): 4,645 trials in 7.7 h (stopped by a CUDA driver error at 04:09; now handled). Winner #2636 (d512, window3 ESM): validation ROC-AUC 0.9890±0.0003 vs LightGBM 0.9899; no-AF 0.9637 vs 0.9617; ECE 0.016 vs 0.024. Sweep best 0.9903 shrank to 0.9890 over 5 seeds (winner's curse). `/code-review`: 7/8 fixed.
+- 2026-10-13 · 5.2 · Platt on ensemble logit (out-of-fold ECE 0.0149→0.0042, Brier 0.0299→0.0288). Decision on calibrated probability ≥0.90 / ≤0.10 (set-level 90% precision made the bands overlap). Out-of-fold validation: 23.2% LP (98.1% P), 65.1% LB (0.9% P), 11.7% Uncertain.

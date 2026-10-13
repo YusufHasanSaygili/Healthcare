@@ -1,0 +1,201 @@
+{
+  "model": "Missense ensemble (LightGBM + dual tower), calibrated",
+  "split": "validation (gene-disjoint)",
+  "test_set_opened": false,
+  "seed": 20261013,
+  "folds": 5,
+  "rows": 27502,
+  "pathogenic_fraction": 0.291,
+  "uncalibrated": {
+    "lightgbm": {
+      "roc_auc": 0.9899,
+      "pr_auc": 0.9762,
+      "mcc": 0.9025,
+      "balanced_accuracy": 0.9435,
+      "brier": 0.0318,
+      "ece": 0.0236,
+      "threshold": 0.5,
+      "n": 27502,
+      "positives": 8003
+    },
+    "dual_tower": {
+      "roc_auc": 0.9884,
+      "pr_auc": 0.974,
+      "mcc": 0.8926,
+      "balanced_accuracy": 0.943,
+      "brier": 0.0326,
+      "ece": 0.0083,
+      "threshold": 0.5,
+      "n": 27502,
+      "positives": 8003
+    },
+    "ensemble": {
+      "roc_auc": 0.9901,
+      "pr_auc": 0.9775,
+      "mcc": 0.9077,
+      "balanced_accuracy": 0.9489,
+      "brier": 0.0299,
+      "ece": 0.0149,
+      "threshold": 0.5,
+      "n": 27502,
+      "positives": 8003
+    }
+  },
+  "methods_out_of_fold": {
+    "platt": {
+      "metrics": {
+        "roc_auc": 0.9899,
+        "pr_auc": 0.9771,
+        "mcc": 0.9112,
+        "balanced_accuracy": 0.9544,
+        "brier": 0.0288,
+        "ece": 0.0042,
+        "threshold": 0.5,
+        "n": 27502,
+        "positives": 8003
+      },
+      "decisions": {
+        "likely_benign": {
+          "share": 0.6506,
+          "n": 17893,
+          "pathogenic_fraction": 0.0092
+        },
+        "uncertain": {
+          "share": 0.117,
+          "n": 3219,
+          "pathogenic_fraction": 0.4868
+        },
+        "likely_pathogenic": {
+          "share": 0.2323,
+          "n": 6390,
+          "pathogenic_fraction": 0.9814
+        },
+        "pathogenic_left_uncertain": 0.1958,
+        "benign_left_uncertain": 0.0847
+      }
+    },
+    "isotonic": {
+      "metrics": {
+        "roc_auc": 0.9894,
+        "pr_auc": 0.9755,
+        "mcc": 0.9107,
+        "balanced_accuracy": 0.9536,
+        "brier": 0.0288,
+        "ece": 0.0033,
+        "threshold": 0.5,
+        "n": 27502,
+        "positives": 8003
+      },
+      "decisions": {
+        "likely_benign": {
+          "share": 0.6538,
+          "n": 17981,
+          "pathogenic_fraction": 0.0098
+        },
+        "uncertain": {
+          "share": 0.0987,
+          "n": 2715,
+          "pathogenic_fraction": 0.4376
+        },
+        "likely_pathogenic": {
+          "share": 0.2475,
+          "n": 6806,
+          "pathogenic_fraction": 0.9755
+        },
+        "pathogenic_left_uncertain": 0.1484,
+        "benign_left_uncertain": 0.0783
+      }
+    }
+  },
+  "chosen_method": "platt",
+  "selection": "lowest out-of-fold Brier score (gene-grouped 5-fold cross-fitting)",
+  "final_calibrator_fit_on": "all validation rows",
+  "thresholds": {
+    "likely_benign_max": 0.1,
+    "likely_pathogenic_min": 0.9
+  },
+  "threshold_rule": "per-variant calibrated probability (ACMG Bayesian posterior: likely pathogenic >= 0.90, likely benign <= 0.10)",
+  "decisions_in_sample": {
+    "likely_benign": {
+      "share": 0.6506,
+      "n": 17894,
+      "pathogenic_fraction": 0.0088
+    },
+    "uncertain": {
+      "share": 0.1169,
+      "n": 3215,
+      "pathogenic_fraction": 0.489
+    },
+    "likely_pathogenic": {
+      "share": 0.2325,
+      "n": 6393,
+      "pathogenic_fraction": 0.9814
+    },
+    "pathogenic_left_uncertain": 0.1964,
+    "benign_left_uncertain": 0.0843
+  },
+  "reliability_out_of_fold": [
+    {
+      "bin": 0,
+      "n": 17893,
+      "mean_predicted": 0.0087,
+      "observed": 0.0092
+    },
+    {
+      "bin": 1,
+      "n": 691,
+      "mean_predicted": 0.1429,
+      "observed": 0.1172
+    },
+    {
+      "bin": 2,
+      "n": 427,
+      "mean_predicted": 0.2446,
+      "observed": 0.2131
+    },
+    {
+      "bin": 3,
+      "n": 304,
+      "mean_predicted": 0.35,
+      "observed": 0.3224
+    },
+    {
+      "bin": 4,
+      "n": 253,
+      "mean_predicted": 0.4506,
+      "observed": 0.4032
+    },
+    {
+      "bin": 5,
+      "n": 228,
+      "mean_predicted": 0.552,
+      "observed": 0.5658
+    },
+    {
+      "bin": 6,
+      "n": 299,
+      "mean_predicted": 0.652,
+      "observed": 0.6355
+    },
+    {
+      "bin": 7,
+      "n": 386,
+      "mean_predicted": 0.7539,
+      "observed": 0.8031
+    },
+    {
+      "bin": 8,
+      "n": 631,
+      "mean_predicted": 0.8564,
+      "observed": 0.897
+    },
+    {
+      "bin": 9,
+      "n": 6390,
+      "mean_predicted": 0.9812,
+      "observed": 0.9814
+    }
+  ],
+  "note": "calibrated probabilities assume the validation pathogenic fraction; the final calibrator is fit on all validation rows, so out-of-fold numbers and the locked test set (task 6.1) are the honest estimates",
+  "seconds": 2.9
+}

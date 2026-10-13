@@ -431,6 +431,22 @@ def run_confirm_dual_tower() -> int:
     return 0
 
 
+def run_calibrate() -> int:
+    from healthcare.models import calibration
+
+    log_path = start_log("calibrate")
+    report = calibration.run(
+        DATA_DIR / "processed" / "splits", ESM_BLOCKS, ARTIFACTS_DIR / "models", REPORTS_DIR
+    )
+    write_summary("calibrate", {"log": log_path} | report)
+    chosen = report["chosen_method"]
+    out_of_fold = report["methods_out_of_fold"][chosen]
+    print(f"method: {chosen}, out-of-fold ECE {out_of_fold['metrics']['ece']:.4f}")
+    print(f"uncertain share (out-of-fold): {out_of_fold['decisions']['uncertain']['share']:.1%}")
+    print(f"report: {REPORTS_DIR / 'calibration.json'}")
+    return 0
+
+
 def add_sample_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--chrom", help="Process a single chromosome, e.g. 22")
     parser.add_argument("--limit", type=int, help="Process at most N records")
@@ -513,6 +529,7 @@ def main(argv: list[str] | None = None) -> int:
     sweep_parser.add_argument("--hours", type=float, default=12.0, help="Time budget")
     sweep_parser.add_argument("--trials", type=int, help="Stop after N trials")
     commands.add_parser("confirm-dual-tower", help="Re-train top configs with 5 seeds")
+    commands.add_parser("calibrate", help="Calibrate the ensemble on validation")
     args = parser.parse_args(argv)
     if args.command == "doctor":
         return doctor.run()
@@ -554,6 +571,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_sweep_dual_tower(args.hours, args.trials)
     if args.command == "confirm-dual-tower":
         return run_confirm_dual_tower()
+    if args.command == "calibrate":
+        return run_calibrate()
     return 2
 
 

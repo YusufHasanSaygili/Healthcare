@@ -463,6 +463,25 @@ def run_export_onnx() -> int:
     return 0
 
 
+def run_evaluate_final() -> int:
+    from healthcare.evaluate import final
+
+    log_path = start_log("evaluate-final")
+    report = final.run(
+        DATA_DIR / "processed" / "splits",
+        ESM_STORE,
+        ESM_BLOCKS,
+        ARTIFACTS_DIR / "models",
+        REPORTS_DIR,
+    )
+    write_summary("evaluate-final", {"log": log_path, "seconds": report["seconds"]})
+    for name in ("test", "temporal_all", "temporal_test_gene"):
+        metrics = report["results"][name]["models"]["ensemble_calibrated"]
+        print(f"{name}: ROC-AUC {metrics['roc_auc']:.4f}, PR-AUC {metrics['pr_auc']:.4f}")
+    print(f"report: {REPORTS_DIR / (final.REPORT_NAME + '.md')}")
+    return 0
+
+
 def add_sample_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--chrom", help="Process a single chromosome, e.g. 22")
     parser.add_argument("--limit", type=int, help="Process at most N records")
@@ -547,6 +566,9 @@ def main(argv: list[str] | None = None) -> int:
     commands.add_parser("confirm-dual-tower", help="Re-train top configs with 5 seeds")
     commands.add_parser("calibrate", help="Calibrate the ensemble on validation")
     commands.add_parser("export-onnx", help="Export the calibrated ensemble to one ONNX file")
+    commands.add_parser(
+        "evaluate-final", help="Open the locked test sets and write the final missense report"
+    )
     args = parser.parse_args(argv)
     if args.command == "doctor":
         return doctor.run()
@@ -592,6 +614,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_calibrate()
     if args.command == "export-onnx":
         return run_export_onnx()
+    if args.command == "evaluate-final":
+        return run_evaluate_final()
     return 2
 
 

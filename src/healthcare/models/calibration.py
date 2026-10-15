@@ -108,7 +108,7 @@ def reliability_bins(labels: np.ndarray, probabilities: np.ndarray, bins: int = 
     ]
 
 
-def plot_reliability(curves: dict, path: Path) -> None:
+def plot_reliability(curves: dict, path: Path, title: str = "validation, missense") -> None:
     import matplotlib
 
     matplotlib.use("Agg")
@@ -122,7 +122,7 @@ def plot_reliability(curves: dict, path: Path) -> None:
         ax.plot(x, y, marker="o", label=name)
     ax.set_xlabel("Predicted pathogenic probability")
     ax.set_ylabel("Observed pathogenic fraction")
-    ax.set_title("Reliability (validation, missense)")
+    ax.set_title(f"Reliability ({title})")
     ax.legend(loc="upper left")
     fig.tight_layout()
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -148,21 +148,32 @@ def load_dual_tower(path: Path, device: str) -> tuple[dual_tower.DualTower, dict
     return model.to(device), {"encoder": encoder, "config": config}
 
 
-def dual_tower_probabilities(
-    checkpoint: Path, esm_blocks: Path, table: pl.DataFrame, device: str = "cuda"
+def tower_probabilities(
+    model: dual_tower.DualTower,
+    encoder: dual_tower.TabularEncoder,
+    esm_form: str,
+    table: pl.DataFrame,
+    esm_blocks: Path,
+    device: str = "cuda",
 ) -> np.ndarray:
-    model, meta = load_dual_tower(checkpoint, device)
-    numeric, amino_acids = meta["encoder"].encode(table)
-    blocks = variant_inputs.load(esm_blocks, table)[
-        :, dual_tower.ESM_FORMS[meta["config"]["esm_form"]]
-    ]
+    numeric, amino_acids = encoder.encode(table)
+    blocks = variant_inputs.load(esm_blocks, table)[:, dual_tower.ESM_FORMS[esm_form]]
     tensors = dual_tower.Tensors(
         torch.from_numpy(numeric).to(device),
         torch.from_numpy(amino_acids).to(device),
         torch.from_numpy(np.ascontiguousarray(blocks.reshape(len(table), -1))).to(device),
         torch.from_numpy(table["label"].to_numpy().astype(np.float32)).to(device),
     )
-    return dual_tower.predict(model, tensors)
+    return dual_tower.predict(model.to(device), tensors)
+
+
+def dual_tower_probabilities(
+    checkpoint: Path, esm_blocks: Path, table: pl.DataFrame, device: str = "cuda"
+) -> np.ndarray:
+    model, meta = load_dual_tower(checkpoint, device)
+    return tower_probabilities(
+        model, meta["encoder"], meta["config"]["esm_form"], table, esm_blocks, device
+    )
 
 
 def lightgbm_probabilities(model_path: Path, table: pl.DataFrame) -> np.ndarray:

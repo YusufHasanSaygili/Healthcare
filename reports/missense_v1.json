@@ -1,0 +1,1551 @@
+{
+  "model": "Missense ensemble (LightGBM + dual tower, Platt), ONNX",
+  "variant_type": "missense",
+  "test_set_opened": true,
+  "model_changed_after_test": false,
+  "onnx": "missense_v1.onnx",
+  "onnx_sha256": "5f9170957c857eb687ad16f4ab5aea1a59b8ec5decae5b40609c9e29ee7df884",
+  "previous_onnx_sha256": null,
+  "seeds": {
+    "split": 20261012,
+    "lightgbm": 20261012,
+    "dual_tower": 0
+  },
+  "data_versions": {
+    "mane_summary": "MANE v1.5",
+    "grch38_fasta": "Ensembl release 115, GRCh38 primary assembly",
+    "mane_gtf": "MANE v1.5",
+    "mane_protein": "MANE v1.5",
+    "clinvar_2025": "ClinVar 2025-10-06 (training)",
+    "clinvar_2026": "ClinVar 2026-10-04 (temporal test)",
+    "clinvar_summary_2025": "ClinVar variant_summary 2025-10 (HGVS validation only)",
+    "gnomad_exomes_chr1": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chr2": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chr3": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chr4": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chr5": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chr6": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chr7": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chr8": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chr9": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chr10": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chr11": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chr12": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chr13": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chr14": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chr15": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chr16": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chr17": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chr18": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chr19": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chr20": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chr21": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chr22": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chrX": "gnomAD v4.1 exomes",
+    "gnomad_exomes_chrY": "gnomAD v4.1 exomes",
+    "gnomad_constraint": "gnomAD v4.1 constraint",
+    "gnomad_genomes_tbi_chr1": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chr2": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chr3": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chr4": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chr5": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chr6": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chr7": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chr8": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chr9": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chr10": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chr11": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chr12": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chr13": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chr14": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chr15": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chr16": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chr17": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chr18": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chr19": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chr20": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chr21": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chr22": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chrX": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_genomes_tbi_chrY": "gnomAD v4.1 genomes (index only; VCF read by range requests)",
+    "gnomad_exomes_an_all_sites": "gnomAD v4.1 exomes allele number at all sites",
+    "phylop_chr1": "UCSC hg38 phyloP100way",
+    "phylop_chr2": "UCSC hg38 phyloP100way",
+    "phylop_chr3": "UCSC hg38 phyloP100way",
+    "phylop_chr4": "UCSC hg38 phyloP100way",
+    "phylop_chr5": "UCSC hg38 phyloP100way",
+    "phylop_chr6": "UCSC hg38 phyloP100way",
+    "phylop_chr7": "UCSC hg38 phyloP100way",
+    "phylop_chr8": "UCSC hg38 phyloP100way",
+    "phylop_chr9": "UCSC hg38 phyloP100way",
+    "phylop_chr10": "UCSC hg38 phyloP100way",
+    "phylop_chr11": "UCSC hg38 phyloP100way",
+    "phylop_chr12": "UCSC hg38 phyloP100way",
+    "phylop_chr13": "UCSC hg38 phyloP100way",
+    "phylop_chr14": "UCSC hg38 phyloP100way",
+    "phylop_chr15": "UCSC hg38 phyloP100way",
+    "phylop_chr16": "UCSC hg38 phyloP100way",
+    "phylop_chr17": "UCSC hg38 phyloP100way",
+    "phylop_chr18": "UCSC hg38 phyloP100way",
+    "phylop_chr19": "UCSC hg38 phyloP100way",
+    "phylop_chr20": "UCSC hg38 phyloP100way",
+    "phylop_chr21": "UCSC hg38 phyloP100way",
+    "phylop_chr22": "UCSC hg38 phyloP100way",
+    "phylop_chrX": "UCSC hg38 phyloP100way",
+    "phylop_chrY": "UCSC hg38 phyloP100way",
+    "phastcons_chr1": "UCSC hg38 phastCons100way",
+    "phastcons_chr2": "UCSC hg38 phastCons100way",
+    "phastcons_chr3": "UCSC hg38 phastCons100way",
+    "phastcons_chr4": "UCSC hg38 phastCons100way",
+    "phastcons_chr5": "UCSC hg38 phastCons100way",
+    "phastcons_chr6": "UCSC hg38 phastCons100way",
+    "phastcons_chr7": "UCSC hg38 phastCons100way",
+    "phastcons_chr8": "UCSC hg38 phastCons100way",
+    "phastcons_chr9": "UCSC hg38 phastCons100way",
+    "phastcons_chr10": "UCSC hg38 phastCons100way",
+    "phastcons_chr11": "UCSC hg38 phastCons100way",
+    "phastcons_chr12": "UCSC hg38 phastCons100way",
+    "phastcons_chr13": "UCSC hg38 phastCons100way",
+    "phastcons_chr14": "UCSC hg38 phastCons100way",
+    "phastcons_chr15": "UCSC hg38 phastCons100way",
+    "phastcons_chr16": "UCSC hg38 phastCons100way",
+    "phastcons_chr17": "UCSC hg38 phastCons100way",
+    "phastcons_chr18": "UCSC hg38 phastCons100way",
+    "phastcons_chr19": "UCSC hg38 phastCons100way",
+    "phastcons_chr20": "UCSC hg38 phastCons100way",
+    "phastcons_chr21": "UCSC hg38 phastCons100way",
+    "phastcons_chr22": "UCSC hg38 phastCons100way",
+    "phastcons_chrX": "UCSC hg38 phastCons100way",
+    "phastcons_chrY": "UCSC hg38 phastCons100way",
+    "uniprot_human": "UniProtKB/Swiss-Prot release 2026_03 (human)"
+  },
+  "library_versions": {
+    "lightgbm": "4.7.0",
+    "onnx": "1.23.2",
+    "onnxruntime": "1.31.0",
+    "torch": "2.14.1+cu130"
+  },
+  "ablations": {
+    "note": "retrained with one seed from the frozen hyperparameters on training data only, before the locked sets were read; the full model is the exported ONNX (float32 trees); ensembles of ablated members are uncalibrated, so compare their ROC/PR, not Brier/ECE",
+    "dropped": {
+      "no_frequency": {
+        "lightgbm": [
+          "f_gnomad_af",
+          "f_gnomad_ac",
+          "f_gnomad_nhomalt",
+          "f_gnomad_af_grpmax",
+          "f_gnomad_filter_pass",
+          "f_gnomad_covered",
+          "f_gnomad_exome_an"
+        ],
+        "dual_tower_esm_form": "none"
+      },
+      "no_esm": {
+        "lightgbm": [
+          "f_esm_"
+        ],
+        "dual_tower_esm_form": "none"
+      }
+    }
+  },
+  "missing_esm_blocks": {
+    "test": 0,
+    "temporal": 0
+  },
+  "temporal_note": "temporal_train_gene and temporal_validation_gene share genes with data the model saw (see shares_position_with_train per set); temporal_test_gene is the gene-disjoint temporal estimate",
+  "results": {
+    "test": {
+      "variants": 27501,
+      "genes": 4493,
+      "pathogenic": 8003,
+      "shares_position_with_train": 0,
+      "models": {
+        "ensemble_calibrated": {
+          "roc_auc": 0.9902,
+          "pr_auc": 0.9765,
+          "mcc": 0.9086,
+          "balanced_accuracy": 0.9527,
+          "brier": 0.0296,
+          "ece": 0.0044,
+          "threshold": 0.5,
+          "n": 27501,
+          "positives": 8003,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9884,
+              0.9921
+            ],
+            "pr_auc": [
+              0.9715,
+              0.981
+            ]
+          }
+        },
+        "lightgbm": {
+          "roc_auc": 0.9895,
+          "pr_auc": 0.9743,
+          "mcc": 0.8908,
+          "balanced_accuracy": 0.9356,
+          "brier": 0.0344,
+          "ece": 0.0276,
+          "threshold": 0.5,
+          "n": 27501,
+          "positives": 8003,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9878,
+              0.9917
+            ],
+            "pr_auc": [
+              0.9695,
+              0.9791
+            ]
+          }
+        },
+        "dual_tower": {
+          "roc_auc": 0.9888,
+          "pr_auc": 0.973,
+          "mcc": 0.8952,
+          "balanced_accuracy": 0.9427,
+          "brier": 0.0328,
+          "ece": 0.0093,
+          "threshold": 0.5,
+          "n": 27501,
+          "positives": 8003,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9869,
+              0.9908
+            ],
+            "pr_auc": [
+              0.9678,
+              0.9781
+            ]
+          }
+        },
+        "no_frequency/lightgbm": {
+          "roc_auc": 0.9616,
+          "pr_auc": 0.909,
+          "mcc": 0.7612,
+          "balanced_accuracy": 0.8739,
+          "brier": 0.0698,
+          "ece": 0.023,
+          "threshold": 0.5,
+          "n": 27501,
+          "positives": 8003,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.958,
+              0.9655
+            ],
+            "pr_auc": [
+              0.8959,
+              0.9186
+            ]
+          }
+        },
+        "no_frequency/dual_tower": {
+          "roc_auc": 0.9643,
+          "pr_auc": 0.917,
+          "mcc": 0.7856,
+          "balanced_accuracy": 0.8927,
+          "brier": 0.0657,
+          "ece": 0.0176,
+          "threshold": 0.5,
+          "n": 27501,
+          "positives": 8003,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9607,
+              0.9676
+            ],
+            "pr_auc": [
+              0.9057,
+              0.9263
+            ]
+          }
+        },
+        "no_frequency/ensemble_uncalibrated": {
+          "roc_auc": 0.9687,
+          "pr_auc": 0.9263,
+          "mcc": 0.7974,
+          "balanced_accuracy": 0.8967,
+          "brier": 0.0617,
+          "ece": 0.021,
+          "threshold": 0.5,
+          "n": 27501,
+          "positives": 8003,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9657,
+              0.972
+            ],
+            "pr_auc": [
+              0.9151,
+              0.9345
+            ]
+          }
+        },
+        "no_esm/lightgbm": {
+          "roc_auc": 0.9849,
+          "pr_auc": 0.963,
+          "mcc": 0.8624,
+          "balanced_accuracy": 0.9195,
+          "brier": 0.0429,
+          "ece": 0.0314,
+          "threshold": 0.5,
+          "n": 27501,
+          "positives": 8003,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9827,
+              0.9872
+            ],
+            "pr_auc": [
+              0.9566,
+              0.9683
+            ]
+          }
+        },
+        "no_esm/dual_tower": {
+          "roc_auc": 0.9832,
+          "pr_auc": 0.959,
+          "mcc": 0.8459,
+          "balanced_accuracy": 0.9066,
+          "brier": 0.0443,
+          "ece": 0.033,
+          "threshold": 0.5,
+          "n": 27501,
+          "positives": 8003,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9808,
+              0.9857
+            ],
+            "pr_auc": [
+              0.9512,
+              0.9657
+            ]
+          }
+        },
+        "no_esm/ensemble_uncalibrated": {
+          "roc_auc": 0.9851,
+          "pr_auc": 0.9641,
+          "mcc": 0.8679,
+          "balanced_accuracy": 0.9228,
+          "brier": 0.0417,
+          "ece": 0.0299,
+          "threshold": 0.5,
+          "n": 27501,
+          "positives": 8003,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9829,
+              0.9873
+            ],
+            "pr_auc": [
+              0.9577,
+              0.9697
+            ]
+          }
+        }
+      },
+      "decisions": {
+        "likely_benign": {
+          "share": 0.6503,
+          "n": 17884,
+          "pathogenic_fraction": 0.0088
+        },
+        "uncertain": {
+          "share": 0.1217,
+          "n": 3348,
+          "pathogenic_fraction": 0.5081
+        },
+        "likely_pathogenic": {
+          "share": 0.228,
+          "n": 6269,
+          "pathogenic_fraction": 0.9802
+        },
+        "pathogenic_left_uncertain": 0.2125,
+        "benign_left_uncertain": 0.0845
+      }
+    },
+    "temporal_all": {
+      "variants": 18205,
+      "genes": 6116,
+      "pathogenic": 6117,
+      "shares_position_with_train": 1055,
+      "models": {
+        "ensemble_calibrated": {
+          "roc_auc": 0.9887,
+          "pr_auc": 0.9797,
+          "mcc": 0.8873,
+          "balanced_accuracy": 0.9508,
+          "brier": 0.0393,
+          "ece": 0.0333,
+          "threshold": 0.5,
+          "n": 18205,
+          "positives": 6117,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9869,
+              0.9904
+            ],
+            "pr_auc": [
+              0.9747,
+              0.9835
+            ]
+          }
+        },
+        "lightgbm": {
+          "roc_auc": 0.9881,
+          "pr_auc": 0.9778,
+          "mcc": 0.8932,
+          "balanced_accuracy": 0.9495,
+          "brier": 0.0368,
+          "ece": 0.0105,
+          "threshold": 0.5,
+          "n": 18205,
+          "positives": 6117,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9863,
+              0.9896
+            ],
+            "pr_auc": [
+              0.9723,
+              0.9824
+            ]
+          }
+        },
+        "dual_tower": {
+          "roc_auc": 0.9869,
+          "pr_auc": 0.9762,
+          "mcc": 0.8839,
+          "balanced_accuracy": 0.9459,
+          "brier": 0.0409,
+          "ece": 0.0325,
+          "threshold": 0.5,
+          "n": 18205,
+          "positives": 6117,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9849,
+              0.9888
+            ],
+            "pr_auc": [
+              0.9698,
+              0.981
+            ]
+          }
+        },
+        "no_frequency/lightgbm": {
+          "roc_auc": 0.972,
+          "pr_auc": 0.95,
+          "mcc": 0.8183,
+          "balanced_accuracy": 0.9013,
+          "brier": 0.06,
+          "ece": 0.0259,
+          "threshold": 0.5,
+          "n": 18205,
+          "positives": 6117,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9687,
+              0.9753
+            ],
+            "pr_auc": [
+              0.9401,
+              0.9593
+            ]
+          }
+        },
+        "no_frequency/dual_tower": {
+          "roc_auc": 0.9756,
+          "pr_auc": 0.9579,
+          "mcc": 0.8485,
+          "balanced_accuracy": 0.922,
+          "brier": 0.0522,
+          "ece": 0.0101,
+          "threshold": 0.5,
+          "n": 18205,
+          "positives": 6117,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.972,
+              0.9788
+            ],
+            "pr_auc": [
+              0.9485,
+              0.9656
+            ]
+          }
+        },
+        "no_frequency/ensemble_uncalibrated": {
+          "roc_auc": 0.9773,
+          "pr_auc": 0.9606,
+          "mcc": 0.8511,
+          "balanced_accuracy": 0.9212,
+          "brier": 0.0513,
+          "ece": 0.0224,
+          "threshold": 0.5,
+          "n": 18205,
+          "positives": 6117,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9742,
+              0.9801
+            ],
+            "pr_auc": [
+              0.9526,
+              0.9676
+            ]
+          }
+        },
+        "no_esm/lightgbm": {
+          "roc_auc": 0.9841,
+          "pr_auc": 0.9689,
+          "mcc": 0.874,
+          "balanced_accuracy": 0.9402,
+          "brier": 0.0434,
+          "ece": 0.0154,
+          "threshold": 0.5,
+          "n": 18205,
+          "positives": 6117,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9819,
+              0.986
+            ],
+            "pr_auc": [
+              0.9603,
+              0.9746
+            ]
+          }
+        },
+        "no_esm/dual_tower": {
+          "roc_auc": 0.9794,
+          "pr_auc": 0.9604,
+          "mcc": 0.8537,
+          "balanced_accuracy": 0.9258,
+          "brier": 0.0519,
+          "ece": 0.0374,
+          "threshold": 0.5,
+          "n": 18205,
+          "positives": 6117,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9768,
+              0.982
+            ],
+            "pr_auc": [
+              0.9519,
+              0.9678
+            ]
+          }
+        },
+        "no_esm/ensemble_uncalibrated": {
+          "roc_auc": 0.9832,
+          "pr_auc": 0.9676,
+          "mcc": 0.8729,
+          "balanced_accuracy": 0.9396,
+          "brier": 0.0453,
+          "ece": 0.0283,
+          "threshold": 0.5,
+          "n": 18205,
+          "positives": 6117,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9809,
+              0.9854
+            ],
+            "pr_auc": [
+              0.9596,
+              0.9737
+            ]
+          }
+        }
+      },
+      "decisions": {
+        "likely_benign": {
+          "share": 0.5503,
+          "n": 10019,
+          "pathogenic_fraction": 0.0058
+        },
+        "uncertain": {
+          "share": 0.151,
+          "n": 2749,
+          "pathogenic_fraction": 0.2925
+        },
+        "likely_pathogenic": {
+          "share": 0.2987,
+          "n": 5437,
+          "pathogenic_fraction": 0.9665
+        },
+        "pathogenic_left_uncertain": 0.1314,
+        "benign_left_uncertain": 0.1609
+      }
+    },
+    "temporal_test_gene": {
+      "variants": 2919,
+      "genes": 1593,
+      "pathogenic": 919,
+      "shares_position_with_train": 0,
+      "models": {
+        "ensemble_calibrated": {
+          "roc_auc": 0.9882,
+          "pr_auc": 0.9732,
+          "mcc": 0.8911,
+          "balanced_accuracy": 0.9545,
+          "brier": 0.0364,
+          "ece": 0.0277,
+          "threshold": 0.5,
+          "n": 2919,
+          "positives": 919,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9843,
+              0.9914
+            ],
+            "pr_auc": [
+              0.9635,
+              0.9817
+            ]
+          }
+        },
+        "lightgbm": {
+          "roc_auc": 0.9863,
+          "pr_auc": 0.9659,
+          "mcc": 0.8937,
+          "balanced_accuracy": 0.9498,
+          "brier": 0.0363,
+          "ece": 0.0126,
+          "threshold": 0.5,
+          "n": 2919,
+          "positives": 919,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9821,
+              0.9899
+            ],
+            "pr_auc": [
+              0.9513,
+              0.976
+            ]
+          }
+        },
+        "dual_tower": {
+          "roc_auc": 0.9873,
+          "pr_auc": 0.9724,
+          "mcc": 0.8856,
+          "balanced_accuracy": 0.9473,
+          "brier": 0.039,
+          "ece": 0.0284,
+          "threshold": 0.5,
+          "n": 2919,
+          "positives": 919,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9832,
+              0.9907
+            ],
+            "pr_auc": [
+              0.9616,
+              0.9808
+            ]
+          }
+        },
+        "no_frequency/lightgbm": {
+          "roc_auc": 0.9673,
+          "pr_auc": 0.926,
+          "mcc": 0.7749,
+          "balanced_accuracy": 0.8782,
+          "brier": 0.0668,
+          "ece": 0.036,
+          "threshold": 0.5,
+          "n": 2919,
+          "positives": 919,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9603,
+              0.9731
+            ],
+            "pr_auc": [
+              0.9068,
+              0.9418
+            ]
+          }
+        },
+        "no_frequency/dual_tower": {
+          "roc_auc": 0.9716,
+          "pr_auc": 0.9421,
+          "mcc": 0.8192,
+          "balanced_accuracy": 0.9083,
+          "brier": 0.0587,
+          "ece": 0.0148,
+          "threshold": 0.5,
+          "n": 2919,
+          "positives": 919,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9659,
+              0.9768
+            ],
+            "pr_auc": [
+              0.9263,
+              0.9552
+            ]
+          }
+        },
+        "no_frequency/ensemble_uncalibrated": {
+          "roc_auc": 0.9737,
+          "pr_auc": 0.9434,
+          "mcc": 0.8233,
+          "balanced_accuracy": 0.9083,
+          "brier": 0.0573,
+          "ece": 0.0261,
+          "threshold": 0.5,
+          "n": 2919,
+          "positives": 919,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9679,
+              0.9787
+            ],
+            "pr_auc": [
+              0.9282,
+              0.9554
+            ]
+          }
+        },
+        "no_esm/lightgbm": {
+          "roc_auc": 0.9814,
+          "pr_auc": 0.951,
+          "mcc": 0.8683,
+          "balanced_accuracy": 0.9386,
+          "brier": 0.0443,
+          "ece": 0.0133,
+          "threshold": 0.5,
+          "n": 2919,
+          "positives": 919,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9769,
+              0.9862
+            ],
+            "pr_auc": [
+              0.936,
+              0.9655
+            ]
+          }
+        },
+        "no_esm/dual_tower": {
+          "roc_auc": 0.9804,
+          "pr_auc": 0.9521,
+          "mcc": 0.8659,
+          "balanced_accuracy": 0.9333,
+          "brier": 0.0478,
+          "ece": 0.0419,
+          "threshold": 0.5,
+          "n": 2919,
+          "positives": 919,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9754,
+              0.9854
+            ],
+            "pr_auc": [
+              0.9393,
+              0.965
+            ]
+          }
+        },
+        "no_esm/ensemble_uncalibrated": {
+          "roc_auc": 0.9818,
+          "pr_auc": 0.9541,
+          "mcc": 0.8768,
+          "balanced_accuracy": 0.9425,
+          "brier": 0.044,
+          "ece": 0.0289,
+          "threshold": 0.5,
+          "n": 2919,
+          "positives": 919,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9773,
+              0.9869
+            ],
+            "pr_auc": [
+              0.9398,
+              0.9679
+            ]
+          }
+        }
+      },
+      "decisions": {
+        "likely_benign": {
+          "share": 0.5879,
+          "n": 1716,
+          "pathogenic_fraction": 0.0035
+        },
+        "uncertain": {
+          "share": 0.1442,
+          "n": 421,
+          "pathogenic_fraction": 0.3753
+        },
+        "likely_pathogenic": {
+          "share": 0.2679,
+          "n": 782,
+          "pathogenic_fraction": 0.9655
+        },
+        "pathogenic_left_uncertain": 0.1719,
+        "benign_left_uncertain": 0.1315
+      }
+    },
+    "temporal_train_gene": {
+      "variants": 12304,
+      "genes": 2918,
+      "pathogenic": 4165,
+      "shares_position_with_train": 1055,
+      "models": {
+        "ensemble_calibrated": {
+          "roc_auc": 0.9894,
+          "pr_auc": 0.9817,
+          "mcc": 0.8869,
+          "balanced_accuracy": 0.9511,
+          "brier": 0.0398,
+          "ece": 0.0377,
+          "threshold": 0.5,
+          "n": 12304,
+          "positives": 4165,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9872,
+              0.9912
+            ],
+            "pr_auc": [
+              0.9757,
+              0.9863
+            ]
+          }
+        },
+        "lightgbm": {
+          "roc_auc": 0.989,
+          "pr_auc": 0.9807,
+          "mcc": 0.8962,
+          "balanced_accuracy": 0.9518,
+          "brier": 0.036,
+          "ece": 0.0169,
+          "threshold": 0.5,
+          "n": 12304,
+          "positives": 4165,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9868,
+              0.9909
+            ],
+            "pr_auc": [
+              0.9744,
+              0.9857
+            ]
+          }
+        },
+        "dual_tower": {
+          "roc_auc": 0.9874,
+          "pr_auc": 0.9775,
+          "mcc": 0.8848,
+          "balanced_accuracy": 0.9469,
+          "brier": 0.0412,
+          "ece": 0.036,
+          "threshold": 0.5,
+          "n": 12304,
+          "positives": 4165,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9846,
+              0.9894
+            ],
+            "pr_auc": [
+              0.9701,
+              0.9831
+            ]
+          }
+        },
+        "no_frequency/lightgbm": {
+          "roc_auc": 0.9746,
+          "pr_auc": 0.9568,
+          "mcc": 0.8343,
+          "balanced_accuracy": 0.9098,
+          "brier": 0.0559,
+          "ece": 0.0233,
+          "threshold": 0.5,
+          "n": 12304,
+          "positives": 4165,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9697,
+              0.9786
+            ],
+            "pr_auc": [
+              0.9436,
+              0.9671
+            ]
+          }
+        },
+        "no_frequency/dual_tower": {
+          "roc_auc": 0.9779,
+          "pr_auc": 0.964,
+          "mcc": 0.8598,
+          "balanced_accuracy": 0.9277,
+          "brier": 0.0482,
+          "ece": 0.0103,
+          "threshold": 0.5,
+          "n": 12304,
+          "positives": 4165,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9737,
+              0.9812
+            ],
+            "pr_auc": [
+              0.9529,
+              0.9725
+            ]
+          }
+        },
+        "no_frequency/ensemble_uncalibrated": {
+          "roc_auc": 0.9794,
+          "pr_auc": 0.9662,
+          "mcc": 0.8648,
+          "balanced_accuracy": 0.9278,
+          "brier": 0.0476,
+          "ece": 0.0223,
+          "threshold": 0.5,
+          "n": 12304,
+          "positives": 4165,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9755,
+              0.9825
+            ],
+            "pr_auc": [
+              0.9563,
+              0.9741
+            ]
+          }
+        },
+        "no_esm/lightgbm": {
+          "roc_auc": 0.9858,
+          "pr_auc": 0.9738,
+          "mcc": 0.8804,
+          "balanced_accuracy": 0.9445,
+          "brier": 0.0418,
+          "ece": 0.0229,
+          "threshold": 0.5,
+          "n": 12304,
+          "positives": 4165,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9826,
+              0.9883
+            ],
+            "pr_auc": [
+              0.9663,
+              0.9805
+            ]
+          }
+        },
+        "no_esm/dual_tower": {
+          "roc_auc": 0.9792,
+          "pr_auc": 0.9618,
+          "mcc": 0.8523,
+          "balanced_accuracy": 0.9258,
+          "brier": 0.053,
+          "ece": 0.0399,
+          "threshold": 0.5,
+          "n": 12304,
+          "positives": 4165,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9754,
+              0.982
+            ],
+            "pr_auc": [
+              0.9502,
+              0.9697
+            ]
+          }
+        },
+        "no_esm/ensemble_uncalibrated": {
+          "roc_auc": 0.9842,
+          "pr_auc": 0.9711,
+          "mcc": 0.8764,
+          "balanced_accuracy": 0.9424,
+          "brier": 0.0449,
+          "ece": 0.0333,
+          "threshold": 0.5,
+          "n": 12304,
+          "positives": 4165,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9806,
+              0.9867
+            ],
+            "pr_auc": [
+              0.962,
+              0.9774
+            ]
+          }
+        }
+      },
+      "decisions": {
+        "likely_benign": {
+          "share": 0.54,
+          "n": 6644,
+          "pathogenic_fraction": 0.0057
+        },
+        "uncertain": {
+          "share": 0.1539,
+          "n": 1894,
+          "pathogenic_fraction": 0.2566
+        },
+        "likely_pathogenic": {
+          "share": 0.3061,
+          "n": 3766,
+          "pathogenic_fraction": 0.9668
+        },
+        "pathogenic_left_uncertain": 0.1167,
+        "benign_left_uncertain": 0.173
+      }
+    },
+    "temporal_validation_gene": {
+      "variants": 2982,
+      "genes": 1605,
+      "pathogenic": 1033,
+      "shares_position_with_train": 0,
+      "models": {
+        "ensemble_calibrated": {
+          "roc_auc": 0.9867,
+          "pr_auc": 0.9772,
+          "mcc": 0.8857,
+          "balanced_accuracy": 0.9463,
+          "brier": 0.04,
+          "ece": 0.0206,
+          "threshold": 0.5,
+          "n": 2982,
+          "positives": 1033,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9816,
+              0.9907
+            ],
+            "pr_auc": [
+              0.9694,
+              0.9847
+            ]
+          }
+        },
+        "lightgbm": {
+          "roc_auc": 0.9863,
+          "pr_auc": 0.9748,
+          "mcc": 0.8806,
+          "balanced_accuracy": 0.9398,
+          "brier": 0.0404,
+          "ece": 0.0102,
+          "threshold": 0.5,
+          "n": 2982,
+          "positives": 1033,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9817,
+              0.9901
+            ],
+            "pr_auc": [
+              0.9657,
+              0.9823
+            ]
+          }
+        },
+        "dual_tower": {
+          "roc_auc": 0.9852,
+          "pr_auc": 0.9746,
+          "mcc": 0.8782,
+          "balanced_accuracy": 0.9404,
+          "brier": 0.0418,
+          "ece": 0.0234,
+          "threshold": 0.5,
+          "n": 2982,
+          "positives": 1033,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9794,
+              0.9895
+            ],
+            "pr_auc": [
+              0.9651,
+              0.983
+            ]
+          }
+        },
+        "no_frequency/lightgbm": {
+          "roc_auc": 0.9646,
+          "pr_auc": 0.937,
+          "mcc": 0.7925,
+          "balanced_accuracy": 0.888,
+          "brier": 0.0701,
+          "ece": 0.0361,
+          "threshold": 0.5,
+          "n": 2982,
+          "positives": 1033,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9555,
+              0.9711
+            ],
+            "pr_auc": [
+              0.9194,
+              0.9495
+            ]
+          }
+        },
+        "no_frequency/dual_tower": {
+          "roc_auc": 0.9679,
+          "pr_auc": 0.9413,
+          "mcc": 0.8294,
+          "balanced_accuracy": 0.9115,
+          "brier": 0.0623,
+          "ece": 0.0162,
+          "threshold": 0.5,
+          "n": 2982,
+          "positives": 1033,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9596,
+              0.9746
+            ],
+            "pr_auc": [
+              0.9234,
+              0.9551
+            ]
+          }
+        },
+        "no_frequency/ensemble_uncalibrated": {
+          "roc_auc": 0.9704,
+          "pr_auc": 0.9477,
+          "mcc": 0.821,
+          "balanced_accuracy": 0.9064,
+          "brier": 0.0607,
+          "ece": 0.0249,
+          "threshold": 0.5,
+          "n": 2982,
+          "positives": 1033,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9623,
+              0.9764
+            ],
+            "pr_auc": [
+              0.9329,
+              0.9597
+            ]
+          }
+        },
+        "no_esm/lightgbm": {
+          "roc_auc": 0.9801,
+          "pr_auc": 0.9596,
+          "mcc": 0.8535,
+          "balanced_accuracy": 0.9247,
+          "brier": 0.0493,
+          "ece": 0.0148,
+          "threshold": 0.5,
+          "n": 2982,
+          "positives": 1033,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9744,
+              0.9852
+            ],
+            "pr_auc": [
+              0.9466,
+              0.9725
+            ]
+          }
+        },
+        "no_esm/dual_tower": {
+          "roc_auc": 0.9793,
+          "pr_auc": 0.9609,
+          "mcc": 0.8478,
+          "balanced_accuracy": 0.919,
+          "brier": 0.0514,
+          "ece": 0.0314,
+          "threshold": 0.5,
+          "n": 2982,
+          "positives": 1033,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9731,
+              0.9844
+            ],
+            "pr_auc": [
+              0.949,
+              0.9717
+            ]
+          }
+        },
+        "no_esm/ensemble_uncalibrated": {
+          "roc_auc": 0.9804,
+          "pr_auc": 0.9618,
+          "mcc": 0.855,
+          "balanced_accuracy": 0.9254,
+          "brier": 0.0483,
+          "ece": 0.0256,
+          "threshold": 0.5,
+          "n": 2982,
+          "positives": 1033,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9746,
+              0.9857
+            ],
+            "pr_auc": [
+              0.9499,
+              0.9729
+            ]
+          }
+        }
+      },
+      "decisions": {
+        "likely_benign": {
+          "share": 0.5563,
+          "n": 1659,
+          "pathogenic_fraction": 0.0084
+        },
+        "uncertain": {
+          "share": 0.1455,
+          "n": 434,
+          "pathogenic_fraction": 0.3687
+        },
+        "likely_pathogenic": {
+          "share": 0.2981,
+          "n": 889,
+          "pathogenic_fraction": 0.9663
+        },
+        "pathogenic_left_uncertain": 0.1549,
+        "benign_left_uncertain": 0.1406
+      }
+    }
+  },
+  "reliability": {
+    "test": [
+      {
+        "bin": 0,
+        "n": 17884,
+        "mean_predicted": 0.0085,
+        "observed": 0.0088
+      },
+      {
+        "bin": 1,
+        "n": 721,
+        "mean_predicted": 0.1419,
+        "observed": 0.1318
+      },
+      {
+        "bin": 2,
+        "n": 442,
+        "mean_predicted": 0.2468,
+        "observed": 0.2195
+      },
+      {
+        "bin": 3,
+        "n": 295,
+        "mean_predicted": 0.3478,
+        "observed": 0.322
+      },
+      {
+        "bin": 4,
+        "n": 252,
+        "mean_predicted": 0.4477,
+        "observed": 0.4802
+      },
+      {
+        "bin": 5,
+        "n": 281,
+        "mean_predicted": 0.5499,
+        "observed": 0.5979
+      },
+      {
+        "bin": 6,
+        "n": 320,
+        "mean_predicted": 0.6519,
+        "observed": 0.6969
+      },
+      {
+        "bin": 7,
+        "n": 388,
+        "mean_predicted": 0.7531,
+        "observed": 0.8454
+      },
+      {
+        "bin": 8,
+        "n": 649,
+        "mean_predicted": 0.8581,
+        "observed": 0.8844
+      },
+      {
+        "bin": 9,
+        "n": 6269,
+        "mean_predicted": 0.9805,
+        "observed": 0.9802
+      }
+    ],
+    "temporal_all": [
+      {
+        "bin": 0,
+        "n": 10019,
+        "mean_predicted": 0.0136,
+        "observed": 0.0058
+      },
+      {
+        "bin": 1,
+        "n": 713,
+        "mean_predicted": 0.1444,
+        "observed": 0.0715
+      },
+      {
+        "bin": 2,
+        "n": 393,
+        "mean_predicted": 0.2462,
+        "observed": 0.1069
+      },
+      {
+        "bin": 3,
+        "n": 288,
+        "mean_predicted": 0.3504,
+        "observed": 0.1562
+      },
+      {
+        "bin": 4,
+        "n": 244,
+        "mean_predicted": 0.4471,
+        "observed": 0.2418
+      },
+      {
+        "bin": 5,
+        "n": 234,
+        "mean_predicted": 0.5497,
+        "observed": 0.3462
+      },
+      {
+        "bin": 6,
+        "n": 215,
+        "mean_predicted": 0.6484,
+        "observed": 0.4
+      },
+      {
+        "bin": 7,
+        "n": 260,
+        "mean_predicted": 0.7545,
+        "observed": 0.5846
+      },
+      {
+        "bin": 8,
+        "n": 402,
+        "mean_predicted": 0.8569,
+        "observed": 0.7164
+      },
+      {
+        "bin": 9,
+        "n": 5437,
+        "mean_predicted": 0.9873,
+        "observed": 0.9665
+      }
+    ],
+    "temporal_test_gene": [
+      {
+        "bin": 0,
+        "n": 1716,
+        "mean_predicted": 0.013,
+        "observed": 0.0035
+      },
+      {
+        "bin": 1,
+        "n": 88,
+        "mean_predicted": 0.1502,
+        "observed": 0.0341
+      },
+      {
+        "bin": 2,
+        "n": 51,
+        "mean_predicted": 0.2505,
+        "observed": 0.1373
+      },
+      {
+        "bin": 3,
+        "n": 35,
+        "mean_predicted": 0.346,
+        "observed": 0.2
+      },
+      {
+        "bin": 4,
+        "n": 36,
+        "mean_predicted": 0.4476,
+        "observed": 0.3056
+      },
+      {
+        "bin": 5,
+        "n": 39,
+        "mean_predicted": 0.5452,
+        "observed": 0.4103
+      },
+      {
+        "bin": 6,
+        "n": 36,
+        "mean_predicted": 0.6523,
+        "observed": 0.4167
+      },
+      {
+        "bin": 7,
+        "n": 52,
+        "mean_predicted": 0.7506,
+        "observed": 0.6731
+      },
+      {
+        "bin": 8,
+        "n": 84,
+        "mean_predicted": 0.8551,
+        "observed": 0.7619
+      },
+      {
+        "bin": 9,
+        "n": 782,
+        "mean_predicted": 0.9818,
+        "observed": 0.9655
+      }
+    ],
+    "temporal_train_gene": [
+      {
+        "bin": 0,
+        "n": 6644,
+        "mean_predicted": 0.014,
+        "observed": 0.0057
+      },
+      {
+        "bin": 1,
+        "n": 519,
+        "mean_predicted": 0.1438,
+        "observed": 0.0732
+      },
+      {
+        "bin": 2,
+        "n": 280,
+        "mean_predicted": 0.2455,
+        "observed": 0.0964
+      },
+      {
+        "bin": 3,
+        "n": 204,
+        "mean_predicted": 0.3493,
+        "observed": 0.1225
+      },
+      {
+        "bin": 4,
+        "n": 171,
+        "mean_predicted": 0.4477,
+        "observed": 0.193
+      },
+      {
+        "bin": 5,
+        "n": 161,
+        "mean_predicted": 0.5511,
+        "observed": 0.3043
+      },
+      {
+        "bin": 6,
+        "n": 148,
+        "mean_predicted": 0.6472,
+        "observed": 0.3784
+      },
+      {
+        "bin": 7,
+        "n": 178,
+        "mean_predicted": 0.755,
+        "observed": 0.5393
+      },
+      {
+        "bin": 8,
+        "n": 233,
+        "mean_predicted": 0.8572,
+        "observed": 0.6953
+      },
+      {
+        "bin": 9,
+        "n": 3766,
+        "mean_predicted": 0.9892,
+        "observed": 0.9668
+      }
+    ],
+    "temporal_validation_gene": [
+      {
+        "bin": 0,
+        "n": 1659,
+        "mean_predicted": 0.0126,
+        "observed": 0.0084
+      },
+      {
+        "bin": 1,
+        "n": 106,
+        "mean_predicted": 0.1424,
+        "observed": 0.0943
+      },
+      {
+        "bin": 2,
+        "n": 62,
+        "mean_predicted": 0.2462,
+        "observed": 0.129
+      },
+      {
+        "bin": 3,
+        "n": 49,
+        "mean_predicted": 0.3583,
+        "observed": 0.2653
+      },
+      {
+        "bin": 4,
+        "n": 37,
+        "mean_predicted": 0.4436,
+        "observed": 0.4054
+      },
+      {
+        "bin": 5,
+        "n": 34,
+        "mean_predicted": 0.5486,
+        "observed": 0.4706
+      },
+      {
+        "bin": 6,
+        "n": 31,
+        "mean_predicted": 0.6497,
+        "observed": 0.4839
+      },
+      {
+        "bin": 7,
+        "n": 30,
+        "mean_predicted": 0.7582,
+        "observed": 0.7
+      },
+      {
+        "bin": 8,
+        "n": 85,
+        "mean_predicted": 0.858,
+        "observed": 0.7294
+      },
+      {
+        "bin": 9,
+        "n": 889,
+        "mean_predicted": 0.9838,
+        "observed": 0.9663
+      }
+    ]
+  },
+  "seconds": 418.6
+}

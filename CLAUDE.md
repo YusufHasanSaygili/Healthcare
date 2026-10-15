@@ -182,11 +182,17 @@ Where they conflict, **the rules in this file take precedence.**
 | **UI UX Pro Max** | https://github.com/nextlevelbuilder/ui-ux-pro-max-skill | Interface color, typography, layout, UX decisions | Design decisions only. Ask before adding any extra UI library. |
 | **vercel-react-best-practices** | https://github.com/vercel-labs/agent-skills | React performance and correctness rules | Apply rules that fit React + Vite; skip Next.js-specific rules (RSC, App Router, server actions, Next cache). |
 | **web-design-guidelines** | https://github.com/vercel-labs/agent-skills | Accessibility / UX audit | Use as an **audit checklist** at the end of the design pass. |
+| **vercel-composition-patterns** | https://github.com/vercel-labs/agent-skills | React component composition patterns | Apply to React + Vite components from 7.3 on; skip Next.js-specific guidance. |
+| **building-components** | https://github.com/vercel/components.build | Accessible, composable, themeable components | Component code only; color, typography and layout decisions stay with UI UX Pro Max. |
+| **before-and-after** | https://github.com/vercel-labs/before-and-after | Before/after screenshot comparison of pages | Design-pass verification only (7.4+). Ask first if it needs Playwright or another headless browser installed. |
+
+All three are installed when task 7.3 starts, not before.
 
 **Not used (do not suggest again):** get-shit-done / GSD (conflicts with our task workflow, token-heavy),
 codebase-memory-mcp (duplicates Graphify), Supabase (no database), Strix (login-free localhost app, requires a paid
-LLM), agent-reach (social media access not needed), Playwright CLI (the app's built-in browser pane is enough),
-Taste Skill and awesome-design-md (conflict with UI UX Pro Max), Vercel deploy/CLI (no deployment).
+LLM), agent-reach (social media access not needed), Playwright CLI and Vercel agent-browser (the app's built-in
+browser pane is enough), Taste Skill and awesome-design-md (conflict with UI UX Pro Max), Vercel deploy/CLI/autoship
+(no Vercel deployment), Next.js, React Native and Turborepo skills (the web app is React + Vite, single package).
 
 ## Graphify — MANDATORY RULE
 
@@ -220,6 +226,9 @@ Taste Skill and awesome-design-md (conflict with UI UX Pro Max), Vercel deploy/C
 # Vercel skills (terminal, project folder; --copy: a copy, not a link)
 npx skills add vercel-labs/agent-skills --skill vercel-react-best-practices --agent claude-code --copy -y
 npx skills add vercel-labs/agent-skills --skill web-design-guidelines --agent claude-code --copy -y
+npx skills add vercel-labs/agent-skills --skill vercel-composition-patterns --agent claude-code --copy -y
+npx skills add vercel/components.build --skill building-components --agent claude-code --copy -y
+npx skills add vercel-labs/before-and-after --skill before-and-after --agent claude-code --copy -y
 
 # Context7: .mcp.json in the project root (https://mcp.context7.com/mcp)
 ```
@@ -494,6 +503,7 @@ A task is complete only when:
 | 2026-10-13 | Final missense model = average of LightGBM and dual tower probabilities (validation ROC-AUC 0.9901; best or tied on gnomAD-seen and unseen subsets); frequency-based routing rejected (0.9894). Both models are also reported separately. | Ensemble is never worse and better calibrated than LightGBM alone. |
 | 2026-10-13 | Three-way decision on the per-variant calibrated probability: ≥ 0.90 "Likely pathogenic", ≤ 0.10 "Likely benign", otherwise "Uncertain" (ACMG Bayesian posterior). Calibrator (Platt on the ensemble logit) is fit on validation only; method picked by gene-grouped 5-fold out-of-fold Brier. | Set-level 90% precision made the two bands overlap (P ≥ 0.31, B ≤ 0.91), leaving no "Uncertain" band. |
 | 2026-10-13 | One ONNX file holds LightGBM (onnxmltools, opset 15) + dual tower (legacy `dynamo=False` exporter, no onnxscript) + mean + Platt; dual tower preprocessing runs inside the graph; input = raw `f_` features in LightGBM column order (NaN = missing) + ESM blocks. ONNX float32 tree comparisons are the model's definition. | Serving needs only onnxruntime; f_delta_* float64 noise splits cannot be reproduced in float32 (max LightGBM diff 0.014, 0 decision changes on validation). |
+| 2026-10-16 | Web tasks also use the Vercel skills vercel-composition-patterns, building-components and before-and-after (installed at 7.3). | Fit React + Vite; Next.js, React Native and deploy skills do not. |
 | 2026-10-11 | Environment: Windows 11, uv, Docker available / no WSL2, data on A: (990 Pro). | User's hardware. |
 
 ## graphify

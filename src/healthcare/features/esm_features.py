@@ -4,7 +4,7 @@ import numpy as np
 import polars as pl
 
 from healthcare.esm import store
-from healthcare.esm.model import AMINO_ACIDS
+from healthcare.esm.store import AMINO_ACIDS
 
 ESM_FEATURES = [
     "f_esm_llr",

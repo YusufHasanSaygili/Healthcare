@@ -1,6 +1,15 @@
 import pytest
 
-from healthcare.annotate.snv import Transcript, TranscriptIndex, annotate_snv, parse_snv
+from healthcare.annotate.snv import (
+    Transcript,
+    TranscriptIndex,
+    annotate_snv,
+    cds_offset,
+    genomic_position,
+    parse_protein_change,
+    parse_snv,
+    protein_change_snvs,
+)
 
 PLUS = Transcript(
     transcript_id="TPLUS",
@@ -104,3 +113,47 @@ def test_parse_snv_normalizes_and_validates():
     for bad in ("23:5 A>G", "0:5 A>G", "1:0 A>G", "1:5 A>A", "1:5 AC>G", "MT:5 A>G", "hello"):
         with pytest.raises(ValueError):
             parse_snv(bad)
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("BRCA1 p.Arg1699Trp", ("BRCA1", "R", 1699, "W")),
+        ("brca1 R1699W", ("BRCA1", "R", 1699, "W")),
+        ("TP53 p.ARG175his", ("TP53", "R", 175, "H")),
+    ],
+)
+def test_parse_protein_change_accepts_one_and_three_letter_codes(text, expected):
+    assert parse_protein_change(text) == expected
+
+
+@pytest.mark.parametrize("text", ["BRCA1", "BRCA1 p.Xyz12Trp", "p.Arg1699Trp", "BRCA1 Arg-5Trp"])
+def test_parse_protein_change_rejects_malformed_input(text):
+    with pytest.raises(ValueError):
+        parse_protein_change(text)
+
+
+@pytest.mark.parametrize("transcript", [PLUS, MINUS])
+def test_genomic_position_inverts_cds_offset_on_both_strands(transcript):
+    for offset in range(len(transcript.cds_sequence)):
+        assert cds_offset(transcript, genomic_position(transcript, offset)) == offset
+    with pytest.raises(ValueError):
+        genomic_position(transcript, len(transcript.cds_sequence))
+
+
+def test_protein_change_maps_back_to_genomic_snvs():
+    assert protein_change_snvs(PLUS, "A", 2, "T") == [("1", 114, "G", "A")]
+    assert protein_change_snvs(PLUS, "K", 4, "T") == [("1", 201, "A", "C")]
+    assert protein_change_snvs(MINUS, "F", 2, "V") == [("1", 33, "A", "C")]
+    snvs = protein_change_snvs(MINUS, "P", 3, "S")
+    assert snvs
+    for _, pos, ref, alt in snvs:
+        assert annotate_snv(MINUS, pos, ref, alt).hgvs_p == "p.Pro3Ser"
+    assert protein_change_snvs(PLUS, "A", 2, "W") == []
+
+
+def test_protein_change_validates_reference_residue_and_length():
+    with pytest.raises(ValueError, match="is Ala, not Arg"):
+        protein_change_snvs(PLUS, "R", 2, "W")
+    with pytest.raises(ValueError, match="has 8 amino acids"):
+        protein_change_snvs(PLUS, "A", 9, "T")

@@ -49,6 +49,19 @@ uv sync
 uv run healthcare doctor
 ```
 
+### Predict a variant
+
+After the data is built and the model is exported, a missense SNV can be queried by genomic position or by protein
+change:
+
+```bash
+uv run healthcare predict 17:43063931 G>A
+uv run healthcare predict BRCA1 p.Arg1699Trp
+```
+
+The output shows the calibrated probability, the three-way decision and the evidence groups that moved it most.
+Other variant types get an explicit out-of-scope message.
+
 ---
 
 ## Türkçe
@@ -92,6 +105,19 @@ Yeni (zamansal) varyantlarda kalibrasyon kayıyor (ECE 0,033; testte 0,004). Di�
 uv sync
 uv run healthcare doctor
 ```
+
+### Varyant sorgulama
+
+Veriler hazırlanıp model dışa aktarıldıktan sonra bir missense SNV, genomik konumla ya da protein değişimiyle
+sorgulanabilir:
+
+```bash
+uv run healthcare predict 17:43063931 G>A
+uv run healthcare predict BRCA1 p.Arg1699Trp
+```
+
+Çıktıda kalibre olasılık, üç yollu karar ve sonucu en çok etkileyen kanıt grupları yer alır. Diğer varyant türleri
+için açık bir "kapsam dışı" mesajı verilir.
 
 > **Sorumluluk reddi:** Bu proje yalnızca araştırma ve eğitim amaçlıdır; klinik tanı veya tedavi kararları için
 > kullanılamaz.

@@ -263,13 +263,9 @@ def run_protein_features(gene: str) -> int:
     return 0
 
 
-def run_build_features(force: bool) -> int:
-    out_dir = DATA_DIR / "processed" / "features"
-    if (out_dir / "missense_train_labels.parquet").exists() and not force:
-        print(f"skipped: {out_dir} exists (use --force)")
-        return 0
+def feature_inputs() -> missense.Inputs:
     processed = DATA_DIR / "processed"
-    inputs = missense.Inputs(
+    return missense.Inputs(
         transcripts=TRANSCRIPTS,
         gnomad_exomes=processed / "gnomad" / "exomes",
         coverage=processed / "gnomad" / "coverage.parquet",
@@ -278,7 +274,20 @@ def run_build_features(force: bool) -> int:
         uniprot=UNIPROT_FEATURES,
         esm_store=ESM_STORE,
     )
-    missing = [str(p) for p in vars(inputs).values() if not p.exists()]
+
+
+def missing_inputs(inputs: missense.Inputs) -> list[str]:
+    return [str(p) for p in vars(inputs).values() if not p.exists()]
+
+
+def run_build_features(force: bool) -> int:
+    out_dir = DATA_DIR / "processed" / "features"
+    if (out_dir / "missense_train_labels.parquet").exists() and not force:
+        print(f"skipped: {out_dir} exists (use --force)")
+        return 0
+    processed = DATA_DIR / "processed"
+    inputs = feature_inputs()
+    missing = missing_inputs(inputs)
     if missing:
         print(f"missing inputs: {', '.join(missing)}")
         return 2
@@ -482,6 +491,94 @@ def run_evaluate_final() -> int:
     return 0
 
 
+def load_predictor():
+    from healthcare.serve.pipeline import Predictor
+
+    inputs = feature_inputs()
+    model = ARTIFACTS_DIR / "models" / "missense_v1.onnx"
+    missing = missing_inputs(inputs) + ([] if model.exists() else [str(model)])
+    if missing:
+        print(f"missing inputs: {', '.join(missing)}")
+        return None
+    train = gene_split.load_split(DATA_DIR / "processed" / "splits", "train")
+    return Predictor(inputs, model, train)
+
+
+def print_result(result) -> None:
+    from healthcare.serve.pipeline import Prediction
+
+    if not isinstance(result, Prediction):
+        named = result.gene is None or result.variant.upper().startswith(result.gene.upper())
+        label = result.variant if named else f"{result.gene} {result.variant}"
+        print(f"{label}: out of scope - {result.reason}")
+        return
+    features = result.features
+    print(f"{result.gene} {result.hgvs_p}  {result.variant}  ({result.transcript_id})")
+    print(
+        f"  {result.decision.replace('_', ' ')}: probability {result.probability:.3f} "
+        f"(LightGBM {result.lightgbm:.3f}, dual tower {result.dual_tower:.3f})"
+    )
+    shown = {
+        "gnomAD AF": features["f_gnomad_af"],
+        "phyloP": features["f_phylop"],
+        "ESM LLR": features["f_esm_llr"],
+        "Grantham": features["f_grantham"],
+    }
+    print(
+        "  evidence: "
+        + ", ".join(f"{k} {'n/a' if v is None else f'{v:.3g}'}" for k, v in shown.items())
+    )
+    print("  most influential evidence groups (log-odds vs. typical training variants):")
+    for group, delta in result.contributions[:4]:
+        direction = "toward pathogenic" if delta > 0 else "toward benign"
+        print(f"    {group.replace('_', ' '):<20} {delta:+.2f}  {direction}")
+    print(f"  {result.milliseconds} ms; research and educational use only, not for clinical use")
+
+
+def run_predict(words: list[str]) -> int:
+    predictor = load_predictor()
+    if predictor is None:
+        return 2
+    try:
+        results = predictor.predict(" ".join(words))
+    except ValueError as error:
+        print(error)
+        return 2
+    for result in results:
+        print_result(result)
+    return 0
+
+
+def run_serve_check(count: int) -> int:
+    from healthcare.serve.pipeline import EXAMPLES, Prediction, parity_check
+
+    predictor = load_predictor()
+    if predictor is None:
+        return 2
+    log_path = start_log("serve-check")
+    table = gene_split.load_split(DATA_DIR / "processed" / "splits", "validation").sample(
+        count, seed=20261016
+    )
+    summary = {"log": log_path} | parity_check(predictor, table, ESM_BLOCKS)
+    summary["examples"] = {}
+    for text in EXAMPLES:
+        for result in predictor.predict(text):
+            summary["examples"][text] = (
+                {"variant": result.variant, "probability": round(result.probability, 4)}
+                | {"decision": result.decision}
+                if isinstance(result, Prediction)
+                else {"variant": result.variant, "out_of_scope": result.reason}
+            )
+    summary_path = write_summary("serve-check", summary)
+    print(
+        f"feature mismatches: {summary['feature_mismatches']} over {summary['variants']} variants"
+    )
+    print(f"max probability diff vs batch ONNX: {summary['max_probability_diff']}")
+    print(f"latency ms: {summary['latency_ms']}")
+    print(f"summary: {summary_path}")
+    return 0
+
+
 def add_sample_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--chrom", help="Process a single chromosome, e.g. 22")
     parser.add_argument("--limit", type=int, help="Process at most N records")
@@ -566,6 +663,14 @@ def main(argv: list[str] | None = None) -> int:
     commands.add_parser("confirm-dual-tower", help="Re-train top configs with 5 seeds")
     commands.add_parser("calibrate", help="Calibrate the ensemble on validation")
     commands.add_parser("export-onnx", help="Export the calibrated ensemble to one ONNX file")
+    predict_parser = commands.add_parser(
+        "predict", help="Predict one variant, e.g. 17:43057062 C>T or BRCA1 p.Arg1699Trp"
+    )
+    predict_parser.add_argument("variant", nargs="+")
+    serve_check_parser = commands.add_parser(
+        "serve-check", help="Check served features and latency against validation variants"
+    )
+    serve_check_parser.add_argument("--n", type=int, default=100, help="Validation variants")
     commands.add_parser(
         "evaluate-final", help="Open the locked test sets and write the final missense report"
     )
@@ -614,6 +719,10 @@ def main(argv: list[str] | None = None) -> int:
         return run_calibrate()
     if args.command == "export-onnx":
         return run_export_onnx()
+    if args.command == "predict":
+        return run_predict(args.variant)
+    if args.command == "serve-check":
+        return run_serve_check(args.n)
     if args.command == "evaluate-final":
         return run_evaluate_final()
     return 2

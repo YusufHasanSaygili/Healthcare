@@ -34,6 +34,10 @@ SNV_PATTERN = re.compile(
     r"^(?:chr)?([0-9]{1,2}|X|Y)[:-](\d+)\s*([ACGT])\s*>\s*([ACGT])$", re.IGNORECASE
 )
 VALID_CHROMS = {*map(str, range(1, 23)), "X", "Y"}
+ONE_LETTER = {three.upper(): one for one, three in THREE_LETTER.items()}
+PROTEIN_PATTERN = re.compile(
+    r"^([A-Za-z0-9-]+)\s+(?:p\.)?([A-Za-z]{3}|[A-Za-z*])(\d+)([A-Za-z]{3}|[A-Za-z*])$"
+)
 
 
 @dataclass(frozen=True)
@@ -83,6 +87,56 @@ def parse_snv(text: str) -> tuple[str, int, str, str]:
     if ref == alt:
         raise ValueError(f"REF and ALT are identical: {text}")
     return chrom, int(pos), ref, alt
+
+
+def residue(token: str) -> str:
+    one = ONE_LETTER.get(token.upper()) if len(token) == 3 else token.upper()
+    if one not in THREE_LETTER:
+        raise ValueError(f"unknown amino acid: {token}")
+    return one
+
+
+def parse_protein_change(text: str) -> tuple[str, str, int, str]:
+    match = PROTEIN_PATTERN.match(text.strip())
+    if not match:
+        raise ValueError("expected a protein change like BRCA1 p.Arg1699Trp")
+    gene, ref, position, alt = match.groups()
+    return gene.upper(), residue(ref), int(position), residue(alt)
+
+
+def genomic_position(transcript: Transcript, offset: int) -> int:
+    intervals = transcript.cds if transcript.strand == "+" else transcript.cds[::-1]
+    for start, end in intervals:
+        length = end - start + 1
+        if offset < length:
+            return start + offset if transcript.strand == "+" else end - offset
+        offset -= length
+    raise ValueError("CDS offset is beyond the coding sequence")
+
+
+def protein_change_snvs(
+    transcript: Transcript, aa_ref: str, position: int, aa_alt: str
+) -> list[tuple[str, int, str, str]]:
+    if not 1 <= position <= len(transcript.protein):
+        raise ValueError(
+            f"{transcript.gene_name} has {len(transcript.protein)} amino acids, not {position}"
+        )
+    actual = transcript.protein[position - 1]
+    if actual != aa_ref:
+        raise ValueError(
+            f"{transcript.gene_name} residue {position} is {THREE_LETTER[actual]}, "
+            f"not {THREE_LETTER[aa_ref]}"
+        )
+    variants = []
+    for within in range(3):
+        offset = 3 * (position - 1) + within
+        pos = genomic_position(transcript, offset)
+        base = transcript.cds_sequence[offset]
+        ref = base if transcript.strand == "+" else reverse_complement(base)
+        for alt in "ACGT":
+            if alt != ref and annotate_snv(transcript, pos, ref, alt).aa_alt == aa_alt:
+                variants.append((transcript.chrom, pos, ref, alt))
+    return sorted(variants, key=lambda v: (v[1], v[3]))
 
 
 def cds_offset(transcript: Transcript, pos: int) -> int | None:

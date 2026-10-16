@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 7.1 Prediction pipeline and CLI
+**Current task:** 7.2 FastAPI
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -185,8 +185,8 @@ Rules:
 
 ## Phase 7 — Prediction Service and Web Interface
 
-- [ ] **7.1 Prediction pipeline and CLI**
-  - Input: genomic (`17:43045712 G>A`) or protein (`BRCA1 p.Arg1699Trp`, mapped to genomic coordinates by our annotator)
+- [x] **7.1 Prediction pipeline and CLI**
+  - Input: genomic (`17:43063931 G>A`) or protein (`BRCA1 p.Arg1699Trp`, mapped to genomic coordinates by our annotator)
   - DuckDB feature lookup → ONNX prediction → explanation (features most responsible for the decision)
   - `uv run healthcare predict ...`; clear message for out-of-scope variants
   - Acceptance: end-to-end tests with known variants; single query in milliseconds
@@ -295,3 +295,4 @@ Rules:
 - 2026-10-13 · 5.2 · Platt on ensemble logit (out-of-fold ECE 0.0149→0.0042, Brier 0.0299→0.0288). Decision on calibrated probability ≥0.90 / ≤0.10 (set-level 90% precision made the bands overlap). Out-of-fold validation: 23.2% LP (98.1% P), 65.1% LB (0.9% P), 11.7% Uncertain.
 - 2026-10-13 · 5.3 · Single `missense_v1.onnx` (14 MB): LightGBM + dual tower + Platt, preprocessing in-graph. Validation parity: dual tower 7e-7, final 7.5e-3 (float32 trees vs f_delta_* noise splits), 0 decision changes, ECE 0.0037. CPU single variant median 0.48 ms.
 - 2026-10-14 · 6.1 · Test opened once (leakage audit PASS; ONNX sha256 pinned in report). Gene-disjoint test ROC-AUC 0.9902 [0.9884–0.9921], PR-AUC 0.9765, ECE 0.0044, 12.2% Uncertain; temporal 0.9887 (gene-disjoint subset 0.9882) but ECE 0.033 (overconfident in 0.3–0.8). No-AF 0.9687, no-ESM 0.9851. Model unchanged.
+- 2026-10-16 · 7.1 · `healthcare predict` (genomic or `GENE p.Xxx123Yyy`) reuses the training feature functions; `join_sources` now prefilters by chrom/pos range (one variant 2.5 s → ~120 ms). `serve-check`: 0 feature mismatches and 0 probability diff on 100 validation variants, median 155 ms with explanation. `serve/` imports no torch.

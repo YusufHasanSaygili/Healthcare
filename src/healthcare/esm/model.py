@@ -5,11 +5,10 @@ from pathlib import Path
 import numpy as np
 import torch
 
-MODEL_ID = "facebook/esm2_t33_650M_UR50D"
-REVISION = "08e4846e537177426273712802403f7ba8261b6c"
+from healthcare.esm.store import AMINO_ACIDS, MODEL_ID, REVISION
+
 MAX_RESIDUES = 1022
 WINDOW_STEP = 511
-AMINO_ACIDS = "ACDEFGHIKLMNPQRSTVWY"
 
 
 @dataclass

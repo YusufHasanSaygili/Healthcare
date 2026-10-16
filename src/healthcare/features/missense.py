@@ -3,13 +3,15 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import duckdb
+import numpy as np
 import polars as pl
 
-from healthcare.features.aminoacids import substitution_features
+from healthcare.features.aminoacids import ORDER, substitution_features
 from healthcare.features.esm_features import esm_features
 
 KEY = ["chrom", "pos", "ref", "alt"]
 CATEGORICAL_FEATURES = ["f_aa_ref", "f_aa_alt"]
+AMINO_ACID_CODES = {aa: i for i, aa in enumerate(ORDER + "U*X")}
 FREQUENCY_FEATURES = [
     "f_gnomad_af",
     "f_gnomad_ac",
@@ -68,9 +70,19 @@ def amino_acid_features(table: pl.DataFrame) -> pl.DataFrame:
     return table.hstack(pl.DataFrame(rows, schema={name: pl.Float64 for name in rows[0]}))
 
 
+def region_filter(variants: pl.DataFrame) -> str:
+    bounds = variants.group_by("chrom").agg(pl.col("pos").min().alias("lo"), pl.col("pos").max())
+    terms = [
+        f"(chrom = '{chrom}' AND pos BETWEEN {lo} AND {hi})"
+        for chrom, lo, hi in bounds.sort("chrom").iter_rows()
+    ]
+    return " OR ".join(terms) or "FALSE"
+
+
 def join_sources(variants: pl.DataFrame, inputs: Inputs) -> pl.DataFrame:
     con = duckdb.connect()
     con.register("variants", variants.to_arrow())
+    regions = region_filter(variants)
     group_columns = ",\n".join(
         f"bool_or(u.feature_type IN ({', '.join(repr(t) for t in types)})) AS {name}"
         for name, types in UNIPROT_GROUPS.items()
@@ -78,6 +90,14 @@ def join_sources(variants: pl.DataFrame, inputs: Inputs) -> pl.DataFrame:
     query = f"""
     WITH g AS (
         SELECT * FROM read_parquet('{(inputs.gnomad_exomes / "*.parquet").as_posix()}')
+        WHERE {regions}
+    ),
+    c AS (
+        SELECT * FROM read_parquet('{inputs.coverage.as_posix()}') WHERE {regions}
+    ),
+    k AS (
+        SELECT * FROM read_parquet('{(inputs.conservation / "*.parquet").as_posix()}')
+        WHERE {regions}
     ),
     u AS (
         SELECT v.chrom, v.pos, v.ref, v.alt, {group_columns}
@@ -102,8 +122,8 @@ def join_sources(variants: pl.DataFrame, inputs: Inputs) -> pl.DataFrame:
         {", ".join(f"q.{src} AS {dst}" for src, dst in CONSTRAINT_FEATURES.items())}
     FROM variants v
     LEFT JOIN g USING (chrom, pos, ref, alt)
-    LEFT JOIN read_parquet('{inputs.coverage.as_posix()}') c USING (chrom, pos)
-    LEFT JOIN read_parquet('{(inputs.conservation / "*.parquet").as_posix()}') k USING (chrom, pos)
+    LEFT JOIN c USING (chrom, pos)
+    LEFT JOIN k USING (chrom, pos)
     LEFT JOIN read_parquet('{inputs.transcripts.as_posix()}') t USING (transcript_id)
     LEFT JOIN mapped m USING (transcript_id)
     LEFT JOIN u USING (chrom, pos, ref, alt)
@@ -146,6 +166,18 @@ def finalize(joined: pl.DataFrame) -> pl.DataFrame:
     features = sorted(c for c in table.columns if c.startswith("f_"))
     labels = [c for c in ("label",) if c in table.columns]
     return table.select(*ID_COLUMNS, *labels, *features).sort(KEY)
+
+
+def to_matrix(table: pl.DataFrame, columns: list[str]) -> np.ndarray:
+    encoded = table.select(
+        [
+            pl.col(c).replace_strict(AMINO_ACID_CODES, default=None, return_dtype=pl.Float64)
+            if c in CATEGORICAL_FEATURES
+            else pl.col(c).cast(pl.Float64)
+            for c in columns
+        ]
+    )
+    return encoded.to_numpy()
 
 
 def missing_rates(table: pl.DataFrame) -> dict:

@@ -10,9 +10,9 @@ import polars as pl
 from healthcare.data.sources import load_sources
 from healthcare.esm import variant_inputs
 from healthcare.evaluate.metrics import classification_metrics, gene_bootstrap, rounded
-from healthcare.features.missense import FREQUENCY_FEATURES
+from healthcare.features.missense import FREQUENCY_FEATURES, to_matrix
 from healthcare.models import baseline, calibration, dual_tower, export
-from healthcare.models.baseline import ESM_PREFIX, to_matrix
+from healthcare.models.baseline import ESM_PREFIX
 from healthcare.models.sweep import CONFIRM_SEEDS
 from healthcare.split.genes import file_hash, load_split
 

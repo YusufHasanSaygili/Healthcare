@@ -6,8 +6,8 @@ import polars as pl
 import pytest
 import torch
 
+from healthcare.features.missense import AMINO_ACID_CODES, to_matrix
 from healthcare.models import calibration, dual_tower, export
-from healthcare.models.baseline import AMINO_ACID_CODES, to_matrix
 
 CONFIG = {
     "hidden": 16,

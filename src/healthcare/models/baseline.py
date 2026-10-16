@@ -10,14 +10,12 @@ import polars as pl
 from healthcare.esm.model import MODEL_ID as ESM_MODEL_ID
 from healthcare.esm.model import REVISION as ESM_REVISION
 from healthcare.evaluate.metrics import classification_metrics, gene_bootstrap, rounded
-from healthcare.features.aminoacids import ORDER
-from healthcare.features.missense import CATEGORICAL_FEATURES, FREQUENCY_FEATURES
+from healthcare.features.missense import CATEGORICAL_FEATURES, FREQUENCY_FEATURES, to_matrix
 from healthcare.split.genes import load_split
 
 SEED = 20261012
 EARLY_STOPPING_GENE_FRACTION = 0.1
 MAX_ROUNDS = 5000
-AMINO_ACID_CODES = {aa: i for i, aa in enumerate(ORDER + "U*X")}
 GENE_FEATURE_PREFIXES = ("f_gene_", "f_protein_length")
 ESM_PREFIX = ("f_esm_",)
 ABLATIONS = {
@@ -55,18 +53,6 @@ def feature_columns(table: pl.DataFrame, dropped: tuple[str, ...] = ()) -> list[
     return [
         c for c in table.columns if c.startswith("f_") and not any(c.startswith(d) for d in dropped)
     ]
-
-
-def to_matrix(table: pl.DataFrame, columns: list[str]) -> np.ndarray:
-    encoded = table.select(
-        [
-            pl.col(c).replace_strict(AMINO_ACID_CODES, default=None, return_dtype=pl.Float64)
-            if c in CATEGORICAL_FEATURES
-            else pl.col(c).cast(pl.Float64)
-            for c in columns
-        ]
-    )
-    return encoded.to_numpy()
 
 
 def early_stopping_genes(train: pl.DataFrame, seed: int = SEED) -> set[str]:

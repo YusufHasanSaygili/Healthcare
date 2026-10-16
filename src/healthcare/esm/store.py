@@ -4,8 +4,9 @@ from pathlib import Path
 import numpy as np
 import polars as pl
 
-from healthcare.esm.model import MODEL_ID, REVISION
-
+MODEL_ID = "facebook/esm2_t33_650M_UR50D"
+REVISION = "08e4846e537177426273712802403f7ba8261b6c"
+AMINO_ACIDS = "ACDEFGHIKLMNPQRSTVWY"
 KINDS = ("log_probs", "embeddings")
 
 

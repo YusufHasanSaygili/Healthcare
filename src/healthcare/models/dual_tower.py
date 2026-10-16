@@ -11,8 +11,12 @@ from torch import nn
 from healthcare.esm import variant_inputs
 from healthcare.evaluate.metrics import classification_metrics
 from healthcare.features.esm_features import ESM_FEATURES
-from healthcare.features.missense import CATEGORICAL_FEATURES, FREQUENCY_FEATURES
-from healthcare.models.baseline import AMINO_ACID_CODES, early_stopping_genes
+from healthcare.features.missense import (
+    AMINO_ACID_CODES,
+    CATEGORICAL_FEATURES,
+    FREQUENCY_FEATURES,
+)
+from healthcare.models.baseline import early_stopping_genes
 from healthcare.split.genes import load_split
 
 ESM_FORMS = {

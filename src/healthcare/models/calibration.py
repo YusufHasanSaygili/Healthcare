@@ -12,8 +12,8 @@ from sklearn.linear_model import LogisticRegression
 
 from healthcare.esm import variant_inputs
 from healthcare.evaluate.metrics import classification_metrics, rounded
+from healthcare.features.missense import to_matrix
 from healthcare.models import dual_tower
-from healthcare.models.baseline import to_matrix
 from healthcare.split.genes import load_split
 
 SEED = 20261013

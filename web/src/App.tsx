@@ -1,146 +1,128 @@
-import { useActionState } from "react";
-import {
-  ApiError,
-  predictVariant,
-  type Decision,
-  type EvidenceGroup,
-  type OutOfScopeVariant,
-  type PredictResponse,
-  type PredictedVariant,
-  type VariantResult,
-} from "./api/client";
+import { startTransition, useActionState, useState } from "react";
+import { ApiError, predictVariant, type PredictResponse } from "./api/client";
+import { BioBackground, type Lab } from "./components/BioBackground";
+import { Header } from "./components/Header";
+import { QueryPanel } from "./components/QueryPanel";
+import { ResultCard } from "./components/ResultCard";
+import { useSettings } from "./settings";
 
-const DISCLAIMER =
-  "For research and educational use only; not for clinical diagnosis or treatment decisions.";
-
-const DECISION_LABELS: Record<Decision, string> = {
-  likely_pathogenic: "Likely pathogenic",
-  uncertain: "Uncertain",
-  likely_benign: "Likely benign",
-};
-
-const GROUP_LABELS: Record<EvidenceGroup, string> = {
-  allele_frequency: "Allele frequency",
-  conservation: "Conservation",
-  esm_scores: "Protein language model (ESM-2)",
-  gene_constraint: "Gene constraint",
-  protein_regions: "Protein regions",
-  amino_acid_change: "Amino acid change",
-  protein_position: "Position in protein",
-};
+type QueryError = { kind: "invalid"; detail: string } | { kind: "network" } | { kind: "unexpected" };
 
 type QueryState = {
-  query: string;
   response: PredictResponse | null;
-  error: string | null;
+  error: QueryError | null;
 };
 
-const INITIAL_STATE: QueryState = { query: "", response: null, error: null };
+const INITIAL_STATE: QueryState = { response: null, error: null };
 
-async function runQuery(_previous: QueryState, form: FormData): Promise<QueryState> {
+async function runQuery(previous: QueryState, form: FormData): Promise<QueryState> {
   const query = String(form.get("variant") ?? "").trim();
   if (!query) {
-    return { query, response: null, error: "Enter a variant." };
+    return previous;
   }
   try {
-    return { query, response: await predictVariant(query), error: null };
+    return { response: await predictVariant(query), error: null };
   } catch (error) {
-    const message = error instanceof ApiError ? error.message : "Unexpected error.";
-    return { query, response: null, error: message };
+    if (error instanceof ApiError) {
+      return {
+        response: null,
+        error: error.status === 0 ? { kind: "network" } : { kind: "invalid", detail: error.message },
+      };
+    }
+    return { response: null, error: { kind: "unexpected" } };
   }
 }
 
-function formatNumber(value: number | null, digits = 3): string {
-  return value === null ? "n/a" : value.toPrecision(digits);
+function labState(pending: boolean, state: QueryState): Lab {
+  if (pending) {
+    return { status: "analyzing", label: null, probability: null };
+  }
+  if (state.error) {
+    return { status: "error", label: null, probability: null };
+  }
+  const results = state.response?.results ?? [];
+  const predicted = results.find((result) => result.status === "predicted");
+  if (predicted?.status === "predicted") {
+    return {
+      status: predicted.decision,
+      label: `${predicted.gene} ${predicted.hgvs_p}`,
+      probability: predicted.probability,
+    };
+  }
+  const first = results[0];
+  return first
+    ? { status: "out_of_scope", label: first.variant, probability: null }
+    : { status: "idle", label: null, probability: null };
 }
 
-function PredictedResult({ result }: { result: PredictedVariant }) {
-  const { evidence } = result;
+function ErrorBanner({ error }: { error: QueryError }) {
+  const { messages } = useSettings();
+  if (error.kind === "invalid") {
+    return (
+      <div className="alert" role="alert">
+        <strong>{messages.invalidInputTitle}</strong>
+        <span>{error.detail}</span>
+      </div>
+    );
+  }
   return (
-    <article>
-      <h2>
-        {result.gene} {result.hgvs_p}
-      </h2>
-      <p>
-        {result.variant} ({result.transcript_id})
-      </p>
-      <p>
-        <strong>{DECISION_LABELS[result.decision]}</strong>, probability{" "}
-        {result.probability.toFixed(3)}
-      </p>
-      <h3>Evidence that moved the prediction most</h3>
-      <ol>
-        {result.contributions.slice(0, 4).map((contribution) => (
-          <li key={contribution.group}>
-            {GROUP_LABELS[contribution.group]}: {contribution.log_odds > 0 ? "+" : ""}
-            {contribution.log_odds.toFixed(2)} log-odds (
-            {contribution.log_odds > 0 ? "toward pathogenic" : "toward benign"})
-          </li>
-        ))}
-      </ol>
-      <h3>Measurements</h3>
-      <dl>
-        <dt>gnomAD allele frequency</dt>
-        <dd>{formatNumber(evidence.gnomad_af)}</dd>
-        <dt>phyloP conservation</dt>
-        <dd>{formatNumber(evidence.phylop)}</dd>
-        <dt>ESM-2 log-likelihood ratio</dt>
-        <dd>{formatNumber(evidence.esm_llr)}</dd>
-        <dt>Grantham distance</dt>
-        <dd>{formatNumber(evidence.grantham)}</dd>
-        <dt>Protein regions</dt>
-        <dd>{evidence.protein_regions.join(", ") || "none"}</dd>
-      </dl>
-    </article>
+    <div className="alert" role="alert">
+      {error.kind === "network" ? messages.networkError : messages.unexpectedError}
+    </div>
   );
 }
 
-function OutOfScopeResult({ result }: { result: OutOfScopeVariant }) {
+function AwaitingPanel() {
+  const { messages } = useSettings();
   return (
-    <article>
-      <h2>{result.variant}</h2>
-      <p>
-        Out of scope ({result.consequence.replaceAll("_", " ")}): {result.reason}.
-      </p>
-    </article>
-  );
-}
-
-function Result({ result }: { result: VariantResult }) {
-  return result.status === "predicted" ? (
-    <PredictedResult result={result} />
-  ) : (
-    <OutOfScopeResult result={result} />
+    <div className="awaiting">
+      <p className="awaiting-title">{messages.awaitingTitle}</p>
+      <p>{messages.awaitingHint}</p>
+    </div>
   );
 }
 
 export function App() {
+  const { messages } = useSettings();
+  const [value, setValue] = useState("");
   const [state, submit, pending] = useActionState(runQuery, INITIAL_STATE);
+
+  function runExample(example: string) {
+    setValue(example);
+    const form = new FormData();
+    form.set("variant", example);
+    startTransition(() => submit(form));
+  }
+
+  const results = state.response?.results ?? [];
+  const lab = labState(pending, state);
   return (
-    <main>
-      <h1>Variant pathogenicity</h1>
-      <p>{DISCLAIMER}</p>
-      <form action={submit}>
-        <label htmlFor="variant">Variant</label>{" "}
-        <input
-          id="variant"
-          name="variant"
-          defaultValue={state.query}
-          placeholder="17:43063931 G>A or BRCA1 p.Arg1699Trp"
-          maxLength={100}
-          autoComplete="off"
-          spellCheck={false}
-        />{" "}
-        <button type="submit" disabled={pending}>
-          {pending ? "Predicting…" : "Predict"}
-        </button>
-      </form>
-      <section aria-live="polite">
-        {state.error && <p role="alert">{state.error}</p>}
-        {state.response?.results.map((result) => (
-          <Result key={result.variant} result={result} />
-        ))}
-      </section>
-    </main>
+    <>
+      <BioBackground status={lab.status} label={lab.label} probability={lab.probability} />
+      <div className="page">
+        <Header />
+        <main className="layout">
+          <QueryPanel
+            action={submit}
+            value={value}
+            pending={pending}
+            onValueChange={setValue}
+            onExample={runExample}
+          />
+          <section className="results" aria-live="polite" aria-busy={pending}>
+            {pending && <div className="scan" aria-hidden="true" />}
+            {state.error && <ErrorBanner error={state.error} />}
+            {!state.error && results.length === 0 && !pending && <AwaitingPanel />}
+            {results.map((result) => (
+              <ResultCard key={result.variant} result={result} />
+            ))}
+          </section>
+        </main>
+        <footer className="footer">
+          <p>{messages.disclaimer}</p>
+          <p className="footer-meta">{messages.footer}</p>
+        </footer>
+      </div>
+    </>
   );
 }

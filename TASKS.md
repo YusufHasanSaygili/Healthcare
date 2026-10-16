@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 7.4 Design pass
+**Current task:** 7.5 Batch query and model card pages
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -204,7 +204,7 @@ Rules:
   - Acceptance: `tsc --noEmit` and `vite build` clean; a backend schema change produces a type error
   - Try it: a variant is entered in the browser and the result appears
 
-- [ ] **7.4 Design pass**
+- [x] **7.4 Design pass**
   - Design direction and token system with UI UX Pro Max (color, typography, spacing; dark mode)
   - Result card: probability, three-way decision (including "Uncertain"), chart of the features driving the decision,
     disclaimer
@@ -298,3 +298,4 @@ Rules:
 - 2026-10-16 · 7.1 · `healthcare predict` (genomic or `GENE p.Xxx123Yyy`) reuses the training feature functions; `join_sources` now prefilters by chrom/pos range (one variant 2.5 s → ~120 ms). `serve-check`: 0 feature mismatches and 0 probability diff on 100 validation variants, median 155 ms with explanation. `serve/` imports no torch.
 - 2026-10-16 · 7.2 · `healthcare serve`: FastAPI on 127.0.0.1 (health, predict, plain-text VCF batch ≤2 MB / 500 variants in memory, model card), CORS for the Vite origin only; 30 API/serve tests (httpx dev-only). Serving now keeps nested-gene variants like training (416 validation variants were wrongly rejected); 500-variant batch 14.6 s. `/code-review`: 3 fixed, 2 deferred.
 - 2026-10-16 · 7.3 · `web/`: React 19 + Vite 8 + TypeScript 5.9 (pinned: openapi-typescript needs TS 5); types from `web/openapi.json` (`healthcare openapi` → `npm run gen:api`), a pytest drift check fails until regenerated; renaming a backend field breaks `tsc`. Single-variant page verified in the browser against the live API.
+- 2026-10-16 · 7.4 · Red underground-lab HUD theme modelled on the RE remakes and Requiem cutscenes (own SVG: layered cables, a glossy black symbiote-like goo mass, red/purple/green specimen tanks with ringed metal caps and under-lights holding a pulsing veined tissue mass on feed tubes, a wall-anchored goo web and a glowing serum sample with virions, a CRT monitor that reacts to the decision; no game IP), light/dark, EN/TR via a typed dictionary (no i18n or chart library): decision badge with icon, banded probability gauge, diverging log-odds chart with a plain-language summary, measurements. System fonts only (offline). 12 Vitest tests; web-design-guidelines audit: no critical findings, 4 minor fixed.

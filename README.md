@@ -80,7 +80,8 @@ npm run dev
 ```
 
 After changing an API schema, regenerate the frontend types with `uv run healthcare openapi` and then
-`npm run gen:api` in `web/`; `npm run build` type-checks and builds the interface.
+`npm run gen:api` in `web/`; `npm run build` type-checks and builds the interface, and `npm test` runs its unit
+tests. The interface has light and dark themes and an English/Turkish language switch.
 
 ---
 
@@ -157,7 +158,8 @@ npm run dev
 ```
 
 API şeması değiştiğinde frontend tiplerini `uv run healthcare openapi` ve ardından `web/` içinde
-`npm run gen:api` ile yeniden üretin; `npm run build` tip kontrolü yapar ve arayüzü derler.
+`npm run gen:api` ile yeniden üretin; `npm run build` tip kontrolü yapar ve arayüzü derler, `npm test` birim
+testlerini çalıştırır. Arayüzde açık/koyu tema ve İngilizce/Türkçe dil seçeneği vardır.
 
 > **Sorumluluk reddi:** Bu proje yalnızca araştırma ve eğitim amaçlıdır; klinik tanı veya tedavi kararları için
 > kullanılamaz.

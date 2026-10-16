@@ -4,7 +4,13 @@ import pytest
 
 from healthcare.esm import store
 from healthcare.esm.model import AMINO_ACIDS
-from healthcare.features.esm_features import ESM_FEATURES, esm_features, position_features
+from healthcare.features.esm_features import (
+    ESM_FEATURES,
+    INDEX,
+    esm_features,
+    position_features,
+    span_features,
+)
 
 
 def log_probs(length=5):
@@ -38,3 +44,18 @@ def test_esm_features_keep_row_order_and_handle_missing_proteins(tmp_path):
     assert result["f_esm_llr"][0] < 0
     assert result["f_esm_llr"][1] is None
     assert result["f_esm_llr"][2] == 0
+
+
+def test_span_features_score_removed_and_inserted_residues():
+    log_probs = np.full((4, 20), np.log(0.01), dtype=np.float32)
+    log_probs[1, INDEX["K"]] = np.log(0.81)
+    log_probs[1, INDEX["R"]] = np.log(0.1)
+    removed, inserted, llr, entropy = span_features(log_probs, 2, "K", "R")
+    assert removed == pytest.approx(np.log(0.81), abs=1e-5)
+    assert inserted == pytest.approx(np.log(0.1), abs=1e-5)
+    assert llr == pytest.approx(np.log(0.1) - np.log(0.81), abs=1e-5)
+    assert entropy > 0
+    insertion = span_features(log_probs, 3, "", "R")
+    assert insertion[0] is None and insertion[2] is None
+    assert insertion[1] == pytest.approx(np.log(0.1), abs=1e-5)
+    assert span_features(log_probs, 1, "M", "") == (None, None, None, None)

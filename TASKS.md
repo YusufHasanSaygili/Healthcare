@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 8.2b ESM features for in-frame indels
+**Current task:** 8.3 Joint model training
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -237,7 +237,7 @@ Rules:
   - Acceptance: per-type missing-value report; leakage-auditor has no 🔴 findings
   - Try it: the per-type feature report is read
 
-- [ ] **8.2b ESM features for in-frame indels**
+- [x] **8.2b ESM features for in-frame indels**
   - ESM-based features for in-frame indels; protein tower masked for types without them
   - Acceptance: per-type missing-value report including ESM columns
   - Try it: the feature report is read
@@ -311,3 +311,4 @@ Rules:
 - 2026-10-16 · 7.5 · Hash-routed pages (no router library): Batch (VCF) uploads the file as-is to `/api/predict/batch` after client checks (empty, >2 MB, compressed), shows a decision table, line errors and a CSV download (formula-safe cells); API 413/415/422 map to localized messages. Model card page lists thresholds, test/temporal metrics with bootstrap CIs, baseline/ablations, collapsed data versions and limitations. `web/public/sample.vcf` covers all three decisions, out of scope and a line error; 18 Vitest tests.
 - 2026-10-16 · 8.1 · Indel annotator (`annotate/indel.py`): left-normalization, frameshift (HGVS short `fs`), in-frame del/dup/ins/delins with the protein 3' rule, stop gained/lost/retained, start lost, canonical splice; MNVs stay out of scope. ClinVar train: 192,880 indels, all already left-normalized; ClinVar-equivalent protein change (edits applied to the MANE protein) frameshift 99.97%, in-frame del 99.87%, ins 99.29%, delins 100% (exact strings 58–100%: ClinVar mixes ins/dup and repeat notation); indel consequence agreement 94.4%. `/code-review`: 5/6 fixed.
 - 2026-10-16 · 8.2a · `build-phase2-features`: 9 Phase 2 types, 51 `f_` columns (18 type-specific: truncation, NMD 55 nt rule via mRNA built from GRCh38 + MANE exons, stop-loss extension, next Met, splice side/skipped-exon frame, boundary distance, indel length; span phyloP). Train 845,024 rows (73% synonymous), temporal 112,503, VUS 71,778; 303 multi-gene dropped; type-specific missing <1% except partial stop-loss deletions. Benign frameshifts escape NMD 48% vs 15%. Missense table unchanged (serve-check 0 diffs). Leakage audit PASS: 181 missense variants also scored as Phase 2 in another gene, to be settled in 8.3; type alone nearly separates labels, so report per type.
+- 2026-10-16 · 8.2b · 4 `f_esm_*` span features for in-frame indels from stored wild-type marginals (removed/inserted residue log-prob, their difference, site entropy); 55 features. Inserted residues score lower when pathogenic (insertions −4.28 vs −1.56, delins −7.85 vs −5.32); deletions barely separate (wild-type marginals are near 1 for residues in the input). Leakage audit PASS; 8.3 must mask `SPAN_FEATURES` in the dual tower's no-ESM ablation, and 8.4 must compute them when serving.

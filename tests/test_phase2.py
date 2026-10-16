@@ -75,3 +75,11 @@ def test_missing_by_type_reports_each_consequence_separately():
         "frameshift": {"f_nmd_escape": 0.5},
         "synonymous": {"f_nmd_escape": 1.0},
     }
+
+
+def test_inserted_residues_are_read_from_each_hgvs_form():
+    protein = "MAWKRGFQ"
+    assert phase2.inserted_residues("p.Phe7dup", protein, 8, 1) == "F"
+    assert phase2.inserted_residues("p.Lys4_Arg5insGly", protein, 5, 1) == "G"
+    assert phase2.inserted_residues("p.Arg5delinsTrpLeu", protein, 5, 2) == "WL"
+    assert phase2.inserted_residues("p.Gly6del", protein, 6, 0) == ""

@@ -18,7 +18,10 @@ from healthcare.annotate.truncation import (
     utr3_sequence,
 )
 from healthcare.data.annotations import load_transcripts
+from healthcare.data.protein_hgvs import residues
+from healthcare.esm import store
 from healthcare.features import missense
+from healthcare.features.esm_features import EMPTY_SPAN, SPAN_FEATURES, span_features
 
 KEY = missense.KEY
 PHASE2_TYPES = [
@@ -111,6 +114,41 @@ def type_features(
     return table.hstack(pl.DataFrame(rows, schema=schema))
 
 
+def inserted_residues(hgvs: str | None, protein: str, position: int, added: int) -> str:
+    if not hgvs or added <= 0:
+        return ""
+    if hgvs.endswith("dup"):
+        return protein[position - 1 - added : position - 1]
+    for marker in ("delins", "ins"):
+        if marker in hgvs:
+            return residues(hgvs.rsplit(marker, 1)[1])
+    return residues(hgvs[-3:])
+
+
+def indel_esm_features(
+    table: pl.DataFrame, transcripts: dict[str, Transcript], store_dir: Path
+) -> pl.DataFrame:
+    values: list[tuple] = [EMPTY_SPAN] * table.height
+    in_frame = (
+        table.with_row_index()
+        .filter(pl.col("consequence").is_in(IN_FRAME))
+        .select(
+            "index", "transcript_id", "protein_position", "aa_ref", "hgvs_p", "f_residues_added"
+        )
+    )
+    for (transcript_id,), group in in_frame.group_by("transcript_id"):
+        if not store.is_done(store_dir, transcript_id):
+            continue
+        log_probs, _ = store.load(store_dir, transcript_id)
+        protein = transcripts[transcript_id].protein
+        for row, position, removed, hgvs, added in group.drop("transcript_id").iter_rows():
+            inserted = inserted_residues(hgvs, protein, position, int(added))
+            values[row] = span_features(log_probs, position, removed or "", inserted)
+    return table.hstack(
+        pl.DataFrame(values, schema={name: pl.Float64 for name in SPAN_FEATURES}, orient="row")
+    )
+
+
 def span_conservation(variants: pl.DataFrame, conservation: Path) -> pl.DataFrame:
     con = duckdb.connect()
     con.register("variants", variants.select(*KEY, "span_start", "span_end").to_arrow())
@@ -197,7 +235,9 @@ def build(
         resolved, dropped = resolve(annotations)
         resolved = resolved.join(clinvar, on=KEY)
         resolved = resolved.head(limit) if limit else resolved
-        typed = type_features(resolved, transcripts, utr3)
+        typed = indel_esm_features(
+            type_features(resolved, transcripts, utr3), transcripts, inputs.esm_store
+        )
         joined = missense.join_sources(typed, inputs)
         table = finalize(joined, span_conservation(typed, inputs.conservation))
         table.write_parquet(out_dir / f"phase2_{name}.parquet")

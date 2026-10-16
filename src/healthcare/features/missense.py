@@ -133,13 +133,11 @@ def join_sources(variants: pl.DataFrame, inputs: Inputs) -> pl.DataFrame:
     return con.execute(query).pl()
 
 
-def finalize(joined: pl.DataFrame) -> pl.DataFrame:
+def shared_columns() -> list[pl.Expr]:
     covered = pl.col("f_gnomad_exome_an").fill_null(0) > 0
     in_gnomad = pl.col("gnomad_ac_raw").is_not_null()
-    table = joined.with_columns(
+    return [
         covered.cast(pl.Float64).alias("f_gnomad_covered"),
-        pl.col("aa_ref").alias("f_aa_ref"),
-        pl.col("aa_alt").alias("f_aa_alt"),
         *[
             pl.when(in_gnomad)
             .then(pl.col(f"gnomad_{name}_raw"))
@@ -161,6 +159,14 @@ def finalize(joined: pl.DataFrame) -> pl.DataFrame:
             for name in UNIPROT_GROUPS
         ],
         pl.col("uniprot_mapped").cast(pl.Float64).alias("f_uniprot_mapped"),
+    ]
+
+
+def finalize(joined: pl.DataFrame) -> pl.DataFrame:
+    table = joined.with_columns(
+        *shared_columns(),
+        pl.col("aa_ref").alias("f_aa_ref"),
+        pl.col("aa_alt").alias("f_aa_alt"),
     )
     table = amino_acid_features(table)
     features = sorted(c for c in table.columns if c.startswith("f_"))

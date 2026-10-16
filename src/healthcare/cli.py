@@ -11,7 +11,7 @@ from healthcare.annotate.snv import TranscriptIndex, parse_snv
 from healthcare.data import annotations, clinvar, conservation, gnomad, mane, uniprot
 from healthcare.data.download import ChecksumMismatch, download
 from healthcare.data.sources import load_sources
-from healthcare.features import missense
+from healthcare.features import missense, phase2
 from healthcare.models import baseline
 from healthcare.paths import ARTIFACTS_DIR, DATA_DIR, PROJECT_ROOT, REPORTS_DIR
 from healthcare.runlog import start_log, write_summary
@@ -310,6 +310,34 @@ def run_build_features(force: bool) -> int:
     train = summary["train_labels"]
     print(f"train rows: {train['rows']} ({train['pathogenic']} pathogenic)")
     print(f"features: {summary['feature_columns']}")
+    print(f"summary: {summary_path}")
+    return 0
+
+
+def run_build_phase2_features(limit: int | None, force: bool) -> int:
+    suffix = f".n{limit}" if limit else ""
+    out_dir = DATA_DIR / "processed" / f"features{suffix}"
+    if (out_dir / "phase2_train_labels.parquet").exists() and not force:
+        print(f"skipped: {out_dir} exists (use --force)")
+        return 0
+    inputs = feature_inputs()
+    missing = missing_inputs(inputs)
+    if missing:
+        print(f"missing inputs: {', '.join(missing)}")
+        return 2
+    log_path = start_log("build-phase2-features")
+    processed = DATA_DIR / "processed"
+    summary = {"log": log_path} | phase2.build(
+        processed / "annotations",
+        processed / "clinvar",
+        inputs,
+        REFERENCE,
+        out_dir,
+        REPORTS_DIR / f"phase2_missing_values{suffix}.json",
+        limit,
+    )
+    summary_path = write_summary("build-phase2-features", summary)
+    print(f"train rows: {summary['train_labels']['rows']}, features: {summary['feature_columns']}")
     print(f"summary: {summary_path}")
     return 0
 
@@ -693,6 +721,11 @@ def main(argv: list[str] | None = None) -> int:
         "build-features", help="Build the missense feature tables (train, temporal, VUS)"
     )
     features_build_parser.add_argument("--force", action="store_true", help="Rebuild if present")
+    phase2_parser = commands.add_parser(
+        "build-phase2-features", help="Build feature tables for the Phase 2 variant types"
+    )
+    phase2_parser.add_argument("--limit", type=int, help="Use at most N variants per table")
+    phase2_parser.add_argument("--force", action="store_true", help="Rebuild if present")
     split_parser = commands.add_parser(
         "build-split", help="Create (once) the gene-disjoint train/validation/test split"
     )
@@ -756,6 +789,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_protein_features(args.gene)
     if args.command == "build-features":
         return run_build_features(args.force)
+    if args.command == "build-phase2-features":
+        return run_build_phase2_features(args.limit, args.force)
     if args.command == "build-split":
         return run_build_split(args.force)
     if args.command == "train-baseline":

@@ -368,6 +368,52 @@ def run_build_split(force: bool) -> int:
     return 0
 
 
+def run_build_phase2_split(force: bool) -> int:
+    processed = DATA_DIR / "processed"
+    if not (processed / "features" / "phase2_train_labels.parquet").exists():
+        print("missing inputs: run `healthcare build-phase2-features` first")
+        return 2
+    log_path = start_log("build-phase2-split")
+    try:
+        summary = gene_split.build_phase2(
+            processed / "features",
+            processed / "annotations",
+            processed / "splits",
+            REPORTS_DIR / "split_summary.json",
+            REPORTS_DIR / "phase2_split_summary.json",
+            force,
+        )
+    except RuntimeError as error:
+        print(error)
+        return 1
+    write_summary("build-phase2-split", {"log": log_path} | summary)
+    for name, stats in summary["splits"].items():
+        print(f"{name}: {stats['genes']} genes, {stats['variants']} variants")
+    print(
+        f"overlaps: {summary['overlaps']}, missense cross-table: {summary['missense_cross_table']}"
+    )
+    print(f"report: {REPORTS_DIR / 'phase2_split_summary.json'}")
+    return 0
+
+
+def run_train_joint_baseline(trials: int) -> int:
+    from healthcare.models import joint
+
+    splits_dir = DATA_DIR / "processed" / "splits"
+    if not (splits_dir / "phase2_open.parquet").exists():
+        print("missing inputs: run `healthcare build-phase2-split` first")
+        return 2
+    log_path = start_log("train-joint-baseline")
+    artifacts = ARTIFACTS_DIR / "models"
+    artifacts.mkdir(parents=True, exist_ok=True)
+    report = {"log": log_path} | joint.run(splits_dir, artifacts, REPORTS_DIR, trials)
+    write_summary("train-joint-baseline", report)
+    for consequence, metrics in report["validation_by_type"].items():
+        print(f"{consequence}: ROC-AUC {metrics.get('roc_auc', 'n/a')} (n={metrics['n']})")
+    print(f"report: {REPORTS_DIR / 'joint_lightgbm.json'}")
+    return 0
+
+
 def run_train_baseline(trials: int) -> int:
     splits_dir = DATA_DIR / "processed" / "splits"
     if not (splits_dir / "missense_open.parquet").exists():
@@ -730,6 +776,14 @@ def main(argv: list[str] | None = None) -> int:
         "build-split", help="Create (once) the gene-disjoint train/validation/test split"
     )
     split_parser.add_argument("--force", action="store_true", help="Regenerate the pinned split")
+    phase2_split_parser = commands.add_parser(
+        "build-phase2-split", help="Place Phase 2 variants into the pinned gene split"
+    )
+    phase2_split_parser.add_argument("--force", action="store_true", help="Re-pin if changed")
+    joint_parser = commands.add_parser(
+        "train-joint-baseline", help="Train LightGBM on missense and Phase 2 types together"
+    )
+    joint_parser.add_argument("--trials", type=int, default=20, help="Random-search trials")
     baseline_parser = commands.add_parser(
         "train-baseline", help="Train the LightGBM baseline with a small sweep (validation only)"
     )
@@ -791,6 +845,10 @@ def main(argv: list[str] | None = None) -> int:
         return run_build_features(args.force)
     if args.command == "build-phase2-features":
         return run_build_phase2_features(args.limit, args.force)
+    if args.command == "train-joint-baseline":
+        return run_train_joint_baseline(args.trials)
+    if args.command == "build-phase2-split":
+        return run_build_phase2_split(args.force)
     if args.command == "build-split":
         return run_build_split(args.force)
     if args.command == "train-baseline":

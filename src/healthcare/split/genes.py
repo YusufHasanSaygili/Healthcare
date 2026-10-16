@@ -10,6 +10,19 @@ OPEN_SPLITS = ("train", "validation")
 TARGETS = {"train": 0.70, "validation": 0.15, "test": 0.15}
 SEED = 20261012
 KEY = ["chrom", "pos", "ref", "alt"]
+TABLES = ("missense", "phase2")
+SCORED_TYPES = (
+    "missense",
+    "synonymous",
+    "stop_gained",
+    "stop_lost",
+    "start_lost",
+    "canonical_splice",
+    "frameshift",
+    "inframe_deletion",
+    "inframe_insertion",
+    "inframe_indel",
+)
 
 
 class LockedSplitError(RuntimeError):
@@ -177,14 +190,18 @@ def label_temporal(
     )
 
 
-def load_split(splits_dir: Path, name: str, allow_locked: bool = False) -> pl.DataFrame:
+def load_split(
+    splits_dir: Path, name: str, allow_locked: bool = False, table: str = "missense"
+) -> pl.DataFrame:
+    if table not in TABLES:
+        raise ValueError(f"unknown table: {table}")
     if name in OPEN_SPLITS:
-        return pl.read_parquet(splits_dir / "missense_open.parquet").filter(pl.col("split") == name)
+        return pl.read_parquet(splits_dir / f"{table}_open.parquet").filter(pl.col("split") == name)
     if name not in ("test", "temporal"):
         raise ValueError(f"unknown split: {name}")
     if not allow_locked:
         raise LockedSplitError(f"'{name}' is locked; it is opened only in final evaluation tasks")
-    return pl.read_parquet(splits_dir / "locked" / f"missense_{name}.parquet")
+    return pl.read_parquet(splits_dir / "locked" / f"{table}_{name}.parquet")
 
 
 def identity_hash(labeled: pl.DataFrame) -> str:
@@ -262,6 +279,124 @@ def build(
         "overlaps": overlaps(labeled),
         "temporal_variants_in_train_release": temporal.join(labeled, on=KEY, how="semi").height,
         "temporal": {row.pop("temporal_subset"): row for row in temporal_stats},
+    }
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(json.dumps(summary, indent=2))
+    return summary
+
+
+def multi_gene_keys(annotations: pl.DataFrame) -> pl.DataFrame:
+    return (
+        annotations.filter(pl.col("consequence").is_in(SCORED_TYPES))
+        .group_by(KEY)
+        .agg(pl.col("gene_name").n_unique().alias("genes"))
+        .filter(pl.col("genes") > 1)
+        .select(KEY)
+        .sort(KEY)
+    )
+
+
+def cross_table_conflicts(first: pl.DataFrame, second: pl.DataFrame) -> dict:
+    positions = pl.concat(
+        [first.select("chrom", "pos", "split"), second.select("chrom", "pos", "split")]
+    )
+    genes = pl.concat([first.select("gene_name", "split"), second.select("gene_name", "split")])
+    return {
+        "shared_variants": first.join(second, on=KEY, how="semi").height,
+        "positions_in_multiple_splits": positions.group_by("chrom", "pos")
+        .agg(pl.col("split").n_unique().alias("n"))
+        .filter(pl.col("n") > 1)
+        .height,
+        "genes_in_multiple_splits": genes.group_by("gene_name")
+        .agg(pl.col("split").n_unique().alias("n"))
+        .filter(pl.col("n") > 1)
+        .height,
+    }
+
+
+def pinned_genes(genes_path: Path, report_path: Path) -> pl.DataFrame:
+    report = json.loads(report_path.read_text())
+    if report.get("genes_file_sha256") != file_hash(genes_path):
+        raise RuntimeError(f"{genes_path} does not match the hash in {report_path}")
+    return pl.read_parquet(genes_path)
+
+
+def build_phase2(
+    features_dir: Path,
+    annotations_dir: Path,
+    splits_dir: Path,
+    missense_report: Path,
+    report_path: Path,
+    force: bool,
+) -> dict:
+    genes = pinned_genes(splits_dir / "genes.parquet", missense_report)
+    labeled = pl.read_parquet(features_dir / "phase2_train_labels.parquet")
+    phase2_hash = identity_hash(labeled)
+    pinned = json.loads(report_path.read_text()) if report_path.exists() else {}
+    if pinned and not force and pinned.get("train_identity_sha256") != phase2_hash:
+        raise RuntimeError(
+            "Phase 2 training variants changed since the split was pinned; use --force"
+        )
+    labeled = labeled.join(genes.select("gene_name", "split"), on="gene_name", how="left")
+    if labeled["split"].null_count():
+        raise RuntimeError("some Phase 2 genes have no split assignment")
+    multi = pl.concat(
+        [
+            multi_gene_keys(pl.read_parquet(annotations_dir / f"{name}.parquet"))
+            for name in ("train_labels", "temporal_labels")
+        ]
+    ).unique()
+    multi.write_parquet(splits_dir / "multi_gene_keys.parquet")
+    locked = splits_dir / "locked"
+    labeled.filter(pl.col("split").is_in(OPEN_SPLITS)).write_parquet(
+        splits_dir / "phase2_open.parquet"
+    )
+    labeled.filter(pl.col("split") == "test").write_parquet(locked / "phase2_test.parquet")
+    identity = [*KEY, "gene_name", "split"]
+    missense = pl.concat(
+        [
+            pl.read_parquet(splits_dir / "missense_open.parquet", columns=identity),
+            pl.read_parquet(locked / "missense_test.parquet", columns=identity),
+        ]
+    )
+    train_positions = pl.concat(
+        [
+            labeled.filter(pl.col("split") == "train").select("chrom", "pos"),
+            missense.filter(pl.col("split") == "train").select("chrom", "pos"),
+        ]
+    )
+    temporal = label_temporal(
+        pl.read_parquet(features_dir / "phase2_temporal_labels.parquet"), genes, train_positions
+    )
+    temporal.write_parquet(locked / "phase2_temporal.parquet")
+    by_type = (
+        labeled.group_by("split", "consequence")
+        .agg(pl.len().alias("variants"), pl.col("label").sum().alias("pathogenic"))
+        .sort("split", "consequence")
+    )
+    summary = {
+        "genes_file_sha256": file_hash(splits_dir / "genes.parquet"),
+        "train_identity_sha256": phase2_hash,
+        "splits": split_summary(labeled),
+        "by_type": {
+            split: {
+                row["consequence"]: {"variants": row["variants"], "pathogenic": row["pathogenic"]}
+                for row in group.to_dicts()
+            }
+            for (split,), group in by_type.group_by("split", maintain_order=True)
+        },
+        "overlaps": overlaps(labeled),
+        "missense_cross_table": cross_table_conflicts(labeled, missense),
+        "multi_gene_keys": multi.height,
+        "missense_rows_with_multi_gene_keys": missense.join(multi, on=KEY, how="semi").height,
+        "phase2_rows_with_multi_gene_keys": labeled.join(multi, on=KEY, how="semi").height,
+        "temporal_variants_in_train_release": temporal.join(
+            pl.concat([labeled.select(KEY), missense.select(KEY)]), on=KEY, how="semi"
+        ).height,
+        "temporal": temporal.group_by("temporal_subset")
+        .agg(pl.len().alias("variants"), pl.col("label").sum().alias("pathogenic"))
+        .sort("temporal_subset")
+        .to_dicts(),
     }
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(json.dumps(summary, indent=2))

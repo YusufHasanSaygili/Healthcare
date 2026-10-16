@@ -1,0 +1,287 @@
+{
+  "model": "LightGBM baseline (all coding types, phase 2)",
+  "lightgbm_version": "4.7.0",
+  "esm_model": "facebook/esm2_t33_650M_UR50D",
+  "seed": 20261012,
+  "base_params": {
+    "objective": "binary",
+    "metric": "binary_logloss",
+    "verbosity": -1,
+    "seed": 20261012,
+    "deterministic": true,
+    "force_row_wise": true,
+    "num_threads": 12
+  },
+  "rows": {
+    "fit": 655663,
+    "early_stopping": 62424,
+    "validation": 153822
+  },
+  "test_set_opened": false,
+  "selection": "mean validation ROC-AUC over types with at least 20 per class",
+  "trials": 40,
+  "best_params": {
+    "learning_rate": 0.02,
+    "num_leaves": 63,
+    "min_child_samples": 20,
+    "feature_fraction": 0.75,
+    "bagging_fraction": 0.7,
+    "bagging_freq": 1,
+    "lambda_l2": 5.0,
+    "max_depth": 12
+  },
+  "best_iteration": 374,
+  "validation_by_type": {
+    "canonical_splice": {
+      "roc_auc": 0.9662,
+      "pr_auc": 0.9994,
+      "mcc": 0.7116,
+      "balanced_accuracy": 0.7911,
+      "brier": 0.0056,
+      "ece": 0.0046,
+      "threshold": 0.5,
+      "n": 6575,
+      "positives": 6491,
+      "eligible": true,
+      "gene_bootstrap_95ci": {
+        "roc_auc": [
+          0.9392,
+          0.9888
+        ],
+        "pr_auc": [
+          0.9988,
+          0.9999
+        ]
+      }
+    },
+    "frameshift": {
+      "roc_auc": 0.9645,
+      "pr_auc": 0.9995,
+      "mcc": 0.8155,
+      "balanced_accuracy": 0.8564,
+      "brier": 0.003,
+      "ece": 0.0042,
+      "threshold": 0.5,
+      "n": 14479,
+      "positives": 14336,
+      "eligible": true,
+      "gene_bootstrap_95ci": {
+        "roc_auc": [
+          0.941,
+          0.9888
+        ],
+        "pr_auc": [
+          0.999,
+          0.9999
+        ]
+      }
+    },
+    "inframe_deletion": {
+      "roc_auc": 0.9914,
+      "pr_auc": 0.9902,
+      "mcc": 0.9095,
+      "balanced_accuracy": 0.9536,
+      "brier": 0.0355,
+      "ece": 0.0359,
+      "threshold": 0.5,
+      "n": 643,
+      "positives": 298,
+      "eligible": true,
+      "gene_bootstrap_95ci": {
+        "roc_auc": [
+          0.9859,
+          0.996
+        ],
+        "pr_auc": [
+          0.9827,
+          0.9961
+        ]
+      }
+    },
+    "inframe_indel": {
+      "n": 48,
+      "positives": 45,
+      "eligible": false
+    },
+    "inframe_insertion": {
+      "roc_auc": 0.9783,
+      "pr_auc": 0.9585,
+      "mcc": 0.8436,
+      "balanced_accuracy": 0.9248,
+      "brier": 0.0538,
+      "ece": 0.0548,
+      "threshold": 0.5,
+      "n": 321,
+      "positives": 87,
+      "eligible": true,
+      "gene_bootstrap_95ci": {
+        "roc_auc": [
+          0.9608,
+          0.9935
+        ],
+        "pr_auc": [
+          0.9221,
+          0.9891
+        ]
+      }
+    },
+    "missense": {
+      "roc_auc": 0.9894,
+      "pr_auc": 0.9754,
+      "mcc": 0.9004,
+      "balanced_accuracy": 0.9425,
+      "brier": 0.0327,
+      "ece": 0.0245,
+      "threshold": 0.5,
+      "n": 27500,
+      "positives": 8003,
+      "eligible": true,
+      "gene_bootstrap_95ci": {
+        "roc_auc": [
+          0.9873,
+          0.9909
+        ],
+        "pr_auc": [
+          0.9705,
+          0.9791
+        ]
+      }
+    },
+    "start_lost": {
+      "n": 389,
+      "positives": 373,
+      "eligible": false
+    },
+    "stop_gained": {
+      "roc_auc": 0.9513,
+      "pr_auc": 0.9992,
+      "mcc": 0.8224,
+      "balanced_accuracy": 0.8846,
+      "brier": 0.0029,
+      "ece": 0.0051,
+      "threshold": 0.5,
+      "n": 8994,
+      "positives": 8907,
+      "eligible": true,
+      "gene_bootstrap_95ci": {
+        "roc_auc": [
+          0.9181,
+          0.9755
+        ],
+        "pr_auc": [
+          0.9985,
+          0.9997
+        ]
+      }
+    },
+    "stop_lost": {
+      "n": 54,
+      "positives": 37,
+      "eligible": false
+    },
+    "synonymous": {
+      "roc_auc": 0.8904,
+      "pr_auc": 0.3437,
+      "mcc": 0.4216,
+      "balanced_accuracy": 0.6285,
+      "brier": 0.0009,
+      "ece": 0.0003,
+      "threshold": 0.5,
+      "n": 94819,
+      "positives": 105,
+      "eligible": true,
+      "gene_bootstrap_95ci": {
+        "roc_auc": [
+          0.8509,
+          0.934
+        ],
+        "pr_auc": [
+          0.2527,
+          0.4596
+        ]
+      }
+    }
+  },
+  "missense_vs_phase1": {
+    "phase1_lightgbm": 0.9899,
+    "joint_lightgbm": 0.9894
+  },
+  "ablations": {
+    "full": {
+      "features": 68,
+      "mean_type_roc_auc": 0.9616,
+      "roc_auc_by_type": {
+        "canonical_splice": 0.9662,
+        "frameshift": 0.9645,
+        "inframe_deletion": 0.9914,
+        "inframe_indel": null,
+        "inframe_insertion": 0.9783,
+        "missense": 0.9894,
+        "start_lost": null,
+        "stop_gained": 0.9513,
+        "stop_lost": null,
+        "synonymous": 0.8904
+      }
+    },
+    "no_frequency": {
+      "features": 61,
+      "mean_type_roc_auc": 0.8732,
+      "roc_auc_by_type": {
+        "canonical_splice": 0.8233,
+        "frameshift": 0.7912,
+        "inframe_deletion": 0.9566,
+        "inframe_indel": null,
+        "inframe_insertion": 0.9404,
+        "missense": 0.9608,
+        "start_lost": null,
+        "stop_gained": 0.7752,
+        "stop_lost": null,
+        "synonymous": 0.8647
+      }
+    },
+    "no_esm": {
+      "features": 59,
+      "mean_type_roc_auc": 0.9586,
+      "roc_auc_by_type": {
+        "canonical_splice": 0.965,
+        "frameshift": 0.9593,
+        "inframe_deletion": 0.9897,
+        "inframe_indel": null,
+        "inframe_insertion": 0.9796,
+        "missense": 0.9846,
+        "start_lost": null,
+        "stop_gained": 0.9521,
+        "stop_lost": null,
+        "synonymous": 0.8796
+      }
+    }
+  },
+  "sweep_top5": [
+    {
+      "trial": 10,
+      "mean_type_roc_auc": 0.9616,
+      "missense_roc_auc": 0.9894
+    },
+    {
+      "trial": 9,
+      "mean_type_roc_auc": 0.9614,
+      "missense_roc_auc": 0.9894
+    },
+    {
+      "trial": 30,
+      "mean_type_roc_auc": 0.9612,
+      "missense_roc_auc": 0.9892
+    },
+    {
+      "trial": 34,
+      "mean_type_roc_auc": 0.9611,
+      "missense_roc_auc": 0.9898
+    },
+    {
+      "trial": 33,
+      "mean_type_roc_auc": 0.961,
+      "missense_roc_auc": 0.9895
+    }
+  ],
+  "seconds": 246.1
+}

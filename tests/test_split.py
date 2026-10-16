@@ -144,3 +144,77 @@ def test_pin_allows_new_feature_columns_but_not_label_changes(tmp_path):
     flipped.write_parquet(train_path)
     with pytest.raises(RuntimeError):
         gene_split.build(features, tx_path, splits, report, force=False)
+
+
+def write_phase2(tmp_path, features):
+    phase2 = pl.DataFrame(
+        [
+            ("1", g * 1000 + 50, "A", "AT", f"G{g}", int(g % 2 == 0), "frameshift")
+            for g in range(0, 300, 3)
+        ],
+        schema=["chrom", "pos", "ref", "alt", "gene_name", "label", "consequence"],
+        orient="row",
+    )
+    phase2.write_parquet(features / "phase2_train_labels.parquet")
+    phase2.head(2).with_columns(pl.col("pos") + 1).write_parquet(
+        features / "phase2_temporal_labels.parquet"
+    )
+    annotations = tmp_path / "annotations"
+    annotations.mkdir()
+    shared = pl.DataFrame(
+        [("1", 1000, "A", "G", "G1", "missense"), ("1", 1000, "A", "G", "G2", "canonical_splice")],
+        schema=["chrom", "pos", "ref", "alt", "gene_name", "consequence"],
+        orient="row",
+    )
+    shared.write_parquet(annotations / "train_labels.parquet")
+    shared.head(0).write_parquet(annotations / "temporal_labels.parquet")
+    return annotations
+
+
+def test_phase2_reuses_the_pinned_split_and_locks_test_rows(tmp_path):
+    features, tx_path, splits, report = write_inputs(tmp_path)
+    gene_split.build(features, tx_path, splits, report, force=False)
+    annotations = write_phase2(tmp_path, features)
+    phase2_report = tmp_path / "phase2.json"
+    summary = gene_split.build_phase2(features, annotations, splits, report, phase2_report, False)
+    assert set(summary["overlaps"].values()) == {0}
+    assert summary["missense_cross_table"]["genes_in_multiple_splits"] == 0
+    assert summary["multi_gene_keys"] == 1
+    genes = dict(pl.read_parquet(splits / "genes.parquet").select("gene_name", "split").iter_rows())
+    train = gene_split.load_split(splits, "train", table="phase2")
+    assert all(genes[gene] == "train" for gene in train["gene_name"])
+    with pytest.raises(gene_split.LockedSplitError):
+        gene_split.load_split(splits, "test", table="phase2")
+    assert "test" not in set(pl.read_parquet(splits / "phase2_open.parquet")["split"])
+
+
+def test_phase2_refuses_changed_variants_or_a_tampered_gene_split(tmp_path):
+    features, tx_path, splits, report = write_inputs(tmp_path)
+    gene_split.build(features, tx_path, splits, report, force=False)
+    annotations = write_phase2(tmp_path, features)
+    phase2_report = tmp_path / "phase2.json"
+    gene_split.build_phase2(features, annotations, splits, report, phase2_report, False)
+    pl.read_parquet(features / "phase2_train_labels.parquet").head(10).write_parquet(
+        features / "phase2_train_labels.parquet"
+    )
+    with pytest.raises(RuntimeError):
+        gene_split.build_phase2(features, annotations, splits, report, phase2_report, False)
+    pl.read_parquet(splits / "genes.parquet").head(5).write_parquet(splits / "genes.parquet")
+    with pytest.raises(RuntimeError):
+        gene_split.build_phase2(features, annotations, splits, report, phase2_report, True)
+
+
+def test_cross_table_conflicts_are_counted():
+    first = pl.DataFrame(
+        {"chrom": ["1", "1"], "pos": [10, 20], "ref": "A", "alt": "G"}
+        | {"gene_name": ["G1", "G2"], "split": ["train", "validation"]}
+    )
+    second = pl.DataFrame(
+        {"chrom": ["1", "1"], "pos": [10, 30], "ref": ["A", "A"], "alt": ["G", "T"]}
+        | {"gene_name": ["G1", "G2"], "split": ["test", "train"]}
+    )
+    assert gene_split.cross_table_conflicts(first, second) == {
+        "shared_variants": 1,
+        "positions_in_multiple_splits": 1,
+        "genes_in_multiple_splits": 2,
+    }

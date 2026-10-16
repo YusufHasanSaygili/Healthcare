@@ -1,6 +1,7 @@
 import json
 import random
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 import lightgbm as lgb
@@ -75,14 +76,20 @@ def sample_params(rng: random.Random) -> dict:
 
 
 class Data:
-    def __init__(self, splits_dir: Path, dropped: tuple[str, ...] = ()):
-        train = load_split(splits_dir, "train")
+    def __init__(
+        self,
+        splits_dir: Path,
+        dropped: tuple[str, ...] = (),
+        loader: Callable[[Path, str], pl.DataFrame] = load_split,
+        categorical: tuple[str, ...] = tuple(CATEGORICAL_FEATURES),
+    ):
+        train = loader(splits_dir, "train")
         stop_genes = early_stopping_genes(train)
         self.fit = train.filter(~pl.col("gene_name").is_in(stop_genes))
         self.stop = train.filter(pl.col("gene_name").is_in(stop_genes))
-        self.validation = load_split(splits_dir, "validation")
+        self.validation = loader(splits_dir, "validation")
         self.columns = feature_columns(train, dropped)
-        self.categorical = [i for i, c in enumerate(self.columns) if c in CATEGORICAL_FEATURES]
+        self.categorical = [i for i, c in enumerate(self.columns) if c in categorical]
 
     def matrix(self, name: str) -> tuple[np.ndarray, np.ndarray]:
         table = getattr(self, name)

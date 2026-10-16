@@ -1,0 +1,174 @@
+{
+  "genes_file_sha256": "b2e9ddc06cb77bc8ae28418873709cd96044151ebb6d2a9de07cf83fd2b74066",
+  "train_identity_sha256": "0265bce9a79cc56b6179659f32210385b0878e03e0508c3376592f93c756091f",
+  "splits": {
+    "test": {
+      "genes": 3422,
+      "variants": 128777,
+      "variant_share": 0.1524,
+      "pathogenic": 29699,
+      "pathogenic_fraction": 0.2306
+    },
+    "train": {
+      "genes": 5662,
+      "variants": 589925,
+      "variant_share": 0.6981,
+      "pathogenic": 161541,
+      "pathogenic_fraction": 0.2738
+    },
+    "validation": {
+      "genes": 3477,
+      "variants": 126322,
+      "variant_share": 0.1495,
+      "pathogenic": 30679,
+      "pathogenic_fraction": 0.2429
+    }
+  },
+  "by_type": {
+    "test": {
+      "canonical_splice": {
+        "variants": 6293,
+        "pathogenic": 6202
+      },
+      "frameshift": {
+        "variants": 14176,
+        "pathogenic": 14038
+      },
+      "inframe_deletion": {
+        "variants": 490,
+        "pathogenic": 299
+      },
+      "inframe_indel": {
+        "variants": 35,
+        "pathogenic": 29
+      },
+      "inframe_insertion": {
+        "variants": 213,
+        "pathogenic": 87
+      },
+      "start_lost": {
+        "variants": 475,
+        "pathogenic": 457
+      },
+      "stop_gained": {
+        "variants": 8531,
+        "pathogenic": 8464
+      },
+      "stop_lost": {
+        "variants": 55,
+        "pathogenic": 42
+      },
+      "synonymous": {
+        "variants": 98509,
+        "pathogenic": 81
+      }
+    },
+    "train": {
+      "canonical_splice": {
+        "variants": 28510,
+        "pathogenic": 28208
+      },
+      "frameshift": {
+        "variants": 86388,
+        "pathogenic": 85839
+      },
+      "inframe_deletion": {
+        "variants": 2902,
+        "pathogenic": 1599
+      },
+      "inframe_indel": {
+        "variants": 283,
+        "pathogenic": 251
+      },
+      "inframe_insertion": {
+        "variants": 1059,
+        "pathogenic": 318
+      },
+      "start_lost": {
+        "variants": 843,
+        "pathogenic": 799
+      },
+      "stop_gained": {
+        "variants": 44228,
+        "pathogenic": 43917
+      },
+      "stop_lost": {
+        "variants": 198,
+        "pathogenic": 158
+      },
+      "synonymous": {
+        "variants": 425514,
+        "pathogenic": 452
+      }
+    },
+    "validation": {
+      "canonical_splice": {
+        "variants": 6575,
+        "pathogenic": 6491
+      },
+      "frameshift": {
+        "variants": 14479,
+        "pathogenic": 14336
+      },
+      "inframe_deletion": {
+        "variants": 643,
+        "pathogenic": 298
+      },
+      "inframe_indel": {
+        "variants": 48,
+        "pathogenic": 45
+      },
+      "inframe_insertion": {
+        "variants": 321,
+        "pathogenic": 87
+      },
+      "start_lost": {
+        "variants": 389,
+        "pathogenic": 373
+      },
+      "stop_gained": {
+        "variants": 8994,
+        "pathogenic": 8907
+      },
+      "stop_lost": {
+        "variants": 54,
+        "pathogenic": 37
+      },
+      "synonymous": {
+        "variants": 94819,
+        "pathogenic": 105
+      }
+    }
+  },
+  "overlaps": {
+    "genes_in_multiple_splits": 0,
+    "positions_in_multiple_splits": 0,
+    "variants_in_multiple_splits": 0
+  },
+  "missense_cross_table": {
+    "shared_variants": 0,
+    "positions_in_multiple_splits": 0,
+    "genes_in_multiple_splits": 0
+  },
+  "multi_gene_keys": 369,
+  "missense_rows_with_multi_gene_keys": 181,
+  "phase2_rows_with_multi_gene_keys": 0,
+  "temporal_variants_in_train_release": 0,
+  "temporal": [
+    {
+      "temporal_subset": "test_gene",
+      "variants": 17937,
+      "pathogenic": 5505
+    },
+    {
+      "temporal_subset": "train_gene",
+      "variants": 76064,
+      "pathogenic": 25626
+    },
+    {
+      "temporal_subset": "validation_gene",
+      "variants": 18502,
+      "pathogenic": 5796
+    }
+  ]
+}

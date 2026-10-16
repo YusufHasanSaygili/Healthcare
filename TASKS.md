@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 8.3 Joint model training
+**Current task:** 8.3b Joint dual tower
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -242,11 +242,19 @@ Rules:
   - Acceptance: per-type missing-value report including ESM columns
   - Try it: the feature report is read
 
-- [ ] **8.3 Joint model training** 🔍
-  - Dual tower retrained or fine-tuned on all types (including missense); LightGBM baseline updated
-  - The Phase 1 gene split is reused unchanged
-  - Acceptance: per-type validation metrics; missense performance does not drop meaningfully versus Phase 1
+- [x] **8.3a Joint split and LightGBM baseline** 🔍
+  - Phase 2 rows placed into the pinned Phase 1 gene split (test and temporal rows locked)
+  - Variants scored in more than one gene dropped from joint training (incl. 181 missense rows)
+  - Synonymous not subsampled (keeps per-type priors and calibration honest)
+  - LightGBM on missense + Phase 2 types; model chosen by the mean per-type validation ROC-AUC
+  - Acceptance: per-type validation metrics; missense not meaningfully below Phase 1; no 🔴 leakage findings
   - Try it: the per-type validation table is read
+
+- [ ] **8.3b Joint dual tower** 🔍
+  - Dual tower retrained on all types (protein tower masked for types without ESM inputs; variant type
+    one-hot/embedding; no-ESM ablation also masks the in-frame ESM span features)
+  - Acceptance: per-type validation metrics side by side with the joint LightGBM
+  - Try it: the per-type comparison table is read
 
 - [ ] **8.4 Final evaluation v2 and integration** 🔍 (before the test set is opened)
   - Per-type test + temporal test metrics, ablations, `reports/all_types_v2.md`
@@ -312,3 +320,4 @@ Rules:
 - 2026-10-16 · 8.1 · Indel annotator (`annotate/indel.py`): left-normalization, frameshift (HGVS short `fs`), in-frame del/dup/ins/delins with the protein 3' rule, stop gained/lost/retained, start lost, canonical splice; MNVs stay out of scope. ClinVar train: 192,880 indels, all already left-normalized; ClinVar-equivalent protein change (edits applied to the MANE protein) frameshift 99.97%, in-frame del 99.87%, ins 99.29%, delins 100% (exact strings 58–100%: ClinVar mixes ins/dup and repeat notation); indel consequence agreement 94.4%. `/code-review`: 5/6 fixed.
 - 2026-10-16 · 8.2a · `build-phase2-features`: 9 Phase 2 types, 51 `f_` columns (18 type-specific: truncation, NMD 55 nt rule via mRNA built from GRCh38 + MANE exons, stop-loss extension, next Met, splice side/skipped-exon frame, boundary distance, indel length; span phyloP). Train 845,024 rows (73% synonymous), temporal 112,503, VUS 71,778; 303 multi-gene dropped; type-specific missing <1% except partial stop-loss deletions. Benign frameshifts escape NMD 48% vs 15%. Missense table unchanged (serve-check 0 diffs). Leakage audit PASS: 181 missense variants also scored as Phase 2 in another gene, to be settled in 8.3; type alone nearly separates labels, so report per type.
 - 2026-10-16 · 8.2b · 4 `f_esm_*` span features for in-frame indels from stored wild-type marginals (removed/inserted residue log-prob, their difference, site entropy); 55 features. Inserted residues score lower when pathogenic (insertions −4.28 vs −1.56, delins −7.85 vs −5.32); deletions barely separate (wild-type marginals are near 1 for residues in the input). Leakage audit PASS; 8.3 must mask `SPAN_FEATURES` in the dual tower's no-ESM ablation, and 8.4 must compute them when serving.
+- 2026-10-16 · 8.3a · Phase 2 rows in the pinned gene split (train 589,925 / val 126,322 / test 128,777; 0 overlaps within or across tables; 369 multi-gene keys excluded). Joint LightGBM (40 trials, mean per-type val ROC-AUC 0.9616): missense 0.9894 (Phase 1 0.9899), frameshift 0.9645, stop_gained 0.9513, splice 0.9662, in-frame del 0.9914, ins 0.9783, synonymous 0.8904 (PR-AUC 0.34). Without allele frequency: frameshift 0.79, stop_gained 0.78, splice 0.82 (ClinVar benign LoF labels lean on frequency); no-ESM −0.003. Leakage audit PASS.

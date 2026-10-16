@@ -1,4 +1,5 @@
 import type { Locale } from "../format";
+import { ROUTE_HASHES, type Route } from "../route";
 import { useSettings } from "../settings";
 import { HelixMark, MoonIcon, SunIcon } from "./Icons";
 
@@ -39,5 +40,24 @@ export function Header() {
         </button>
       </div>
     </header>
+  );
+}
+
+const ROUTES: Route[] = ["single", "batch", "model"];
+
+export function PageNav({ route }: { route: Route }) {
+  const { messages } = useSettings();
+  return (
+    <nav className="page-nav" aria-label={messages.navLabel}>
+      {ROUTES.map((option) => (
+        <a
+          key={option}
+          href={ROUTE_HASHES[option]}
+          aria-current={route === option ? "page" : undefined}
+        >
+          {messages.nav[option]}
+        </a>
+      ))}
+    </nav>
   );
 }

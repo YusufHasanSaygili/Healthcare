@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { barShare, formatFrequency, formatPercent, strongestSignals, type Contribution } from "./format";
+import {
+  barShare,
+  collapseChromosomes,
+  formatFrequency,
+  formatPercent,
+  strongestSignals,
+  type Contribution,
+} from "./format";
 
 describe("formatPercent", () => {
   it("formats probabilities with the locale's conventions", () => {
@@ -50,5 +57,24 @@ describe("contribution helpers", () => {
       "gene_constraint",
     ]);
     expect(strongestSignals([{ group: "protein_regions", log_odds: 0.01 }])).toEqual([]);
+  });
+});
+
+describe("collapseChromosomes", () => {
+  it("merges per-chromosome sources that share a version", () => {
+    expect(
+      collapseChromosomes({
+        mane: "v1.5",
+        gnomad_exomes_chr1: "v4.1",
+        gnomad_exomes_chrX: "v4.1",
+        phylop_chr2: "a",
+        phylop_chr3: "b",
+      }),
+    ).toEqual([
+      ["mane", "v1.5"],
+      ["gnomad_exomes_chr*", "v4.1"],
+      ["phylop_chr*", "a"],
+      ["phylop_chr3", "b"],
+    ]);
   });
 });

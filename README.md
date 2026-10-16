@@ -83,6 +83,11 @@ After changing an API schema, regenerate the frontend types with `uv run healthc
 `npm run gen:api` in `web/`; `npm run build` type-checks and builds the interface, and `npm test` runs its unit
 tests. The interface has light and dark themes and an English/Turkish language switch.
 
+Three pages: **Single variant** (genomic or protein change, with the explanation), **Batch (VCF)** (upload a
+plain-text GRCh38 VCF of up to 2 MB and 500 SNVs, see the results table and download a CSV; `web/public/sample.vcf`
+is a ready-made example) and **Model card** (thresholds, test and temporal metrics, baseline and ablations, data
+versions, limitations). Uploaded files are read in memory by the local API and never saved.
+
 ---
 
 ## Türkçe
@@ -160,6 +165,11 @@ npm run dev
 API şeması değiştiğinde frontend tiplerini `uv run healthcare openapi` ve ardından `web/` içinde
 `npm run gen:api` ile yeniden üretin; `npm run build` tip kontrolü yapar ve arayüzü derler, `npm test` birim
 testlerini çalıştırır. Arayüzde açık/koyu tema ve İngilizce/Türkçe dil seçeneği vardır.
+
+Üç sayfa vardır: **Tek varyant** (genomik ya da protein değişimi, açıklamasıyla), **Toplu (VCF)** (en fazla
+2 MB ve 500 SNV içeren düz metin GRCh38 VCF yükleyin, sonuç tablosunu görün ve CSV indirin; `web/public/sample.vcf`
+hazır bir örnektir) ve **Model kartı** (eşikler, test ve zamansal metrikler, temel model ve ablasyonlar, veri
+sürümleri, sınırlamalar). Yüklenen dosyalar yerel API tarafından bellekte okunur ve asla kaydedilmez.
 
 > **Sorumluluk reddi:** Bu proje yalnızca araştırma ve eğitim amaçlıdır; klinik tanı veya tedavi kararları için
 > kullanılamaz.

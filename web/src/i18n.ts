@@ -1,5 +1,7 @@
 import type { Decision, EvidenceGroup } from "./api/client";
+import type { UploadProblem } from "./batch";
 import type { LabStatus } from "./components/VitalsMonitor";
+import type { Route } from "./route";
 
 type Messages = {
   title: string;
@@ -53,6 +55,39 @@ type Messages = {
   disclaimer: string;
   footer: string;
   monitor: Record<LabStatus, string>;
+  navLabel: string;
+  nav: Record<Route, string>;
+  batchTitle: string;
+  batchHint: string;
+  batchFileLabel: string;
+  batchSubmit: string;
+  batchSubmitting: string;
+  batchSample: string;
+  batchPrivacy: string;
+  batchRejectedTitle: string;
+  uploadProblems: Record<UploadProblem, string>;
+  batchSummary: string;
+  downloadCsv: string;
+  columns: { line: string; variant: string; gene: string; protein: string; probability: string; decision: string };
+  outOfScope: string;
+  lineErrorsTitle: string;
+  lineErrorsHidden: string;
+  noResults: string;
+  modelTitle: string;
+  modelLoading: string;
+  modelFile: string;
+  variantTypes: string;
+  thresholdsTitle: string;
+  thresholdsText: string;
+  evaluationTitle: string;
+  evaluationNote: string;
+  metrics: { set: string; variants: string; rocAuc: string; prAuc: string; ece: string; uncertain: string };
+  ablationsTitle: string;
+  ablationsNote: string;
+  ablation: string;
+  dataTitle: string;
+  limitationsTitle: string;
+  sourceLanguageNote: string;
 };
 
 const en: Messages = {
@@ -155,6 +190,62 @@ const en: Messages = {
     out_of_scope: "NO READING",
     error: "SIGNAL LOST",
   },
+  navLabel: "Pages",
+  nav: { single: "Single variant", batch: "Batch (VCF)", model: "Model card" },
+  batchTitle: "Batch query",
+  batchHint:
+    "Plain-text VCF (GRCh38), tab-separated CHROM POS ID REF ALT. Up to 2 MB and 500 variants; SNVs only.",
+  batchFileLabel: "VCF file",
+  batchSubmit: "Analyze file",
+  batchSubmitting: "Analyzing…",
+  batchSample: "Download a sample VCF",
+  batchPrivacy: "The file is read in memory by the local API and never saved.",
+  batchRejectedTitle: "The file was rejected",
+  uploadProblems: {
+    empty: "Choose a VCF file first; the selected file is empty.",
+    too_large: "The file is larger than 2 MB. Split it into smaller files.",
+    compressed: "Compressed files are not supported. Unzip it and upload the plain-text .vcf.",
+    over_limit: "The file is over the limit: at most 2 MB and 500 variants. Split it into smaller files.",
+    not_text: "The file is not plain UTF-8 text. Export it as an uncompressed .vcf.",
+  },
+  batchSummary:
+    "Read: {variants} · Scored: {scored} · Out of scope: {skipped} · Line errors: {errors} · {seconds} s",
+  downloadCsv: "Download CSV",
+  columns: {
+    line: "Line",
+    variant: "Variant",
+    gene: "Gene",
+    protein: "Protein change",
+    probability: "Probability",
+    decision: "Decision",
+  },
+  outOfScope: "Out of scope",
+  lineErrorsTitle: "Lines that could not be read",
+  lineErrorsHidden: "{count} more not shown.",
+  noResults: "No variant in the file could be scored.",
+  modelTitle: "Model card",
+  modelLoading: "Loading the model card…",
+  modelFile: "Model file",
+  variantTypes: "Variant types",
+  thresholdsTitle: "Decision thresholds",
+  thresholdsText: "Likely pathogenic at {high} or above, likely benign at {low} or below, uncertain in between.",
+  evaluationTitle: "Evaluation",
+  evaluationNote:
+    "Final model: calibrated average of LightGBM and the dual tower. Brackets show 95% intervals from a gene-level bootstrap.",
+  metrics: {
+    set: "Set",
+    variants: "Variants",
+    rocAuc: "ROC-AUC",
+    prAuc: "PR-AUC",
+    ece: "ECE",
+    uncertain: "Uncertain",
+  },
+  ablationsTitle: "Baseline and ablations",
+  ablationsNote: "ROC-AUC on the gene-disjoint test set, to compare with the final model above.",
+  ablation: "Model",
+  dataTitle: "Data versions",
+  limitationsTitle: "Limitations",
+  sourceLanguageNote: "",
 };
 
 const tr: Messages = {
@@ -258,6 +349,62 @@ const tr: Messages = {
     out_of_scope: "OKUMA YOK",
     error: "SİNYAL KAYBI",
   },
+  navLabel: "Sayfalar",
+  nav: { single: "Tek varyant", batch: "Toplu (VCF)", model: "Model kartı" },
+  batchTitle: "Toplu sorgu",
+  batchHint:
+    "Düz metin VCF (GRCh38), sekmeyle ayrılmış CHROM POS ID REF ALT. En fazla 2 MB ve 500 varyant; yalnızca SNV.",
+  batchFileLabel: "VCF dosyası",
+  batchSubmit: "Dosyayı analiz et",
+  batchSubmitting: "Analiz ediliyor…",
+  batchSample: "Örnek VCF indir",
+  batchPrivacy: "Dosya yerel API tarafından bellekte okunur ve asla kaydedilmez.",
+  batchRejectedTitle: "Dosya reddedildi",
+  uploadProblems: {
+    empty: "Önce bir VCF dosyası seçin; seçilen dosya boş.",
+    too_large: "Dosya 2 MB'tan büyük. Daha küçük dosyalara bölün.",
+    compressed: "Sıkıştırılmış dosyalar desteklenmiyor. Açıp düz metin .vcf olarak yükleyin.",
+    over_limit: "Dosya sınırı aşıyor: en fazla 2 MB ve 500 varyant. Daha küçük dosyalara bölün.",
+    not_text: "Dosya düz UTF-8 metin değil. Sıkıştırılmamış .vcf olarak dışa aktarın.",
+  },
+  batchSummary:
+    "Okunan: {variants} · Skorlanan: {scored} · Kapsam dışı: {skipped} · Satır hatası: {errors} · {seconds} sn",
+  downloadCsv: "CSV indir",
+  columns: {
+    line: "Satır",
+    variant: "Varyant",
+    gene: "Gen",
+    protein: "Protein değişimi",
+    probability: "Olasılık",
+    decision: "Karar",
+  },
+  outOfScope: "Kapsam dışı",
+  lineErrorsTitle: "Okunamayan satırlar",
+  lineErrorsHidden: "{count} satır daha gösterilmiyor.",
+  noResults: "Dosyadaki hiçbir varyant skorlanamadı.",
+  modelTitle: "Model kartı",
+  modelLoading: "Model kartı yükleniyor…",
+  modelFile: "Model dosyası",
+  variantTypes: "Varyant türleri",
+  thresholdsTitle: "Karar eşikleri",
+  thresholdsText: "{high} ve üstü olası patojenik, {low} ve altı olası benign, arası belirsiz.",
+  evaluationTitle: "Değerlendirme",
+  evaluationNote:
+    "Nihai model: LightGBM ve çift kuleli modelin kalibre edilmiş ortalaması. Köşeli parantezler gen düzeyinde bootstrap ile %95 aralıklardır.",
+  metrics: {
+    set: "Küme",
+    variants: "Varyant",
+    rocAuc: "ROC-AUC",
+    prAuc: "PR-AUC",
+    ece: "ECE",
+    uncertain: "Belirsiz",
+  },
+  ablationsTitle: "Temel model ve ablasyonlar",
+  ablationsNote: "Gen-ayrık test kümesinde ROC-AUC; yukarıdaki nihai modelle karşılaştırın.",
+  ablation: "Model",
+  dataTitle: "Veri sürümleri",
+  limitationsTitle: "Sınırlamalar",
+  sourceLanguageNote: "Küme adları, veri sürümleri ve sınırlamalar modelin raporundan geldiği için İngilizcedir.",
 };
 
 export const MESSAGES = { en, tr } as const;

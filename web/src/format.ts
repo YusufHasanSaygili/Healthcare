@@ -62,3 +62,13 @@ export function strongestSignals(contributions: Contribution[], count = 2): Cont
     .sort((a, b) => Math.abs(b.log_odds) - Math.abs(a.log_odds))
     .slice(0, count);
 }
+
+export function collapseChromosomes(versions: Record<string, string>): [string, string][] {
+  const collapsed = new Map<string, string>();
+  for (const [source, version] of Object.entries(versions)) {
+    const family = source.replace(/_chr(\d+|X|Y)$/, "_chr*");
+    const shared = !collapsed.has(family) || collapsed.get(family) === version;
+    collapsed.set(shared ? family : source, version);
+  }
+  return [...collapsed];
+}

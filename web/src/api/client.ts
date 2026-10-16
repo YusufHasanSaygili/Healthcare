@@ -7,6 +7,9 @@ export type PredictedVariant = Schemas["PredictedVariant"];
 export type OutOfScopeVariant = Schemas["OutOfScopeVariant"];
 export type Decision = PredictedVariant["decision"];
 export type EvidenceGroup = Schemas["Contribution"]["group"];
+export type BatchResponse = Schemas["BatchResponse"];
+export type BatchItem = BatchResponse["results"][number];
+export type ModelCard = Schemas["ModelCard"];
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
 
@@ -34,20 +37,36 @@ async function errorMessage(response: Response): Promise<string> {
   return `request failed (${response.status})`;
 }
 
-export async function predictVariant(variant: string): Promise<PredictResponse> {
-  const request: Schemas["PredictRequest"] = { variant };
+async function send<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(`${API_URL}/api/predict`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(request),
-    });
+    response = await fetch(`${API_URL}${path}`, init);
   } catch {
     throw new ApiError(`cannot reach the API at ${API_URL}; is \`healthcare serve\` running?`, 0);
   }
   if (!response.ok) {
     throw new ApiError(await errorMessage(response), response.status);
   }
-  return (await response.json()) as PredictResponse;
+  return (await response.json()) as T;
+}
+
+export function predictVariant(variant: string): Promise<PredictResponse> {
+  const request: Schemas["PredictRequest"] = { variant };
+  return send("/api/predict", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+}
+
+export function predictBatch(vcf: Blob): Promise<BatchResponse> {
+  return send("/api/predict/batch", {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: vcf,
+  });
+}
+
+export function fetchModelCard(): Promise<ModelCard> {
+  return send("/api/model-card");
 }

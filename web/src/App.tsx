@@ -1,9 +1,12 @@
 import { startTransition, useActionState, useState } from "react";
 import { ApiError, predictVariant, type PredictResponse } from "./api/client";
 import { BioBackground, type Lab } from "./components/BioBackground";
-import { Header } from "./components/Header";
+import { BatchPage } from "./components/BatchPage";
+import { Header, PageNav } from "./components/Header";
+import { ModelCardPage } from "./components/ModelCardPage";
 import { QueryPanel } from "./components/QueryPanel";
 import { ResultCard } from "./components/ResultCard";
+import { useRoute } from "./route";
 import { useSettings } from "./settings";
 
 type QueryError = { kind: "invalid"; detail: string } | { kind: "network" } | { kind: "unexpected" };
@@ -94,30 +97,39 @@ export function App() {
     startTransition(() => submit(form));
   }
 
+  const route = useRoute();
   const results = state.response?.results ?? [];
-  const lab = labState(pending, state);
+  const lab: Lab =
+    route === "single"
+      ? labState(pending, state)
+      : { status: "idle", label: null, probability: null };
   return (
     <>
       <BioBackground status={lab.status} label={lab.label} probability={lab.probability} />
       <div className="page">
         <Header />
-        <main className="layout">
-          <QueryPanel
-            action={submit}
-            value={value}
-            pending={pending}
-            onValueChange={setValue}
-            onExample={runExample}
-          />
-          <section className="results" aria-live="polite" aria-busy={pending}>
-            {pending && <div className="scan" aria-hidden="true" />}
-            {state.error && <ErrorBanner error={state.error} />}
-            {!state.error && results.length === 0 && !pending && <AwaitingPanel />}
-            {results.map((result) => (
-              <ResultCard key={result.variant} result={result} />
-            ))}
-          </section>
-        </main>
+        <PageNav route={route} />
+        {route === "batch" && <BatchPage />}
+        {route === "model" && <ModelCardPage />}
+        {route === "single" && (
+          <main className="layout">
+            <QueryPanel
+              action={submit}
+              value={value}
+              pending={pending}
+              onValueChange={setValue}
+              onExample={runExample}
+            />
+            <section className="results" aria-live="polite" aria-busy={pending}>
+              {pending && <div className="scan" aria-hidden="true" />}
+              {state.error && <ErrorBanner error={state.error} />}
+              {!state.error && results.length === 0 && !pending && <AwaitingPanel />}
+              {results.map((result) => (
+                <ResultCard key={result.variant} result={result} />
+              ))}
+            </section>
+          </main>
+        )}
         <footer className="footer">
           <p>{messages.disclaimer}</p>
           <p className="footer-meta">{messages.footer}</p>

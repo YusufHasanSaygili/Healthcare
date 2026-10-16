@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 7.5 Batch query and model card pages
+**Current task:** 8.1 Extend the annotator to indels
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -214,7 +214,7 @@ Rules:
   - Acceptance: no critical audit findings remain
   - Try it: the interface is reviewed in light and dark mode, in English and Turkish
 
-- [ ] **7.5 Batch query and model card pages**
+- [x] **7.5 Batch query and model card pages**
   - VCF upload → results table → CSV download
   - Model card: data sources and versions, per-type metrics, baseline comparison, limitations
   - Acceptance: clean error messages for large / invalid files
@@ -299,3 +299,4 @@ Rules:
 - 2026-10-16 · 7.2 · `healthcare serve`: FastAPI on 127.0.0.1 (health, predict, plain-text VCF batch ≤2 MB / 500 variants in memory, model card), CORS for the Vite origin only; 30 API/serve tests (httpx dev-only). Serving now keeps nested-gene variants like training (416 validation variants were wrongly rejected); 500-variant batch 14.6 s. `/code-review`: 3 fixed, 2 deferred.
 - 2026-10-16 · 7.3 · `web/`: React 19 + Vite 8 + TypeScript 5.9 (pinned: openapi-typescript needs TS 5); types from `web/openapi.json` (`healthcare openapi` → `npm run gen:api`), a pytest drift check fails until regenerated; renaming a backend field breaks `tsc`. Single-variant page verified in the browser against the live API.
 - 2026-10-16 · 7.4 · Red underground-lab HUD theme modelled on the RE remakes and Requiem cutscenes (own SVG: layered cables, a glossy black symbiote-like goo mass, red/purple/green specimen tanks with ringed metal caps and under-lights holding a pulsing veined tissue mass on feed tubes, a wall-anchored goo web and a glowing serum sample with virions, a CRT monitor that reacts to the decision; no game IP), light/dark, EN/TR via a typed dictionary (no i18n or chart library): decision badge with icon, banded probability gauge, diverging log-odds chart with a plain-language summary, measurements. System fonts only (offline). 12 Vitest tests; web-design-guidelines audit: no critical findings, 4 minor fixed.
+- 2026-10-16 · 7.5 · Hash-routed pages (no router library): Batch (VCF) uploads the file as-is to `/api/predict/batch` after client checks (empty, >2 MB, compressed), shows a decision table, line errors and a CSV download (formula-safe cells); API 413/415/422 map to localized messages. Model card page lists thresholds, test/temporal metrics with bootstrap CIs, baseline/ablations, collapsed data versions and limitations. `web/public/sample.vcf` covers all three decisions, out of scope and a line error; 18 Vitest tests.

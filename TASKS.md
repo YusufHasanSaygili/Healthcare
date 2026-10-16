@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 7.2 FastAPI
+**Current task:** 7.3 Web skeleton
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -192,7 +192,7 @@ Rules:
   - Acceptance: end-to-end tests with known variants; single query in milliseconds
   - Try it: a few known pathogenic and benign variants are queried from the CLI
 
-- [ ] **7.2 FastAPI**
+- [x] **7.2 FastAPI**
   - `/api/health`, `/api/predict`, `/api/predict/batch` (size- and row-limited VCF upload), `/api/model-card`
   - pydantic schemas; `127.0.0.1` only; CORS limited to the local Vite origin; uploads never written to disk
   - Acceptance: API tests (valid / invalid input, size limit); `/code-review` on the task diff passes
@@ -296,3 +296,4 @@ Rules:
 - 2026-10-13 · 5.3 · Single `missense_v1.onnx` (14 MB): LightGBM + dual tower + Platt, preprocessing in-graph. Validation parity: dual tower 7e-7, final 7.5e-3 (float32 trees vs f_delta_* noise splits), 0 decision changes, ECE 0.0037. CPU single variant median 0.48 ms.
 - 2026-10-14 · 6.1 · Test opened once (leakage audit PASS; ONNX sha256 pinned in report). Gene-disjoint test ROC-AUC 0.9902 [0.9884–0.9921], PR-AUC 0.9765, ECE 0.0044, 12.2% Uncertain; temporal 0.9887 (gene-disjoint subset 0.9882) but ECE 0.033 (overconfident in 0.3–0.8). No-AF 0.9687, no-ESM 0.9851. Model unchanged.
 - 2026-10-16 · 7.1 · `healthcare predict` (genomic or `GENE p.Xxx123Yyy`) reuses the training feature functions; `join_sources` now prefilters by chrom/pos range (one variant 2.5 s → ~120 ms). `serve-check`: 0 feature mismatches and 0 probability diff on 100 validation variants, median 155 ms with explanation. `serve/` imports no torch.
+- 2026-10-16 · 7.2 · `healthcare serve`: FastAPI on 127.0.0.1 (health, predict, plain-text VCF batch ≤2 MB / 500 variants in memory, model card), CORS for the Vite origin only; 30 API/serve tests (httpx dev-only). Serving now keeps nested-gene variants like training (416 validation variants were wrongly rejected); 500-variant batch 14.6 s. `/code-review`: 3 fixed, 2 deferred.

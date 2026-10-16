@@ -43,6 +43,8 @@ PHASE_TWO = {"synonymous", "stop_gained", "stop_lost", "start_lost", "canonical_
 NON_CODING = {"intronic", "utr"}
 OUTPUTS = ["probability", "lightgbm", "dual_tower"]
 BACKGROUND_SEED = 20261016
+Variant = tuple[str, int, str, str]
+MAX_BATCH_VARIANTS = 500
 LOG_ODDS_EPSILON = 1e-6
 EXAMPLES = (
     "BRCA1 p.Arg1699Trp",
@@ -65,7 +67,12 @@ class Prediction:
     dual_tower: float
     contributions: list[tuple[str, float]]
     features: dict[str, float | str | None] = field(repr=False)
-    milliseconds: float
+
+
+@dataclass(frozen=True)
+class InvalidVariant:
+    variant: str
+    reason: str
 
 
 @dataclass(frozen=True)
@@ -74,6 +81,35 @@ class OutOfScope:
     gene: str | None
     consequence: str
     reason: str
+
+
+@dataclass(frozen=True)
+class ParsedVcf:
+    variants: list[tuple[int, Variant]]
+    errors: list[tuple[int, str]]
+
+
+def parse_vcf(text: str, max_variants: int = MAX_BATCH_VARIANTS) -> ParsedVcf:
+    variants, errors = [], []
+    for line_number, line in enumerate(text.splitlines(), start=1):
+        if not line.strip() or line.startswith("#"):
+            continue
+        fields = line.split("	")
+        if len(fields) < 5:
+            errors.append((line_number, "expected tab-separated CHROM POS ID REF ALT columns"))
+            continue
+        chrom, pos, _, ref, alts = (field.strip() for field in fields[:5])
+        for alt in alts.split(","):
+            if len(ref) != 1 or len(alt) != 1:
+                errors.append((line_number, f"{ref}>{alt} is not an SNV (indels are planned)"))
+                continue
+            try:
+                variants.append((line_number, parse_snv(f"{chrom}:{pos} {ref}>{alt}")))
+            except ValueError as error:
+                errors.append((line_number, str(error)))
+            if len(variants) > max_variants:
+                raise ValueError(f"the file has more than {max_variants} variants")
+    return ParsedVcf(variants, errors)
 
 
 def variant_text(chrom: str, pos: int, ref: str, alt: str) -> str:
@@ -93,17 +129,18 @@ def classify(name: str, annotations: list[Annotation]) -> Annotation | OutOfScop
         return OutOfScope(name, None, "intergenic", "no MANE Select transcript overlaps it")
     if any(a.consequence == "ref_mismatch" for a in annotations):
         raise ValueError(f"REF does not match the reference genome at {name}")
-    if len(annotations) > 1:
-        genes = ", ".join(a.gene_name for a in annotations)
+    missense = [a for a in annotations if a.consequence == "missense"]
+    if len(missense) > 1:
+        genes = ", ".join(a.gene_name for a in missense)
         return OutOfScope(
-            name, genes, "multiple_genes", "it falls in more than one MANE gene (excluded)"
+            name, genes, "multiple_genes", "it is missense in more than one MANE gene (excluded)"
         )
-    annotation = annotations[0]
-    if annotation.consequence != "missense":
-        return OutOfScope(
-            name, annotation.gene_name, annotation.consequence, scope_reason(annotation.consequence)
-        )
-    return annotation
+    if missense:
+        return missense[0]
+    annotation = min(annotations, key=lambda a: a.consequence not in PHASE_TWO)
+    return OutOfScope(
+        name, annotation.gene_name, annotation.consequence, scope_reason(annotation.consequence)
+    )
 
 
 def decide(probability: float, thresholds: dict) -> str:
@@ -181,63 +218,97 @@ class Predictor:
         return [self.predict_variant(*variant) for variant in variants]
 
     def predict_variant(self, chrom: str, pos: int, ref: str, alt: str) -> Prediction | OutOfScope:
-        started = time.perf_counter()
-        name = variant_text(chrom, pos, ref, alt)
-        annotation = classify(name, self.index.annotate(chrom, pos, ref, alt))
-        if isinstance(annotation, OutOfScope):
-            return annotation
-        table = self.features(chrom, pos, ref, alt, annotation)
-        outputs = self.run(table, annotation)
-        probability = float(outputs[0][0])
-        return Prediction(
-            variant=name,
-            gene=annotation.gene_name,
-            transcript_id=annotation.transcript_id,
-            hgvs_p=annotation.hgvs_p,
-            probability=probability,
-            decision=decide(probability, self.thresholds),
-            lightgbm=float(outputs[1][0]),
-            dual_tower=float(outputs[2][0]),
-            contributions=group_contributions(outputs[0], len(self.background)),
-            features=table.select(self.feature_names).row(0, named=True),
-            milliseconds=round((time.perf_counter() - started) * 1000, 1),
-        )
+        result = self.predict_many([(chrom, pos, ref, alt)])[0]
+        if isinstance(result, InvalidVariant):
+            raise ValueError(result.reason)
+        return result
 
-    def features(
-        self, chrom: str, pos: int, ref: str, alt: str, annotation: Annotation
-    ) -> pl.DataFrame:
-        row = pl.DataFrame(
-            {
-                "chrom": [chrom],
-                "pos": [pos],
-                "ref": [ref],
-                "alt": [alt],
-                "gene_name": [annotation.gene_name],
-                "transcript_id": [annotation.transcript_id],
-                "protein_position": [annotation.protein_position],
-                "aa_ref": [annotation.aa_ref],
-                "aa_alt": [annotation.aa_alt],
+    def predict_many(
+        self, variants: list[Variant]
+    ) -> list[Prediction | OutOfScope | InvalidVariant]:
+        outcomes: list[Annotation | OutOfScope | InvalidVariant] = []
+        for chrom, pos, ref, alt in variants:
+            name = variant_text(chrom, pos, ref, alt)
+            try:
+                outcomes.append(classify(name, self.index.annotate(chrom, pos, ref, alt)))
+            except ValueError as error:
+                outcomes.append(InvalidVariant(name, str(error)))
+        pending = {
+            variant: outcome
+            for variant, outcome in zip(variants, outcomes, strict=True)
+            if isinstance(outcome, Annotation)
+        }
+        predictions = self.score(pending) if pending else {}
+        return [
+            predictions[variant] if isinstance(outcome, Annotation) else outcome
+            for variant, outcome in zip(variants, outcomes, strict=True)
+        ]
+
+    def score(self, pending: dict[Variant, Annotation]) -> dict[Variant, Prediction]:
+        table = self.features(pending)
+        matrix = missense.to_matrix(table, self.feature_names).astype(np.float32)
+        features = table.select(self.feature_names).rows(named=True)
+        embeddings: dict[str, np.ndarray | None] = {}
+        predictions = {}
+        for row, key in enumerate(table.select(missense.KEY).iter_rows()):
+            annotation = pending[key]
+            if annotation.transcript_id not in embeddings:
+                embeddings[annotation.transcript_id] = self.embeddings(annotation.transcript_id)
+            rows = explanation_rows(matrix[row], self.background, self.feature_names)
+            protein = np.repeat(
+                self.protein(embeddings[annotation.transcript_id], annotation.protein_position),
+                len(rows),
+                0,
+            )
+            outputs = self.session.run(OUTPUTS, {"features": rows, "protein": protein})
+            probability = float(outputs[0][0])
+            predictions[key] = Prediction(
+                variant=variant_text(*key),
+                gene=annotation.gene_name,
+                transcript_id=annotation.transcript_id,
+                hgvs_p=annotation.hgvs_p,
+                probability=probability,
+                decision=decide(probability, self.thresholds),
+                lightgbm=float(outputs[1][0]),
+                dual_tower=float(outputs[2][0]),
+                contributions=group_contributions(outputs[0], len(self.background)),
+                features=features[row],
+            )
+        return predictions
+
+    def features(self, pending: dict[Variant, Annotation]) -> pl.DataFrame:
+        rows = pl.DataFrame(
+            [
+                (*variant, a.gene_name, a.transcript_id, a.protein_position, a.aa_ref, a.aa_alt)
+                for variant, a in pending.items()
+            ],
+            schema={
+                "chrom": pl.String,
+                "pos": pl.Int64,
+                "ref": pl.String,
+                "alt": pl.String,
+                "gene_name": pl.String,
+                "transcript_id": pl.String,
+                "protein_position": pl.Int64,
+                "aa_ref": pl.String,
+                "aa_alt": pl.String,
             },
-            schema_overrides={"pos": pl.Int64, "protein_position": pl.Int64},
+            orient="row",
         )
-        joined = missense.join_sources(row, self.inputs)
+        joined = missense.join_sources(rows, self.inputs)
         return missense.finalize(esm_features(joined, self.inputs.esm_store))
 
-    def protein(self, transcript_id: str, position: int) -> np.ndarray:
-        width = len(self.blocks) * 1280
+    def embeddings(self, transcript_id: str) -> np.ndarray | None:
         if not store.is_done(self.inputs.esm_store, transcript_id):
-            return np.zeros((1, width), dtype=np.float32)
-        _, embeddings = store.load(self.inputs.esm_store, transcript_id)
-        blocks = variant_inputs.variant_blocks(np.asarray(embeddings), position)[self.blocks]
-        return blocks.reshape(1, width).astype(np.float32)
+            return None
+        return np.asarray(store.load(self.inputs.esm_store, transcript_id)[1])
 
-    def run(self, table: pl.DataFrame, annotation: Annotation) -> list[np.ndarray]:
-        features = missense.to_matrix(table, self.feature_names).astype(np.float32)[0]
-        rows = explanation_rows(features, self.background, self.feature_names)
-        protein = np.repeat(
-            self.protein(annotation.transcript_id, annotation.protein_position), len(rows), axis=0
-        )
-        return self.session.run(OUTPUTS, {"features": rows, "protein": protein})
+    def protein(self, embeddings: np.ndarray | None, position: int) -> np.ndarray:
+        width = len(self.blocks) * 1280
+        if embeddings is None:
+            return np.zeros((1, width), dtype=np.float32)
+        blocks = variant_inputs.variant_blocks(embeddings, position)[self.blocks]
+        return blocks.reshape(1, width).astype(np.float32)
 
 
 def parity_check(predictor: Predictor, table: pl.DataFrame, blocks_path: Path) -> dict:
@@ -252,11 +323,12 @@ def parity_check(predictor: Predictor, table: pl.DataFrame, blocks_path: Path) -
     )[0]
     feature_mismatches, probability_diffs, timings = 0, [], []
     for i, row in enumerate(table.iter_rows(named=True)):
+        started = time.perf_counter()
         result = predictor.predict_variant(row["chrom"], row["pos"], row["ref"], row["alt"])
         if not isinstance(result, Prediction):
             feature_mismatches += len(predictor.feature_names)
             continue
-        timings.append(result.milliseconds)
+        timings.append(round((time.perf_counter() - started) * 1000, 1))
         probability_diffs.append(abs(result.probability - float(expected[i])))
         for name in predictor.feature_names:
             served, stored = result.features[name], row[name]

@@ -38,6 +38,13 @@ def test_classify_explains_out_of_scope_variants(annotations, consequence, reaso
     assert result.consequence == consequence and reason in result.reason
 
 
+def test_classify_matches_the_training_rule_for_nested_genes():
+    nested = annotation("missense", "ANGPTL7")
+    assert pipeline.classify("1:100 A>G", [annotation("intronic", "MTOR"), nested]) is nested
+    coding = pipeline.classify("1:100 A>G", [annotation("intronic", "A"), annotation("synonymous")])
+    assert coding.consequence == "synonymous"
+
+
 def test_classify_accepts_missense_and_rejects_ref_mismatch():
     missense = annotation("missense")
     assert pipeline.classify("1:100 A>G", [missense]) is missense

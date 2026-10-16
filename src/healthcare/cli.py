@@ -532,13 +532,13 @@ def print_result(result) -> None:
     for group, delta in result.contributions[:4]:
         direction = "toward pathogenic" if delta > 0 else "toward benign"
         print(f"    {group.replace('_', ' '):<20} {delta:+.2f}  {direction}")
-    print(f"  {result.milliseconds} ms; research and educational use only, not for clinical use")
 
 
 def run_predict(words: list[str]) -> int:
     predictor = load_predictor()
     if predictor is None:
         return 2
+    started = time.perf_counter()
     try:
         results = predictor.predict(" ".join(words))
     except ValueError as error:
@@ -546,6 +546,28 @@ def run_predict(words: list[str]) -> int:
         return 2
     for result in results:
         print_result(result)
+    milliseconds = (time.perf_counter() - started) * 1000
+    print(f"{milliseconds:.0f} ms; research and educational use only, not for clinical use")
+    return 0
+
+
+def run_serve(port: int) -> int:
+    import json
+
+    import uvicorn
+
+    from healthcare.serve.api import create_app, model_card
+
+    report_path = REPORTS_DIR / "missense_v1.json"
+    if not report_path.exists():
+        print(f"missing inputs: {report_path}")
+        return 2
+    predictor = load_predictor()
+    if predictor is None:
+        return 2
+    card = model_card(json.loads(report_path.read_text()), predictor.thresholds)
+    print(f"API docs: http://127.0.0.1:{port}/docs")
+    uvicorn.run(create_app(predictor, card), host="127.0.0.1", port=port)
     return 0
 
 
@@ -667,6 +689,8 @@ def main(argv: list[str] | None = None) -> int:
         "predict", help="Predict one variant, e.g. 17:43057062 C>T or BRCA1 p.Arg1699Trp"
     )
     predict_parser.add_argument("variant", nargs="+")
+    serve_parser = commands.add_parser("serve", help="Run the local API on 127.0.0.1")
+    serve_parser.add_argument("--port", type=int, default=8000)
     serve_check_parser = commands.add_parser(
         "serve-check", help="Check served features and latency against validation variants"
     )
@@ -721,6 +745,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_export_onnx()
     if args.command == "predict":
         return run_predict(args.variant)
+    if args.command == "serve":
+        return run_serve(args.port)
     if args.command == "serve-check":
         return run_serve_check(args.n)
     if args.command == "evaluate-final":

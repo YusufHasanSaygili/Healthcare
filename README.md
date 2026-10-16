@@ -62,6 +62,13 @@ uv run healthcare predict BRCA1 p.Arg1699Trp
 The output shows the calibrated probability, the three-way decision and the evidence groups that moved it most.
 Other variant types get an explicit out-of-scope message.
 
+The same predictions are available from a local API (bound to `127.0.0.1` only); its interactive documentation
+opens at `http://127.0.0.1:8000/docs`:
+
+```bash
+uv run healthcare serve
+```
+
 ---
 
 ## Türkçe
@@ -118,6 +125,13 @@ uv run healthcare predict BRCA1 p.Arg1699Trp
 
 Çıktıda kalibre olasılık, üç yollu karar ve sonucu en çok etkileyen kanıt grupları yer alır. Diğer varyant türleri
 için açık bir "kapsam dışı" mesajı verilir.
+
+Aynı tahminler yerel bir API üzerinden de alınabilir (yalnızca `127.0.0.1`); etkileşimli belgeleri
+`http://127.0.0.1:8000/docs` adresinde açılır:
+
+```bash
+uv run healthcare serve
+```
 
 > **Sorumluluk reddi:** Bu proje yalnızca araştırma ve eğitim amaçlıdır; klinik tanı veya tedavi kararları için
 > kullanılamaz.

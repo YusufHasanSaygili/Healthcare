@@ -79,6 +79,9 @@ class PredictedVariant(BaseModel):
     dual_tower: float
     contributions: list[Contribution]
     evidence: Evidence
+    gene_function: str | None = Field(
+        default=None, description="UniProtKB/Swiss-Prot function summary; display only"
+    )
 
 
 class OutOfScopeVariant(BaseModel):
@@ -245,6 +248,7 @@ def to_result(result: Prediction | OutOfScope) -> PredictedVariant | OutOfScopeV
             Contribution(group=group, log_odds=value) for group, value in result.contributions
         ],
         evidence=evidence(result),
+        gene_function=result.gene_function,
     )
 
 

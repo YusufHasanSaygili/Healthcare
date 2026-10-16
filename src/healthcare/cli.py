@@ -236,20 +236,24 @@ def run_conservation(variant: str) -> int:
 
 
 UNIPROT_FEATURES = DATA_DIR / "processed" / "uniprot" / "features.parquet"
+UNIPROT_FUNCTIONS = DATA_DIR / "processed" / "uniprot" / "functions.parquet"
 
 
 def run_build_uniprot(force: bool) -> int:
     source = load_sources()["uniprot_human"]
-    if UNIPROT_FEATURES.exists() and not force:
-        print(f"skipped: {UNIPROT_FEATURES} exists (use --force)")
-        return 0
     if not source.path.exists() or not TRANSCRIPTS.exists():
         print("missing inputs: run `healthcare download uniprot_human` and build-transcripts")
         return 2
+    transcripts = pl.read_parquet(TRANSCRIPTS)
+    if force or not UNIPROT_FUNCTIONS.exists():
+        functions = uniprot.build_functions(source.path, transcripts, UNIPROT_FUNCTIONS)
+        write_summary("build-uniprot-functions", functions)
+        print(f"proteins with a function summary: {functions['proteins_with_function']}")
+    if UNIPROT_FEATURES.exists() and not force:
+        print(f"skipped: {UNIPROT_FEATURES} exists (use --force)")
+        return 0
     log_path = start_log("build-uniprot")
-    summary = {"log": log_path} | uniprot.build(
-        source.path, pl.read_parquet(TRANSCRIPTS), UNIPROT_FEATURES
-    )
+    summary = {"log": log_path} | uniprot.build(source.path, transcripts, UNIPROT_FEATURES)
     summary_path = write_summary("build-uniprot", summary)
     print(f"matched MANE proteins: {summary['match_rate']:.1%}, features: {summary['features']}")
     print(f"summary: {summary_path}")
@@ -508,7 +512,12 @@ def load_predictor():
         print(f"missing inputs: {', '.join(missing)}")
         return None
     train = gene_split.load_split(DATA_DIR / "processed" / "splits", "train")
-    return Predictor(inputs, model, train)
+    functions = (
+        dict(pl.read_parquet(UNIPROT_FUNCTIONS).select("transcript_id", "function").iter_rows())
+        if UNIPROT_FUNCTIONS.exists()
+        else {}
+    )
+    return Predictor(inputs, model, train, functions)
 
 
 def print_result(result) -> None:

@@ -1735,6 +1735,71 @@ button:disabled {
   color: var(--benign);
 }
 
+.explain p {
+  max-width: 72ch;
+}
+
+.explain h4 {
+  margin-top: var(--space-2);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.explain-reasons {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.explain-reasons li {
+  position: relative;
+  padding-left: var(--space-5);
+  max-width: 72ch;
+}
+
+.explain-reasons li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 0.55em;
+  width: 8px;
+  height: 8px;
+  border-radius: 1px;
+  transform: rotate(45deg);
+  background: var(--state);
+}
+
+[data-direction="pathogenic"] {
+  --state: var(--pathogenic);
+}
+
+[data-direction="benign"] {
+  --state: var(--benign);
+}
+
+.explain-toward {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--state);
+  margin-bottom: var(--space-1);
+}
+
+.gene-function {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border-left: 3px solid var(--line-strong);
+  background: var(--surface-raised);
+}
+
 .measurements {
   margin: 0;
   display: grid;

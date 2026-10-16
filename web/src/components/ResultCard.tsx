@@ -6,6 +6,7 @@ import { useSettings } from "../settings";
 import { ContributionChart } from "./ContributionChart";
 import { BlockedIcon, ClearIcon, HazardIcon, UnknownIcon } from "./Icons";
 import { ProbabilityGauge } from "./ProbabilityGauge";
+import { VariantExplanation } from "./VariantExplanation";
 
 const DECISION_ICONS: Record<Decision, typeof HazardIcon> = {
   likely_pathogenic: HazardIcon,
@@ -94,6 +95,7 @@ function PredictedCard({ result }: { result: PredictedVariant }) {
         </p>
       </div>
       <ProbabilityGauge probability={result.probability} decision={result.decision} />
+      <VariantExplanation result={result} />
       <section className="card-section" aria-labelledby={whyId}>
         <h3 id={whyId}>{messages.whyTitle}</h3>
         <ContributionChart contributions={result.contributions} />

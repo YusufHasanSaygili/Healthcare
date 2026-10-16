@@ -629,6 +629,18 @@
           },
           "evidence": {
             "$ref": "#/components/schemas/Evidence"
+          },
+          "gene_function": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gene Function",
+            "description": "UniProtKB/Swiss-Prot function summary; display only"
           }
         },
         "type": "object",

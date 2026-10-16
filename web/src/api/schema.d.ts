@@ -267,6 +267,11 @@ export interface components {
             /** Contributions */
             contributions: components["schemas"]["Contribution"][];
             evidence: components["schemas"]["Evidence"];
+            /**
+             * Gene Function
+             * @description UniProtKB/Swiss-Prot function summary; display only
+             */
+            gene_function?: string | null;
         };
         /** Thresholds */
         Thresholds: {

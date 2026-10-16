@@ -7,6 +7,10 @@ from healthcare.data import uniprot
 ENTRY = """ID   TEST_HUMAN              Reviewed;          10 AA.
 AC   P99999; Q00000;
 GN   Name=TESTG {ECO:0000303};
+CC   -!- FUNCTION: Repairs DNA breaks (PubMed:111, PubMed:222). Binds the
+CC       partner protein {ECO:0000269|PubMed:333}. Third sentence is dropped.
+CC   -!- SUBUNIT: Homodimer.
+CC   -----------------------------------------------------------------------
 FT   DOMAIN          2..6
 FT                   /note="RING-type"
 FT                   /evidence="ECO:0000255|PROSITE-ProRule:PRU00175"
@@ -62,3 +66,25 @@ def test_build_maps_by_exact_sequence(tmp_path):
     assert summary["mane_proteins_matched"] == 1
     assert set(table["uniprot_accession"]) == {"P99999"}
     assert not set(table["feature_type"]) & uniprot.EXCLUDED_TYPES
+
+
+def test_parse_entries_keeps_a_clean_function_summary():
+    (entry,) = list(uniprot.parse_entries(ENTRY.splitlines(keepends=True)))
+    assert entry["function"] == "Repairs DNA breaks. Binds the partner protein."
+
+
+def test_build_functions_writes_matched_proteins_only(tmp_path):
+    dat = tmp_path / "sprot.dat.gz"
+    with gzip.open(dat, "wt") as handle:
+        handle.write(ENTRY)
+    transcripts = pl.DataFrame(
+        {
+            "transcript_id": ["T1", "T2"],
+            "gene_name": ["TESTG", "OTHER"],
+            "protein": ["MACDEFGHCK", "MXXX"],
+        }
+    )
+    summary = uniprot.build_functions(dat, transcripts, tmp_path / "functions.parquet")
+    table = pl.read_parquet(tmp_path / "functions.parquet")
+    assert summary == {"proteins_with_function": 1}
+    assert table.rows() == [("T1", "TESTG", "Repairs DNA breaks. Binds the partner protein.")]

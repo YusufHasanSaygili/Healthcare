@@ -49,6 +49,9 @@ AUTOMATIC_EVIDENCE = {"ECO:0000256", "ECO:0000259", "ECO:0000313", "ECO:0000213"
 LOCATION = re.compile(r"^[<?]?(\d+)(?:\.\.[>?]?(\d+))?$")
 EVIDENCE = re.compile(r"ECO:\d{7}")
 NOTE = re.compile(r'/note="([^"]*)"')
+CITATION = re.compile(r"\s*\((?:PubMed|Ref\.)[^)]*\)|\s*\{ECO:[^}]*\}")
+SENTENCE_END = re.compile(r"(?<=\.)\s+(?=[A-Z])")
+FUNCTION_SENTENCES = 2
 
 
 def is_curated(evidence: set[str]) -> bool:
@@ -70,9 +73,18 @@ def feature_rows(feature_type: str, location: str, qualifiers: str) -> list[tupl
     return [(feature_type, start, end, note, codes)]
 
 
+def clean_function(text: str) -> str | None:
+    plain = " ".join(CITATION.sub("", text).split())
+    if not plain:
+        return None
+    return " ".join(SENTENCE_END.split(plain)[:FUNCTION_SENTENCES])
+
+
 def parse_entries(lines: Iterable[str]) -> Iterator[dict]:
     accession, gene, sequence, features = None, None, [], []
     current: list[str] | None = None
+    function: list[str] = []
+    in_function = False
 
     def flush_feature():
         if current:
@@ -84,6 +96,16 @@ def parse_entries(lines: Iterable[str]) -> Iterator[dict]:
             accession = line[5:].split(";")[0].strip()
         elif tag == "GN" and gene is None and "Name=" in line:
             gene = line.split("Name=")[1].split(";")[0].split(" {")[0].strip()
+        elif tag == "CC":
+            body = line[5:].rstrip()
+            if body.startswith("-!-"):
+                in_function = body.startswith("-!- FUNCTION:") and not function
+                if in_function:
+                    function.append(body.removeprefix("-!- FUNCTION:"))
+            elif in_function and not body.startswith("---"):
+                function.append(body)
+            else:
+                in_function = False
         elif tag == "FT":
             if line[5] != " ":
                 flush_feature()
@@ -100,8 +122,29 @@ def parse_entries(lines: Iterable[str]) -> Iterator[dict]:
                 "gene": gene,
                 "sequence": "".join(sequence),
                 "features": features,
+                "function": clean_function(" ".join(function)),
             }
             accession, gene, sequence, features, current = None, None, [], [], None
+            function, in_function = [], False
+
+
+def build_functions(dat_gz: Path, transcripts: pl.DataFrame, output: Path) -> dict:
+    proteins = dict(transcripts.select("protein", "transcript_id").iter_rows())
+    genes = dict(transcripts.select("transcript_id", "gene_name").iter_rows())
+    rows = []
+    with gzip.open(dat_gz, "rt", encoding="utf-8") as handle:
+        for entry in parse_entries(handle):
+            transcript_id = proteins.get(entry["sequence"])
+            if transcript_id is not None and entry["function"]:
+                rows.append((transcript_id, genes[transcript_id], entry["function"]))
+    table = pl.DataFrame(
+        rows,
+        schema={"transcript_id": pl.String, "gene_name": pl.String, "function": pl.String},
+        orient="row",
+    ).sort("transcript_id")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    table.write_parquet(output)
+    return {"proteins_with_function": table.height}
 
 
 def build(dat_gz: Path, transcripts: pl.DataFrame, output: Path) -> dict:

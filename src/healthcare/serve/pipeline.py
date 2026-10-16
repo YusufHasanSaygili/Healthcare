@@ -67,6 +67,7 @@ class Prediction:
     dual_tower: float
     contributions: list[tuple[str, float]]
     features: dict[str, float | str | None] = field(repr=False)
+    gene_function: str | None = None
 
 
 @dataclass(frozen=True)
@@ -180,8 +181,15 @@ def background_sample(train: pl.DataFrame, names: list[str], size: int = 32) -> 
 
 
 class Predictor:
-    def __init__(self, inputs: missense.Inputs, model_path: Path, train: pl.DataFrame):
+    def __init__(
+        self,
+        inputs: missense.Inputs,
+        model_path: Path,
+        train: pl.DataFrame,
+        functions: dict[str, str] | None = None,
+    ):
         transcripts = load_transcripts(inputs.transcripts)
+        self.functions = functions or {}
         self.inputs = inputs
         self.index = TranscriptIndex(transcripts)
         self.by_gene = {t.gene_name.upper(): t for t in transcripts}
@@ -273,6 +281,7 @@ class Predictor:
                 dual_tower=float(outputs[2][0]),
                 contributions=group_contributions(outputs[0], len(self.background)),
                 features=features[row],
+                gene_function=self.functions.get(annotation.transcript_id),
             )
         return predictions
 

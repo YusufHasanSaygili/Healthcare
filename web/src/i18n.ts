@@ -1,6 +1,7 @@
 import type { Decision, EvidenceGroup } from "./api/client";
 import type { UploadProblem } from "./batch";
 import type { LabStatus } from "./components/VitalsMonitor";
+import type { Direction, ReasonKey } from "./explain";
 import type { Route } from "./route";
 
 type Messages = {
@@ -88,6 +89,16 @@ type Messages = {
   dataTitle: string;
   limitationsTitle: string;
   sourceLanguageNote: string;
+  explainTitle: string;
+  explainVariant: string;
+  explainProtein: string;
+  explainWhy: Record<Decision, string>;
+  explainToward: Record<Direction, string>;
+  explainReasons: Record<ReasonKey, string>;
+  explainNoReasons: string;
+  geneFunctionTitle: string;
+  geneFunctionSource: string;
+  aminoAcids: Record<string, string>;
 };
 
 const en: Messages = {
@@ -246,6 +257,59 @@ const en: Messages = {
   dataTitle: "Data versions",
   limitationsTitle: "Limitations",
   sourceLanguageNote: "",
+  explainTitle: "What does this mean?",
+  explainVariant:
+    "This is a variant: a one-letter change in the DNA. At position {position} of chromosome {chrom}, the reference genome has {ref}, but here there is {alt}.",
+  explainProtein:
+    "It changes part {residue} of the protein made from the {gene} gene: {aaRef} should be there, but {aaAlt} is made instead.",
+  explainWhy: {
+    likely_pathogenic: "Why it may be harmful",
+    uncertain: "Why the result is uncertain",
+    likely_benign: "Why it is probably harmless",
+  },
+  explainToward: { pathogenic: "Points toward harmful", benign: "Points toward harmless" },
+  explainReasons: {
+    conserved:
+      "This position has barely changed across species over millions of years. Places that never change are usually important.",
+    notConserved: "This position changes freely between species, so it is probably not critical.",
+    absent:
+      "This change has never been seen in gnomAD, a database of hundreds of thousands of people.",
+    common: "This change is seen in healthy populations ({frequency} in gnomAD). Changes that common are rarely harmful.",
+    esmUnusual:
+      "The protein language model (ESM-2) finds the new amino acid very unusual at this spot.",
+    esmTolerated: "The protein language model (ESM-2) finds the new amino acid acceptable at this spot.",
+    chemDifferent:
+      "The new amino acid is chemically very different from the original: size, charge and affinity for water change.",
+    chemSimilar: "The new amino acid is chemically similar to the original.",
+    inRegion: "It falls in a known working part of the protein: {regions}.",
+  },
+  explainNoReasons:
+    "No single measurement stands out; the result comes from all measurements together.",
+  geneFunctionTitle: "What the {gene} gene does",
+  geneFunctionSource: "Source: UniProtKB/Swiss-Prot.",
+  aminoAcids: {
+    Ala: "alanine",
+    Arg: "arginine",
+    Asn: "asparagine",
+    Asp: "aspartic acid",
+    Cys: "cysteine",
+    Gln: "glutamine",
+    Glu: "glutamic acid",
+    Gly: "glycine",
+    His: "histidine",
+    Ile: "isoleucine",
+    Leu: "leucine",
+    Lys: "lysine",
+    Met: "methionine",
+    Phe: "phenylalanine",
+    Pro: "proline",
+    Ser: "serine",
+    Thr: "threonine",
+    Trp: "tryptophan",
+    Tyr: "tyrosine",
+    Val: "valine",
+    Sec: "selenocysteine",
+  },
 };
 
 const tr: Messages = {
@@ -405,6 +469,58 @@ const tr: Messages = {
   dataTitle: "Veri sürümleri",
   limitationsTitle: "Sınırlamalar",
   sourceLanguageNote: "Küme adları, veri sürümleri ve sınırlamalar modelin raporundan geldiği için İngilizcedir.",
+  explainTitle: "Bu ne demek?",
+  explainVariant:
+    "Bu bir varyant: DNA'da tek harflik bir değişiklik. {chrom}. kromozomun {position}. harfinde referans genomda {ref} varken burada {alt} var.",
+  explainProtein:
+    "{gene} geninden yapılan proteinin {residue}. parçasını değiştiriyor: orada {aaRef} olması gerekirken {aaAlt} yapılıyor.",
+  explainWhy: {
+    likely_pathogenic: "Neden zararlı olabilir?",
+    uncertain: "Sonuç neden belirsiz?",
+    likely_benign: "Neden muhtemelen zararsız?",
+  },
+  explainToward: { pathogenic: "Zararlı yönü gösterenler", benign: "Zararsız yönü gösterenler" },
+  explainReasons: {
+    conserved:
+      "Bu konum türler arasında milyonlarca yıldır neredeyse hiç değişmemiş. Hiç değişmeyen yerler genelde önemlidir.",
+    notConserved: "Bu konum türler arasında serbestçe değişiyor; muhtemelen kritik bir yer değil.",
+    absent: "Bu değişiklik yüz binlerce kişiyi içeren gnomAD veritabanında hiç görülmemiş.",
+    common:
+      "Bu değişiklik sağlıklı topluluklarda görülüyor (gnomAD'de {frequency}). Bu kadar yaygın değişiklikler nadiren zararlıdır.",
+    esmUnusual: "Protein dil modeli (ESM-2) yeni aminoasidi bu noktada çok alışılmadık buluyor.",
+    esmTolerated: "Protein dil modeli (ESM-2) yeni aminoasidi bu noktada kabul edilebilir buluyor.",
+    chemDifferent:
+      "Yeni aminoasit kimyasal olarak orijinalinden çok farklı: boyutu, yükü ve suya yatkınlığı değişiyor.",
+    chemSimilar: "Yeni aminoasit kimyasal olarak orijinaline benziyor.",
+    inRegion: "Proteinin bilinen çalışan bir bölgesine denk geliyor: {regions}.",
+  },
+  explainNoReasons:
+    "Tek başına öne çıkan bir ölçüm yok; sonuç tüm ölçümlerin birleşiminden geliyor.",
+  geneFunctionTitle: "{gene} geni ne iş yapar?",
+  geneFunctionSource: "Kaynak: UniProtKB/Swiss-Prot (metin İngilizcedir).",
+  aminoAcids: {
+    Ala: "alanin",
+    Arg: "arginin",
+    Asn: "asparagin",
+    Asp: "aspartik asit",
+    Cys: "sistein",
+    Gln: "glutamin",
+    Glu: "glutamik asit",
+    Gly: "glisin",
+    His: "histidin",
+    Ile: "izolösin",
+    Leu: "lösin",
+    Lys: "lizin",
+    Met: "metiyonin",
+    Phe: "fenilalanin",
+    Pro: "prolin",
+    Ser: "serin",
+    Thr: "treonin",
+    Trp: "triptofan",
+    Tyr: "tirozin",
+    Val: "valin",
+    Sec: "selenosistein",
+  },
 };
 
 export const MESSAGES = { en, tr } as const;

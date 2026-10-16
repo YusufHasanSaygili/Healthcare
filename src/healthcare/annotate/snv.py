@@ -245,5 +245,13 @@ class TranscriptIndex:
     def overlapping(self, chrom: str, pos: int) -> list[Transcript]:
         return [t for t in self.bins.get((chrom, pos // BIN_SIZE), []) if t.start <= pos <= t.end]
 
+    def overlapping_span(self, chrom: str, start: int, end: int) -> list[Transcript]:
+        found: dict[str, Transcript] = {}
+        for bin_id in range(start // BIN_SIZE, end // BIN_SIZE + 1):
+            for transcript in self.bins.get((chrom, bin_id), []):
+                if transcript.start <= end and start <= transcript.end:
+                    found[transcript.transcript_id] = transcript
+        return list(found.values())
+
     def annotate(self, chrom: str, pos: int, ref: str, alt: str) -> list[Annotation]:
         return [annotate_snv(t, pos, ref, alt) for t in self.overlapping(chrom, pos)]

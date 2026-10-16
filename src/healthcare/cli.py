@@ -6,6 +6,7 @@ import polars as pl
 from pyfaidx import Fasta
 
 from healthcare import __version__, doctor
+from healthcare.annotate.indel import annotate_variant, normalize, parse_variant
 from healthcare.annotate.snv import TranscriptIndex, parse_snv
 from healthcare.data import annotations, clinvar, conservation, gnomad, mane, uniprot
 from healthcare.data.download import ChecksumMismatch, download
@@ -112,7 +113,9 @@ def run_build_annotations(limit: int | None, force: bool) -> int:
         print("missing inputs: run `healthcare build-transcripts` and `healthcare build-clinvar`")
         return 2
     log_path = start_log("build-annotations")
-    summary = {"log": log_path} | annotations.build(TRANSCRIPTS, clinvar_dir, out_dir, limit)
+    summary = {"log": log_path} | annotations.build(
+        TRANSCRIPTS, REFERENCE, clinvar_dir, out_dir, limit
+    )
     summary_path = write_summary("build-annotations", summary)
     print(f"missense agreement: {summary['train_labels'].get('missense_agreement')}")
     print(f"summary: {summary_path}")
@@ -121,20 +124,24 @@ def run_build_annotations(limit: int | None, force: bool) -> int:
 
 def run_annotate(variant: str) -> int:
     try:
-        chrom, pos, ref, alt = parse_snv(variant)
+        chrom, pos, ref, alt = parse_variant(variant)
     except ValueError as error:
         print(error)
         return 2
     sequence = Fasta(str(REFERENCE))[chrom]
-    if pos > len(sequence):
+    if pos + len(ref) - 1 > len(sequence):
         print(f"position {pos} is beyond the end of chromosome {chrom} ({len(sequence)})")
         return 2
-    genome_ref = sequence[pos - 1 : pos].seq.upper()
+    genome_ref = sequence[pos - 1 : pos - 1 + len(ref)].seq.upper()
     if genome_ref != ref:
         print(f"REF mismatch: the reference genome has {genome_ref} at {chrom}:{pos}, not {ref}")
         return 2
+    normalized = normalize(pos, ref, alt, lambda a, b: sequence[a - 1 : b].seq.upper())
+    if normalized != (pos, ref, alt):
+        pos, ref, alt = normalized
+        print(f"left-normalized to {chrom}:{pos} {ref}>{alt}")
     index = TranscriptIndex(annotations.load_transcripts(TRANSCRIPTS))
-    results = index.annotate(chrom, pos, ref, alt)
+    results = annotate_variant(index, chrom, pos, ref, alt)
     if not results:
         print("no MANE Select transcript overlaps this position (out of scope)")
     for result in results:
@@ -642,7 +649,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     annotations_parser.add_argument("--limit", type=int, help="Annotate at most N rows per table")
     annotations_parser.add_argument("--force", action="store_true", help="Rebuild even if present")
-    annotate_parser = commands.add_parser("annotate", help="Annotate one SNV, e.g. 17:43045712 G>A")
+    annotate_parser = commands.add_parser(
+        "annotate", help="Annotate one SNV or indel, e.g. 17:43045712 G>A or 17:43124096 GA>G"
+    )
     annotate_parser.add_argument("variant")
     gnomad_parser = commands.add_parser(
         "build-gnomad", help="Convert downloaded gnomAD exome VCFs and constraint to Parquet"

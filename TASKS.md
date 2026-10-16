@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 8.1 Extend the annotator to indels
+**Current task:** 8.2 Type-specific features
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -222,7 +222,7 @@ Rules:
 
 ## Phase 8 — Expansion (Other Coding Variant Types)
 
-- [ ] **8.1 Extend the annotator to indels**
+- [x] **8.1 Extend the annotator to indels**
   - Left-normalization, frameshift, in-frame insertion / deletion, canonical splice effects of indels
   - Acceptance: per-type agreement report against ClinVar HGVS; unit tests; `/code-review` on the task diff passes
   - Try it: known frameshift and in-frame variants are run through the CLI
@@ -300,3 +300,4 @@ Rules:
 - 2026-10-16 · 7.3 · `web/`: React 19 + Vite 8 + TypeScript 5.9 (pinned: openapi-typescript needs TS 5); types from `web/openapi.json` (`healthcare openapi` → `npm run gen:api`), a pytest drift check fails until regenerated; renaming a backend field breaks `tsc`. Single-variant page verified in the browser against the live API.
 - 2026-10-16 · 7.4 · Red underground-lab HUD theme modelled on the RE remakes and Requiem cutscenes (own SVG: layered cables, a glossy black symbiote-like goo mass, red/purple/green specimen tanks with ringed metal caps and under-lights holding a pulsing veined tissue mass on feed tubes, a wall-anchored goo web and a glowing serum sample with virions, a CRT monitor that reacts to the decision; no game IP), light/dark, EN/TR via a typed dictionary (no i18n or chart library): decision badge with icon, banded probability gauge, diverging log-odds chart with a plain-language summary, measurements. System fonts only (offline). 12 Vitest tests; web-design-guidelines audit: no critical findings, 4 minor fixed.
 - 2026-10-16 · 7.5 · Hash-routed pages (no router library): Batch (VCF) uploads the file as-is to `/api/predict/batch` after client checks (empty, >2 MB, compressed), shows a decision table, line errors and a CSV download (formula-safe cells); API 413/415/422 map to localized messages. Model card page lists thresholds, test/temporal metrics with bootstrap CIs, baseline/ablations, collapsed data versions and limitations. `web/public/sample.vcf` covers all three decisions, out of scope and a line error; 18 Vitest tests.
+- 2026-10-16 · 8.1 · Indel annotator (`annotate/indel.py`): left-normalization, frameshift (HGVS short `fs`), in-frame del/dup/ins/delins with the protein 3' rule, stop gained/lost/retained, start lost, canonical splice; MNVs stay out of scope. ClinVar train: 192,880 indels, all already left-normalized; ClinVar-equivalent protein change (edits applied to the MANE protein) frameshift 99.97%, in-frame del 99.87%, ins 99.29%, delins 100% (exact strings 58–100%: ClinVar mixes ins/dup and repeat notation); indel consequence agreement 94.4%. `/code-review`: 5/6 fixed.

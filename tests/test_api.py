@@ -1,4 +1,6 @@
 import gzip
+import json
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -211,3 +213,10 @@ def test_openapi_documents_the_plain_text_batch_body(client):
     schema = client.get("/openapi.json").json()
     body = schema["paths"]["/api/predict/batch"]["post"]["requestBody"]
     assert "text/plain" in body["content"]
+
+
+def test_committed_web_schema_matches_the_api():
+    committed = Path(__file__).resolve().parents[1] / "web" / "openapi.json"
+    assert json.loads(committed.read_text(encoding="utf-8")) == api.openapi_schema(), (
+        "run `uv run healthcare openapi` and `npm run gen:api` in web/"
+    )

@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 7.3 Web skeleton
+**Current task:** 7.4 Design pass
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -198,7 +198,7 @@ Rules:
   - Acceptance: API tests (valid / invalid input, size limit); `/code-review` on the task diff passes
   - Try it: a single-variant query from the `/docs` page
 
-- [ ] **7.3 Web skeleton**
+- [x] **7.3 Web skeleton**
   - `web/`: React + TypeScript + Vite; API types via `openapi-typescript`; API client
   - Single-variant query page (no design yet)
   - Acceptance: `tsc --noEmit` and `vite build` clean; a backend schema change produces a type error
@@ -297,3 +297,4 @@ Rules:
 - 2026-10-14 · 6.1 · Test opened once (leakage audit PASS; ONNX sha256 pinned in report). Gene-disjoint test ROC-AUC 0.9902 [0.9884–0.9921], PR-AUC 0.9765, ECE 0.0044, 12.2% Uncertain; temporal 0.9887 (gene-disjoint subset 0.9882) but ECE 0.033 (overconfident in 0.3–0.8). No-AF 0.9687, no-ESM 0.9851. Model unchanged.
 - 2026-10-16 · 7.1 · `healthcare predict` (genomic or `GENE p.Xxx123Yyy`) reuses the training feature functions; `join_sources` now prefilters by chrom/pos range (one variant 2.5 s → ~120 ms). `serve-check`: 0 feature mismatches and 0 probability diff on 100 validation variants, median 155 ms with explanation. `serve/` imports no torch.
 - 2026-10-16 · 7.2 · `healthcare serve`: FastAPI on 127.0.0.1 (health, predict, plain-text VCF batch ≤2 MB / 500 variants in memory, model card), CORS for the Vite origin only; 30 API/serve tests (httpx dev-only). Serving now keeps nested-gene variants like training (416 validation variants were wrongly rejected); 500-variant batch 14.6 s. `/code-review`: 3 fixed, 2 deferred.
+- 2026-10-16 · 7.3 · `web/`: React 19 + Vite 8 + TypeScript 5.9 (pinned: openapi-typescript needs TS 5); types from `web/openapi.json` (`healthcare openapi` → `npm run gen:api`), a pytest drift check fails until regenerated; renaming a backend field breaks `tsc`. Single-variant page verified in the browser against the live API.

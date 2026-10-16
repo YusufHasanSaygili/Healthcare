@@ -69,6 +69,19 @@ opens at `http://127.0.0.1:8000/docs`:
 uv run healthcare serve
 ```
 
+### Web interface
+
+With the API running, start the interface in a second terminal and open `http://127.0.0.1:5173`:
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+After changing an API schema, regenerate the frontend types with `uv run healthcare openapi` and then
+`npm run gen:api` in `web/`; `npm run build` type-checks and builds the interface.
+
 ---
 
 ## Türkçe
@@ -132,6 +145,19 @@ Aynı tahminler yerel bir API üzerinden de alınabilir (yalnızca `127.0.0.1`);
 ```bash
 uv run healthcare serve
 ```
+
+### Web arayüzü
+
+API çalışırken ikinci bir terminalde arayüzü başlatın ve `http://127.0.0.1:5173` adresini açın:
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+API şeması değiştiğinde frontend tiplerini `uv run healthcare openapi` ve ardından `web/` içinde
+`npm run gen:api` ile yeniden üretin; `npm run build` tip kontrolü yapar ve arayüzü derler.
 
 > **Sorumluluk reddi:** Bu proje yalnızca araştırma ve eğitim amaçlıdır; klinik tanı veya tedavi kararları için
 > kullanılamaz.

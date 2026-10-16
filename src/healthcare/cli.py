@@ -12,7 +12,7 @@ from healthcare.data.download import ChecksumMismatch, download
 from healthcare.data.sources import load_sources
 from healthcare.features import missense
 from healthcare.models import baseline
-from healthcare.paths import ARTIFACTS_DIR, DATA_DIR, REPORTS_DIR
+from healthcare.paths import ARTIFACTS_DIR, DATA_DIR, PROJECT_ROOT, REPORTS_DIR
 from healthcare.runlog import start_log, write_summary
 from healthcare.split import genes as gene_split
 
@@ -571,6 +571,18 @@ def run_serve(port: int) -> int:
     return 0
 
 
+def run_openapi() -> int:
+    import json
+
+    from healthcare.serve.api import openapi_schema
+
+    path = PROJECT_ROOT / "web" / "openapi.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(openapi_schema(), indent=2) + "\n", encoding="utf-8")
+    print(f"schema: {path}")
+    return 0
+
+
 def run_serve_check(count: int) -> int:
     from healthcare.serve.pipeline import EXAMPLES, Prediction, parity_check
 
@@ -691,6 +703,7 @@ def main(argv: list[str] | None = None) -> int:
     predict_parser.add_argument("variant", nargs="+")
     serve_parser = commands.add_parser("serve", help="Run the local API on 127.0.0.1")
     serve_parser.add_argument("--port", type=int, default=8000)
+    commands.add_parser("openapi", help="Write the API schema to web/openapi.json")
     serve_check_parser = commands.add_parser(
         "serve-check", help="Check served features and latency against validation variants"
     )
@@ -747,6 +760,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_predict(args.variant)
     if args.command == "serve":
         return run_serve(args.port)
+    if args.command == "openapi":
+        return run_openapi()
     if args.command == "serve-check":
         return run_serve_check(args.n)
     if args.command == "evaluate-final":

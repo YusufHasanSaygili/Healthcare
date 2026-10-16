@@ -1,0 +1,709 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Healthcare variant pathogenicity API",
+    "description": "For research and educational use only; not for clinical diagnosis or treatment decisions.",
+    "version": "1"
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/predict": {
+      "post": {
+        "summary": "Predict",
+        "operationId": "predict_api_predict_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PredictRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PredictResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/predict/batch": {
+      "post": {
+        "summary": "Predict Batch",
+        "operationId": "predict_batch_api_predict_batch_post",
+        "requestBody": {
+          "description": "Plain-text VCF, at most 2000000 bytes and 500 variants; never stored",
+          "content": {
+            "text/plain": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/model-card": {
+      "get": {
+        "summary": "Get Model Card",
+        "operationId": "get_model_card_api_model_card_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelCard"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Ablation": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "roc_auc": {
+            "type": "number",
+            "title": "Roc Auc"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "roc_auc"
+        ],
+        "title": "Ablation"
+      },
+      "BatchError": {
+        "properties": {
+          "line": {
+            "type": "integer",
+            "title": "Line"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "line",
+          "message"
+        ],
+        "title": "BatchError"
+      },
+      "BatchItem": {
+        "properties": {
+          "line": {
+            "type": "integer",
+            "title": "Line"
+          },
+          "result": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PredictedVariant"
+              },
+              {
+                "$ref": "#/components/schemas/OutOfScopeVariant"
+              }
+            ],
+            "title": "Result",
+            "discriminator": {
+              "propertyName": "status",
+              "mapping": {
+                "out_of_scope": "#/components/schemas/OutOfScopeVariant",
+                "predicted": "#/components/schemas/PredictedVariant"
+              }
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "line",
+          "result"
+        ],
+        "title": "BatchItem"
+      },
+      "BatchResponse": {
+        "properties": {
+          "variants": {
+            "type": "integer",
+            "title": "Variants"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/BatchItem"
+            },
+            "type": "array",
+            "title": "Results"
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/BatchError"
+            },
+            "type": "array",
+            "title": "Errors"
+          },
+          "error_count": {
+            "type": "integer",
+            "title": "Error Count"
+          },
+          "milliseconds": {
+            "type": "number",
+            "title": "Milliseconds"
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer",
+            "default": "For research and educational use only; not for clinical diagnosis or treatment decisions."
+          }
+        },
+        "type": "object",
+        "required": [
+          "variants",
+          "results",
+          "errors",
+          "error_count",
+          "milliseconds"
+        ],
+        "title": "BatchResponse"
+      },
+      "Contribution": {
+        "properties": {
+          "group": {
+            "type": "string",
+            "enum": [
+              "allele_frequency",
+              "conservation",
+              "esm_scores",
+              "gene_constraint",
+              "protein_regions",
+              "amino_acid_change",
+              "protein_position"
+            ],
+            "title": "Group"
+          },
+          "log_odds": {
+            "type": "number",
+            "title": "Log Odds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "group",
+          "log_odds"
+        ],
+        "title": "Contribution"
+      },
+      "EvaluationRow": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "variants": {
+            "type": "integer",
+            "title": "Variants"
+          },
+          "roc_auc": {
+            "type": "number",
+            "title": "Roc Auc"
+          },
+          "roc_auc_ci": {
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "title": "Roc Auc Ci"
+          },
+          "pr_auc": {
+            "type": "number",
+            "title": "Pr Auc"
+          },
+          "ece": {
+            "type": "number",
+            "title": "Ece"
+          },
+          "uncertain_share": {
+            "type": "number",
+            "title": "Uncertain Share"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "variants",
+          "roc_auc",
+          "roc_auc_ci",
+          "pr_auc",
+          "ece",
+          "uncertain_share"
+        ],
+        "title": "EvaluationRow"
+      },
+      "Evidence": {
+        "properties": {
+          "gnomad_af": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gnomad Af"
+          },
+          "phylop": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phylop"
+          },
+          "esm_llr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Esm Llr"
+          },
+          "grantham": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grantham"
+          },
+          "protein_regions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Protein Regions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "gnomad_af",
+          "phylop",
+          "esm_llr",
+          "grantham",
+          "protein_regions"
+        ],
+        "title": "Evidence"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "Health": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "title": "Status",
+            "default": "ok"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "variant_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Variant Types"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model",
+          "variant_types"
+        ],
+        "title": "Health"
+      },
+      "ModelCard": {
+        "properties": {
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "variant_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Variant Types"
+          },
+          "thresholds": {
+            "$ref": "#/components/schemas/Thresholds"
+          },
+          "data_versions": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Data Versions"
+          },
+          "evaluation": {
+            "items": {
+              "$ref": "#/components/schemas/EvaluationRow"
+            },
+            "type": "array",
+            "title": "Evaluation"
+          },
+          "ablations": {
+            "items": {
+              "$ref": "#/components/schemas/Ablation"
+            },
+            "type": "array",
+            "title": "Ablations"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Limitations"
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer",
+            "default": "For research and educational use only; not for clinical diagnosis or treatment decisions."
+          }
+        },
+        "type": "object",
+        "required": [
+          "model",
+          "variant_types",
+          "thresholds",
+          "data_versions",
+          "evaluation",
+          "ablations",
+          "limitations"
+        ],
+        "title": "ModelCard"
+      },
+      "OutOfScopeVariant": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "out_of_scope",
+            "title": "Status",
+            "default": "out_of_scope"
+          },
+          "variant": {
+            "type": "string",
+            "title": "Variant"
+          },
+          "gene": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gene"
+          },
+          "consequence": {
+            "type": "string",
+            "title": "Consequence"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "variant",
+          "gene",
+          "consequence",
+          "reason"
+        ],
+        "title": "OutOfScopeVariant"
+      },
+      "PredictRequest": {
+        "properties": {
+          "variant": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 3,
+            "title": "Variant",
+            "description": "Genomic SNV (17:43063931 G>A) or protein change (BRCA1 p.Arg1699Trp)",
+            "examples": [
+              "BRCA1 p.Arg1699Trp"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "variant"
+        ],
+        "title": "PredictRequest"
+      },
+      "PredictResponse": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "results": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/PredictedVariant"
+                },
+                {
+                  "$ref": "#/components/schemas/OutOfScopeVariant"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "status",
+                "mapping": {
+                  "out_of_scope": "#/components/schemas/OutOfScopeVariant",
+                  "predicted": "#/components/schemas/PredictedVariant"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Results"
+          },
+          "milliseconds": {
+            "type": "number",
+            "title": "Milliseconds"
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer",
+            "default": "For research and educational use only; not for clinical diagnosis or treatment decisions."
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "results",
+          "milliseconds"
+        ],
+        "title": "PredictResponse"
+      },
+      "PredictedVariant": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "predicted",
+            "title": "Status",
+            "default": "predicted"
+          },
+          "variant": {
+            "type": "string",
+            "title": "Variant"
+          },
+          "gene": {
+            "type": "string",
+            "title": "Gene"
+          },
+          "transcript_id": {
+            "type": "string",
+            "title": "Transcript Id"
+          },
+          "hgvs_p": {
+            "type": "string",
+            "title": "Hgvs P"
+          },
+          "probability": {
+            "type": "number",
+            "title": "Probability"
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "likely_pathogenic",
+              "uncertain",
+              "likely_benign"
+            ],
+            "title": "Decision"
+          },
+          "lightgbm": {
+            "type": "number",
+            "title": "Lightgbm"
+          },
+          "dual_tower": {
+            "type": "number",
+            "title": "Dual Tower"
+          },
+          "contributions": {
+            "items": {
+              "$ref": "#/components/schemas/Contribution"
+            },
+            "type": "array",
+            "title": "Contributions"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/Evidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "variant",
+          "gene",
+          "transcript_id",
+          "hgvs_p",
+          "probability",
+          "decision",
+          "lightgbm",
+          "dual_tower",
+          "contributions",
+          "evidence"
+        ],
+        "title": "PredictedVariant"
+      },
+      "Thresholds": {
+        "properties": {
+          "likely_benign_max": {
+            "type": "number",
+            "title": "Likely Benign Max"
+          },
+          "likely_pathogenic_min": {
+            "type": "number",
+            "title": "Likely Pathogenic Min"
+          }
+        },
+        "type": "object",
+        "required": [
+          "likely_benign_max",
+          "likely_pathogenic_min"
+        ],
+        "title": "Thresholds"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

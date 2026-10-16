@@ -184,7 +184,8 @@ Where they conflict, **the rules in this file take precedence.**
 | **web-design-guidelines** | https://github.com/vercel-labs/agent-skills | Accessibility / UX audit | Use as an **audit checklist** at the end of the design pass. |
 | **vercel-composition-patterns** | https://github.com/vercel-labs/agent-skills | React component composition patterns | Apply to React + Vite components from 7.3 on; skip Next.js-specific guidance. |
 | **building-components** | https://github.com/vercel/components.build | Accessible, composable, themeable components | Component code only; color, typography and layout decisions stay with UI UX Pro Max. |
-| **before-and-after** | https://github.com/vercel-labs/before-and-after | Before/after screenshot comparison of pages | Design-pass verification only (7.4+). Ask first if it needs Playwright or another headless browser installed. |
+| **before-and-after** | https://github.com/vercel-labs/before-and-after | Presents before/after screenshots of a page change | Used when the user restyles the site (7.4+). Screenshots come from the app's built-in browser pane, not agent-browser; ask before installing any headless browser. |
+| **no-ai-slop** | https://github.com/petergyang/no-ai-slop | Edits prose to remove AI-writing patterns | Writing only: interface copy, README, model card, reports. Not a design skill. |
 
 All three are installed when task 7.3 starts, not before.
 
@@ -229,6 +230,7 @@ npx skills add vercel-labs/agent-skills --skill web-design-guidelines --agent cl
 npx skills add vercel-labs/agent-skills --skill vercel-composition-patterns --agent claude-code --copy -y
 npx skills add vercel/components.build --skill building-components --agent claude-code --copy -y
 npx skills add vercel-labs/before-and-after --skill before-and-after --agent claude-code --copy -y
+npx skills add petergyang/no-ai-slop --skill no-ai-slop --agent claude-code --copy -y
 
 # Context7: .mcp.json in the project root (https://mcp.context7.com/mcp)
 ```

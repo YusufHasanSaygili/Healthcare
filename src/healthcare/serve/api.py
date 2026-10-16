@@ -294,7 +294,9 @@ def batch_response(
     )
 
 
-def create_app(predictor: PredictionService, card: ModelCard) -> FastAPI:
+def create_app(
+    predictor: PredictionService | None = None, card: ModelCard | None = None
+) -> FastAPI:
     app = FastAPI(
         title="Healthcare variant pathogenicity API",
         description=DISCLAIMER,
@@ -360,3 +362,7 @@ def create_app(predictor: PredictionService, card: ModelCard) -> FastAPI:
         return card
 
     return app
+
+
+def openapi_schema() -> dict:
+    return create_app().openapi()

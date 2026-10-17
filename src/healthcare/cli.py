@@ -414,6 +414,47 @@ def run_train_joint_baseline(trials: int) -> int:
     return 0
 
 
+def run_choose_final_v2() -> int:
+    from healthcare.evaluate import all_types
+
+    log_path = start_log("choose-final-v2")
+    summary = {"log": log_path} | all_types.choose(
+        DATA_DIR / "processed" / "splits", JOINT_ESM_BLOCKS, ARTIFACTS_DIR / "models", REPORTS_DIR
+    )
+    write_summary("choose-final-v2", summary)
+    print(f"routes: {summary['routes']}")
+    for consequence, metrics in summary["validation_calibrated"].items():
+        print(f"{consequence}: validation ECE {metrics.get('ece', 'n/a')}")
+    return 0
+
+
+def run_evaluate_final_v2(force: bool) -> int:
+    from healthcare.evaluate import all_types
+
+    if not (ARTIFACTS_DIR / "models" / "v2_final.json").exists():
+        print("missing inputs: run `healthcare choose-final-v2` first")
+        return 2
+    log_path = start_log("evaluate-final-v2")
+    try:
+        report = {"log": log_path} | all_types.evaluate(
+            DATA_DIR / "processed" / "splits",
+            ESM_STORE,
+            ARTIFACTS_DIR / "esm_variants" / "joint_locked.npy",
+            ARTIFACTS_DIR / "models",
+            REPORTS_DIR,
+            force,
+        )
+    except all_types.AlreadyOpenedError as error:
+        print(error)
+        return 1
+    write_summary(
+        "evaluate-final-v2", {k: report[k] for k in ("log", "model_changed_after_test", "seconds")}
+    )
+    print(f"model changed after test: {report['model_changed_after_test']}")
+    print(f"report: {REPORTS_DIR / 'all_types_v2.md'}")
+    return 0
+
+
 def run_train_baseline(trials: int) -> int:
     splits_dir = DATA_DIR / "processed" / "splits"
     if not (splits_dir / "missense_open.parquet").exists():
@@ -829,6 +870,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     build_esm_parser.add_argument("--limit", type=int, help="Only the N shortest proteins")
     commands.add_parser(
+        "choose-final-v2", help="Choose per-type routes and calibration on validation only"
+    )
+    evaluate_v2_parser = commands.add_parser(
+        "evaluate-final-v2", help="Open the locked test once and write reports/all_types_v2.md"
+    )
+    evaluate_v2_parser.add_argument("--force", action="store_true", help="Re-run a past opening")
+    commands.add_parser(
         "prepare-joint-dual-tower", help="Precompute ESM blocks for the joint open splits"
     )
     commands.add_parser(
@@ -884,6 +932,10 @@ def main(argv: list[str] | None = None) -> int:
         return run_build_features(args.force)
     if args.command == "build-phase2-features":
         return run_build_phase2_features(args.limit, args.force)
+    if args.command == "choose-final-v2":
+        return run_choose_final_v2()
+    if args.command == "evaluate-final-v2":
+        return run_evaluate_final_v2(args.force)
     if args.command == "prepare-joint-dual-tower":
         return run_prepare_joint_dual_tower()
     if args.command == "train-joint-dual-tower":

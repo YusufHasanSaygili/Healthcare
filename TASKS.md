@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 8.4 Final evaluation v2 and integration
+**Current task:** 8.4b Integration of the v2 model
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -256,11 +256,20 @@ Rules:
   - Acceptance: per-type validation metrics side by side with the joint LightGBM
   - Try it: the per-type comparison table is read
 
-- [ ] **8.4 Final evaluation v2 and integration** 🔍 (before the test set is opened)
-  - Per-type test + temporal test metrics, ablations, `reports/all_types_v2.md`
-  - New ONNX; prediction pipeline and interface support the new types and indel input
-  - Acceptance: rules from 6.1; interface and API tests pass
+- [x] **8.4a Final model v2 and test evaluation** 🔍 (before the test set is opened)
+  - Per-type route (joint LightGBM or its average with the joint dual tower) and per-type Platt calibration chosen
+    on validation only; ablation models (no frequency, no ESM) trained before the test is opened
+  - Per-type test + temporal test metrics with gene-bootstrap CIs, decision shares, LightGBM vs dual tower,
+    ablations, Phase 1 missense comparison; `reports/all_types_v2.md`
+  - Acceptance: rules from 6.1 (test opened once, model unchanged after opening, stated in the report)
+  - Try it: the final v2 report is read
+
+- [ ] **8.4b Integration of the v2 model**
+  - New ONNX; prediction pipeline computes Phase 2 features (incl. ESM span features) and accepts indel input;
+    API and interface support the new types
+  - Acceptance: train/serve feature parity on validation rows; interface and API tests pass
   - Try it: missense, nonsense, frameshift and synonymous examples are queried in the interface
+
 
 ## Phase 9 — Delivery
 
@@ -322,3 +331,4 @@ Rules:
 - 2026-10-16 · 8.2b · 4 `f_esm_*` span features for in-frame indels from stored wild-type marginals (removed/inserted residue log-prob, their difference, site entropy); 55 features. Inserted residues score lower when pathogenic (insertions −4.28 vs −1.56, delins −7.85 vs −5.32); deletions barely separate (wild-type marginals are near 1 for residues in the input). Leakage audit PASS; 8.3 must mask `SPAN_FEATURES` in the dual tower's no-ESM ablation, and 8.4 must compute them when serving.
 - 2026-10-16 · 8.3a · Phase 2 rows in the pinned gene split (train 589,925 / val 126,322 / test 128,777; 0 overlaps within or across tables; 369 multi-gene keys excluded). Joint LightGBM (40 trials, mean per-type val ROC-AUC 0.9616): missense 0.9894 (Phase 1 0.9899), frameshift 0.9645, stop_gained 0.9513, splice 0.9662, in-frame del 0.9914, ins 0.9783, synonymous 0.8904 (PR-AUC 0.34). Without allele frequency: frameshift 0.79, stop_gained 0.78, splice 0.82 (ClinVar benign LoF labels lean on frequency); no-ESM −0.003. Leakage audit PASS.
 - 2026-10-17 · 8.3b · Joint dual tower (Phase 1 winner config, 3 seeds, per-row protein mask for 35,754 rows without a protein position, variant type one-hot; 84 min): val ROC-AUC missense 0.9886, in-frame del 0.9911, ins 0.9818, but below LightGBM on LoF types (frameshift 0.933 vs 0.965, stop_gained 0.930 vs 0.951, splice 0.925 vs 0.966, synonymous 0.827 vs 0.890); best epochs 0–2, so it overfits fast on few LoF benigns. Average with LightGBM: missense 0.9900, in-frame del 0.9928, ins 0.9857, synonymous 0.8974. Leakage audit PASS.
+- 2026-10-18 · 8.4a · v2 routes on validation (average with the dual tower: missense, in-frame del/ins, synonymous; LightGBM: LoF and small types), per-type Platt; test opened once, models unchanged (hashes). Test ROC-AUC: missense 0.9902, stop_gained 0.972, splice 0.950, frameshift 0.902 [0.84–0.96], in-frame del 0.990, ins 0.985, synonymous 0.889 (PR 0.29). No-AF: frameshift 0.72, stop_gained 0.83, splice 0.84. Temporal LoF lower (stop_gained 0.883, splice 0.909).

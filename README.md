@@ -34,8 +34,26 @@ exported to a single ONNX file. Thresholds and calibration come from the validat
 | Test, without allele frequency | 27,501 | 0.969 [0.966–0.972] | 0.926 | – |
 | Test, without ESM-2 | 27,501 | 0.985 [0.983–0.987] | 0.964 | – |
 
-Calibration drifts on the newer temporal variants (ECE 0.033 vs 0.004 on test). Other variant types are not
-covered yet.
+Calibration drifts on the newer temporal variants (ECE 0.033 vs 0.004 on test).
+
+### Results (all coding types, model v2, gene-disjoint test)
+
+Joint LightGBM, averaged with a joint dual tower for missense, in-frame indels and synonymous (routes and
+per-type Platt calibration chosen on validation only). ROC-AUC per variant type; the no-allele-frequency column
+matters most for loss-of-function types, whose ClinVar benign labels largely follow population frequency. Full
+report: [`reports/all_types_v2.md`](reports/all_types_v2.md).
+
+| Type | Variants (benign) | ROC-AUC [95% gene CI] | Without allele frequency |
+|---|---|---|---|
+| Missense | 27,500 (19,497) | 0.990 [0.989–0.992] | 0.961 |
+| Stop gained | 8,531 (67) | 0.972 [0.954–0.989] | 0.827 |
+| Canonical splice | 6,293 (91) | 0.950 [0.926–0.973] | 0.840 |
+| Frameshift | 14,176 (138) | 0.902 [0.841–0.959] | 0.721 |
+| In-frame deletion | 490 (191) | 0.990 [0.982–0.997] | 0.948 |
+| In-frame insertion | 213 (126) | 0.985 [0.967–0.998] | 0.894 |
+| Synonymous | 98,509 (81 pathogenic) | 0.889 [0.836–0.936] | 0.831 |
+
+Start loss, stop loss and in-frame delins have too few of one class in the test set to score.
 
 ### Requirements
 
@@ -118,7 +136,26 @@ bir ONNX dosyası. Eşikler ve kalibrasyon yalnızca doğrulama setinden belirle
 | Test, alel frekansı olmadan | 27.501 | 0,969 [0,966–0,972] | 0,926 | – |
 | Test, ESM-2 olmadan | 27.501 | 0,985 [0,983–0,987] | 0,964 | – |
 
-Yeni (zamansal) varyantlarda kalibrasyon kayıyor (ECE 0,033; testte 0,004). Diğer varyant türleri henüz kapsanmıyor.
+Yeni (zamansal) varyantlarda kalibrasyon kayıyor (ECE 0,033; testte 0,004).
+
+### Sonuçlar (tüm kodlayan türler, model v2, gen bazında ayrık test)
+
+Ortak LightGBM; missense, in-frame indel ve synonymous için ortak çift kuleli modelle ortalaması alınır (yollar ve
+tür bazında Platt kalibrasyonu yalnızca doğrulama setinden). ROC-AUC tür bazındadır; alel frekansı olmadan sütunu
+özellikle işlev kaybı türlerinde önemlidir, çünkü bu türlerdeki ClinVar benign etiketleri büyük ölçüde toplumdaki
+sıklığa dayanır. Tam rapor (İngilizce): [`reports/all_types_v2.md`](reports/all_types_v2.md).
+
+| Tür | Varyant (benign) | ROC-AUC [%95 gen GA] | Alel frekansı olmadan |
+|---|---|---|---|
+| Missense | 27.500 (19.497) | 0,990 [0,989–0,992] | 0,961 |
+| Stop kazanımı | 8.531 (67) | 0,972 [0,954–0,989] | 0,827 |
+| Kanonik splice | 6.293 (91) | 0,950 [0,926–0,973] | 0,840 |
+| Frameshift | 14.176 (138) | 0,902 [0,841–0,959] | 0,721 |
+| In-frame silme | 490 (191) | 0,990 [0,982–0,997] | 0,948 |
+| In-frame ekleme | 213 (126) | 0,985 [0,967–0,998] | 0,894 |
+| Synonymous | 98.509 (81 patojenik) | 0,889 [0,836–0,936] | 0,831 |
+
+Start kaybı, stop kaybı ve in-frame delins'te testte bir sınıftan yeterli örnek yok.
 
 ### Gereksinimler
 

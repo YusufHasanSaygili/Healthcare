@@ -1,0 +1,1005 @@
+{
+  "model": "v2: joint LightGBM, averaged with the joint dual tower per type, per-type Platt",
+  "routes": {
+    "canonical_splice": "lightgbm",
+    "frameshift": "lightgbm",
+    "inframe_deletion": "average",
+    "inframe_indel": "lightgbm",
+    "inframe_insertion": "average",
+    "missense": "average",
+    "start_lost": "lightgbm",
+    "stop_gained": "lightgbm",
+    "stop_lost": "lightgbm",
+    "synonymous": "average"
+  },
+  "thresholds": {
+    "likely_benign_max": 0.1,
+    "likely_pathogenic_min": 0.9
+  },
+  "test_set_opened": true,
+  "rerun": false,
+  "model_hashes": {
+    "v2_final.json": "cfbba2ccfe581e5cf38c93fe64cf47b84d1119c1b33ce61175c806128fb29c6e",
+    "joint_lightgbm.txt": "c7f47169b3119c9757aa1d81c960cc7a26f90f3d6abc1c1f974030657d8ec679",
+    "joint_dual_tower.pt": "e692e8cee095e0d6c26bebd24ac6af8dc32a54c1bf11bbf1ee5d2687ad21a373",
+    "joint_lightgbm_no_frequency.txt": "274ac07324d82783adfe25bfa6eb716749171edd31804efacfd3fffb421139bf",
+    "joint_lightgbm_no_esm.txt": "40b235692ee7bbb535f2b60c2d6c1b54230041f6c2b4108476e4d7ca02c1452b"
+  },
+  "model_changed_after_test": false,
+  "locked_esm_blocks": {
+    "rows": 286977,
+    "missing": 13150,
+    "gigabytes": 1.47,
+    "seconds": 810.8
+  },
+  "temporal_subsets": {
+    "test_gene": 20856,
+    "train_gene": 88360,
+    "validation_gene": 21484
+  },
+  "temporal_sharing_a_train_position": 13209,
+  "results": {
+    "test": {
+      "variants": 156277,
+      "final": {
+        "canonical_splice": {
+          "roc_auc": 0.9497,
+          "pr_auc": 0.9991,
+          "mcc": 0.6296,
+          "balanced_accuracy": 0.7625,
+          "brier": 0.0083,
+          "ece": 0.0053,
+          "threshold": 0.5,
+          "n": 6293,
+          "positives": 6202,
+          "eligible": true,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9263,
+              0.9733
+            ],
+            "pr_auc": [
+              0.9985,
+              0.9996
+            ]
+          },
+          "decisions": {
+            "likely_pathogenic": 0.987,
+            "uncertain": 0.0051,
+            "likely_benign": 0.0079
+          }
+        },
+        "frameshift": {
+          "roc_auc": 0.9022,
+          "pr_auc": 0.9981,
+          "mcc": 0.7846,
+          "balanced_accuracy": 0.8474,
+          "brier": 0.0035,
+          "ece": 0.0012,
+          "threshold": 0.5,
+          "n": 14176,
+          "positives": 14038,
+          "eligible": true,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.8414,
+              0.9592
+            ],
+            "pr_auc": [
+              0.9965,
+              0.9994
+            ]
+          },
+          "decisions": {
+            "likely_pathogenic": 0.9898,
+            "uncertain": 0.0049,
+            "likely_benign": 0.0053
+          }
+        },
+        "inframe_deletion": {
+          "roc_auc": 0.9902,
+          "pr_auc": 0.9924,
+          "mcc": 0.9276,
+          "balanced_accuracy": 0.9659,
+          "brier": 0.0287,
+          "ece": 0.0232,
+          "threshold": 0.5,
+          "n": 490,
+          "positives": 299,
+          "eligible": true,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9823,
+              0.9968
+            ],
+            "pr_auc": [
+              0.9853,
+              0.9981
+            ]
+          },
+          "decisions": {
+            "likely_pathogenic": 0.549,
+            "uncertain": 0.1082,
+            "likely_benign": 0.3429
+          }
+        },
+        "inframe_indel": {
+          "n": 35,
+          "positives": 29,
+          "eligible": false,
+          "decisions": {
+            "likely_pathogenic": 0.7714,
+            "uncertain": 0.1429,
+            "likely_benign": 0.0857
+          }
+        },
+        "inframe_insertion": {
+          "roc_auc": 0.9851,
+          "pr_auc": 0.9782,
+          "mcc": 0.7832,
+          "balanced_accuracy": 0.8714,
+          "brier": 0.0778,
+          "ece": 0.0958,
+          "threshold": 0.5,
+          "n": 213,
+          "positives": 87,
+          "eligible": true,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9674,
+              0.9977
+            ],
+            "pr_auc": [
+              0.9456,
+              0.9968
+            ]
+          },
+          "decisions": {
+            "likely_pathogenic": 0.2113,
+            "uncertain": 0.2207,
+            "likely_benign": 0.5681
+          }
+        },
+        "missense": {
+          "roc_auc": 0.9902,
+          "pr_auc": 0.9763,
+          "mcc": 0.9086,
+          "balanced_accuracy": 0.9537,
+          "brier": 0.0291,
+          "ece": 0.0021,
+          "threshold": 0.5,
+          "n": 27500,
+          "positives": 8003,
+          "eligible": true,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9886,
+              0.9922
+            ],
+            "pr_auc": [
+              0.9713,
+              0.9812
+            ]
+          },
+          "decisions": {
+            "likely_pathogenic": 0.2333,
+            "uncertain": 0.1124,
+            "likely_benign": 0.6543
+          }
+        },
+        "start_lost": {
+          "n": 475,
+          "positives": 457,
+          "eligible": false,
+          "decisions": {
+            "likely_pathogenic": 0.9621,
+            "uncertain": 0.0147,
+            "likely_benign": 0.0232
+          }
+        },
+        "stop_gained": {
+          "roc_auc": 0.9719,
+          "pr_auc": 0.9997,
+          "mcc": 0.776,
+          "balanced_accuracy": 0.8355,
+          "brier": 0.0027,
+          "ece": 0.0005,
+          "threshold": 0.5,
+          "n": 8531,
+          "positives": 8464,
+          "eligible": true,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9537,
+              0.9885
+            ],
+            "pr_auc": [
+              0.9996,
+              0.9999
+            ]
+          },
+          "decisions": {
+            "likely_pathogenic": 0.9928,
+            "uncertain": 0.0033,
+            "likely_benign": 0.0039
+          }
+        },
+        "stop_lost": {
+          "n": 55,
+          "positives": 42,
+          "eligible": false,
+          "decisions": {
+            "likely_pathogenic": 0.7091,
+            "uncertain": 0.1273,
+            "likely_benign": 0.1636
+          }
+        },
+        "synonymous": {
+          "roc_auc": 0.8886,
+          "pr_auc": 0.2896,
+          "mcc": 0.3142,
+          "balanced_accuracy": 0.5494,
+          "brier": 0.0007,
+          "ece": 0.0004,
+          "threshold": 0.5,
+          "n": 98509,
+          "positives": 81,
+          "eligible": true,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.8362,
+              0.9356
+            ],
+            "pr_auc": [
+              0.1804,
+              0.4137
+            ]
+          },
+          "decisions": {
+            "likely_pathogenic": 0.0,
+            "uncertain": 0.0013,
+            "likely_benign": 0.9987
+          }
+        }
+      },
+      "compare_roc_auc": {
+        "lightgbm": {
+          "canonical_splice": 0.9497,
+          "frameshift": 0.9022,
+          "inframe_deletion": 0.989,
+          "inframe_indel": null,
+          "inframe_insertion": 0.9706,
+          "missense": 0.9889,
+          "start_lost": null,
+          "stop_gained": 0.9719,
+          "stop_lost": null,
+          "synonymous": 0.8806
+        },
+        "dual_tower": {
+          "canonical_splice": 0.8828,
+          "frameshift": 0.8982,
+          "inframe_deletion": 0.9875,
+          "inframe_indel": null,
+          "inframe_insertion": 0.9876,
+          "missense": 0.9883,
+          "start_lost": null,
+          "stop_gained": 0.9643,
+          "stop_lost": null,
+          "synonymous": 0.8643
+        },
+        "no_frequency": {
+          "canonical_splice": 0.8395,
+          "frameshift": 0.7209,
+          "inframe_deletion": 0.9482,
+          "inframe_indel": null,
+          "inframe_insertion": 0.8939,
+          "missense": 0.9607,
+          "start_lost": null,
+          "stop_gained": 0.8273,
+          "stop_lost": null,
+          "synonymous": 0.831
+        },
+        "no_esm": {
+          "canonical_splice": 0.94,
+          "frameshift": 0.9004,
+          "inframe_deletion": 0.9877,
+          "inframe_indel": null,
+          "inframe_insertion": 0.9711,
+          "missense": 0.9842,
+          "start_lost": null,
+          "stop_gained": 0.9735,
+          "stop_lost": null,
+          "synonymous": 0.8672
+        }
+      }
+    },
+    "temporal_all": {
+      "variants": 130700,
+      "final": {
+        "canonical_splice": {
+          "roc_auc": 0.9087,
+          "pr_auc": 0.9986,
+          "mcc": 0.4385,
+          "balanced_accuracy": 0.6484,
+          "brier": 0.0066,
+          "ece": 0.004,
+          "threshold": 0.5,
+          "n": 6563,
+          "positives": 6506,
+          "eligible": true,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.8309,
+              0.9546
+            ],
+            "pr_auc": [
+              0.9971,
+              0.9996
+            ]
+          },
+          "decisions": {
+            "likely_pathogenic": 0.9936,
+            "uncertain": 0.0038,
+            "likely_benign": 0.0026
+          }
+        },
+        "frameshift": {
+          "roc_auc": 0.934,
+          "pr_auc": 0.9992,
+          "mcc": 0.6617,
+          "balanced_accuracy": 0.7418,
+          "brier": 0.0045,
+          "ece": 0.003,
+          "threshold": 0.5,
+          "n": 20585,
+          "positives": 20397,
+          "eligible": true,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.8931,
+              0.9597
+            ],
+            "pr_auc": [
+              0.9986,
+              0.9996
+            ]
+          },
+          "decisions": {
+            "likely_pathogenic": 0.9933,
+            "uncertain": 0.004,
+            "likely_benign": 0.0026
+          }
+        },
+        "inframe_deletion": {
+          "roc_auc": 0.9852,
+          "pr_auc": 0.9833,
+          "mcc": 0.8967,
+          "balanced_accuracy": 0.9436,
+          "brier": 0.0436,
+          "ece": 0.0395,
+          "threshold": 0.5,
+          "n": 534,
+          "positives": 290,
+          "eligible": true,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9734,
+              0.9937
+            ],
+            "pr_auc": [
+              0.9664,
+              0.9947
+            ]
+          },
+          "decisions": {
+            "likely_pathogenic": 0.5412,
+            "uncertain": 0.0899,
+            "likely_benign": 0.3689
+          }
+        },
+        "inframe_indel": {
+          "n": 59,
+          "positives": 47,
+          "eligible": false,
+          "decisions": {
+            "likely_pathogenic": 0.7119,
+            "uncertain": 0.1186,
+            "likely_benign": 0.1695
+          }
+        },
+        "inframe_insertion": {
+          "roc_auc": 0.9783,
+          "pr_auc": 0.9576,
+          "mcc": 0.8457,
+          "balanced_accuracy": 0.9081,
+          "brier": 0.0463,
+          "ece": 0.0303,
+          "threshold": 0.5,
+          "n": 250,
+          "positives": 68,
+          "eligible": true,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9576,
+              0.9947
+            ],
+            "pr_auc": [
+              0.9223,
+              0.9883
+            ]
+          },
+          "decisions": {
+            "likely_pathogenic": 0.184,
+            "uncertain": 0.148,
+            "likely_benign": 0.668
+          }
+        },
+        "missense": {
+          "roc_auc": 0.9886,
+          "pr_auc": 0.9791,
+          "mcc": 0.8874,
+          "balanced_accuracy": 0.9514,
+          "brier": 0.0397,
+          "ece": 0.0323,
+          "threshold": 0.5,
+          "n": 18197,
+          "positives": 6116,
+          "eligible": true,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.987,
+              0.99
+            ],
+            "pr_auc": [
+              0.9744,
+              0.9827
+            ]
+          },
+          "decisions": {
+            "likely_pathogenic": 0.3015,
+            "uncertain": 0.1397,
+            "likely_benign": 0.5587
+          }
+        },
+        "start_lost": {
+          "n": 251,
+          "positives": 244,
+          "eligible": false,
+          "decisions": {
+            "likely_pathogenic": 0.9801,
+            "uncertain": 0.0199,
+            "likely_benign": 0.0
+          }
+        },
+        "stop_gained": {
+          "roc_auc": 0.8827,
+          "pr_auc": 0.9989,
+          "mcc": 0.4375,
+          "balanced_accuracy": 0.6247,
+          "brier": 0.0054,
+          "ece": 0.0043,
+          "threshold": 0.5,
+          "n": 9346,
+          "positives": 9278,
+          "eligible": true,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.8357,
+              0.9178
+            ],
+            "pr_auc": [
+              0.9981,
+              0.9994
+            ]
+          },
+          "decisions": {
+            "likely_pathogenic": 0.9961,
+            "uncertain": 0.0026,
+            "likely_benign": 0.0013
+          }
+        },
+        "stop_lost": {
+          "n": 44,
+          "positives": 36,
+          "eligible": false,
+          "decisions": {
+            "likely_pathogenic": 0.8409,
+            "uncertain": 0.0909,
+            "likely_benign": 0.0682
+          }
+        },
+        "synonymous": {
+          "roc_auc": 0.8582,
+          "pr_auc": 0.2184,
+          "mcc": 0.2418,
+          "balanced_accuracy": 0.541,
+          "brier": 0.0007,
+          "ece": 0.0004,
+          "threshold": 0.5,
+          "n": 74871,
+          "positives": 61,
+          "eligible": true,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.7964,
+              0.9125
+            ],
+            "pr_auc": [
+              0.1192,
+              0.3342
+            ]
+          },
+          "decisions": {
+            "likely_pathogenic": 0.0,
+            "uncertain": 0.0014,
+            "likely_benign": 0.9986
+          }
+        }
+      },
+      "compare_roc_auc": {
+        "lightgbm": {
+          "canonical_splice": 0.9087,
+          "frameshift": 0.934,
+          "inframe_deletion": 0.9825,
+          "inframe_indel": null,
+          "inframe_insertion": 0.9707,
+          "missense": 0.9879,
+          "start_lost": null,
+          "stop_gained": 0.8827,
+          "stop_lost": null,
+          "synonymous": 0.8551
+        },
+        "dual_tower": {
+          "canonical_splice": 0.8082,
+          "frameshift": 0.8471,
+          "inframe_deletion": 0.9804,
+          "inframe_indel": null,
+          "inframe_insertion": 0.9459,
+          "missense": 0.9853,
+          "start_lost": null,
+          "stop_gained": 0.7696,
+          "stop_lost": null,
+          "synonymous": 0.8342
+        },
+        "no_frequency": {
+          "canonical_splice": 0.7343,
+          "frameshift": 0.7778,
+          "inframe_deletion": 0.9496,
+          "inframe_indel": null,
+          "inframe_insertion": 0.9181,
+          "missense": 0.9727,
+          "start_lost": null,
+          "stop_gained": 0.7533,
+          "stop_lost": null,
+          "synonymous": 0.8154
+        },
+        "no_esm": {
+          "canonical_splice": 0.8992,
+          "frameshift": 0.9277,
+          "inframe_deletion": 0.9818,
+          "inframe_indel": null,
+          "inframe_insertion": 0.9754,
+          "missense": 0.9834,
+          "start_lost": null,
+          "stop_gained": 0.8608,
+          "stop_lost": null,
+          "synonymous": 0.858
+        }
+      }
+    },
+    "temporal_test_gene": {
+      "variants": 20856,
+      "final": {
+        "canonical_splice": {
+          "n": 1130,
+          "positives": 1121,
+          "eligible": false,
+          "decisions": {
+            "likely_pathogenic": 0.9912,
+            "uncertain": 0.0053,
+            "likely_benign": 0.0035
+          }
+        },
+        "frameshift": {
+          "roc_auc": 0.8224,
+          "pr_auc": 0.9969,
+          "mcc": 0.6776,
+          "balanced_accuracy": 0.7498,
+          "brier": 0.0041,
+          "ece": 0.0024,
+          "threshold": 0.5,
+          "n": 2848,
+          "positives": 2824,
+          "eligible": true,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.6102,
+              0.9893
+            ],
+            "pr_auc": [
+              0.9919,
+              1.0
+            ]
+          },
+          "decisions": {
+            "likely_pathogenic": 0.994,
+            "uncertain": 0.0028,
+            "likely_benign": 0.0032
+          }
+        },
+        "inframe_deletion": {
+          "roc_auc": 0.983,
+          "pr_auc": 0.9864,
+          "mcc": 0.8921,
+          "balanced_accuracy": 0.9333,
+          "brier": 0.0382,
+          "ece": 0.0458,
+          "threshold": 0.5,
+          "n": 75,
+          "positives": 45,
+          "eligible": true,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9476,
+              1.0
+            ],
+            "pr_auc": [
+              0.9615,
+              1.0
+            ]
+          },
+          "decisions": {
+            "likely_pathogenic": 0.6,
+            "uncertain": 0.08,
+            "likely_benign": 0.32
+          }
+        },
+        "inframe_indel": {
+          "n": 7,
+          "positives": 7,
+          "eligible": false,
+          "decisions": {
+            "likely_pathogenic": 0.7143,
+            "uncertain": 0.2857,
+            "likely_benign": 0.0
+          }
+        },
+        "inframe_insertion": {
+          "n": 35,
+          "positives": 13,
+          "eligible": false,
+          "decisions": {
+            "likely_pathogenic": 0.2571,
+            "uncertain": 0.2286,
+            "likely_benign": 0.5143
+          }
+        },
+        "missense": {
+          "roc_auc": 0.9882,
+          "pr_auc": 0.9728,
+          "mcc": 0.8947,
+          "balanced_accuracy": 0.957,
+          "brier": 0.0366,
+          "ece": 0.0289,
+          "threshold": 0.5,
+          "n": 2919,
+          "positives": 919,
+          "eligible": true,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9848,
+              0.9918
+            ],
+            "pr_auc": [
+              0.963,
+              0.9816
+            ]
+          },
+          "decisions": {
+            "likely_pathogenic": 0.2737,
+            "uncertain": 0.1353,
+            "likely_benign": 0.591
+          }
+        },
+        "start_lost": {
+          "n": 82,
+          "positives": 80,
+          "eligible": false,
+          "decisions": {
+            "likely_pathogenic": 0.9878,
+            "uncertain": 0.0122,
+            "likely_benign": 0.0
+          }
+        },
+        "stop_gained": {
+          "n": 1405,
+          "positives": 1393,
+          "eligible": false,
+          "decisions": {
+            "likely_pathogenic": 0.9972,
+            "uncertain": 0.0007,
+            "likely_benign": 0.0021
+          }
+        },
+        "stop_lost": {
+          "n": 12,
+          "positives": 11,
+          "eligible": false,
+          "decisions": {
+            "likely_pathogenic": 0.8333,
+            "uncertain": 0.0833,
+            "likely_benign": 0.0833
+          }
+        },
+        "synonymous": {
+          "n": 12343,
+          "positives": 11,
+          "eligible": false,
+          "decisions": {
+            "likely_pathogenic": 0.0,
+            "uncertain": 0.0015,
+            "likely_benign": 0.9985
+          }
+        }
+      },
+      "compare_roc_auc": {
+        "lightgbm": {
+          "canonical_splice": null,
+          "frameshift": 0.8224,
+          "inframe_deletion": 0.9807,
+          "inframe_indel": null,
+          "inframe_insertion": null,
+          "missense": 0.9868,
+          "start_lost": null,
+          "stop_gained": null,
+          "stop_lost": null,
+          "synonymous": null
+        },
+        "dual_tower": {
+          "canonical_splice": null,
+          "frameshift": 0.8406,
+          "inframe_deletion": 0.9833,
+          "inframe_indel": null,
+          "inframe_insertion": null,
+          "missense": 0.9852,
+          "start_lost": null,
+          "stop_gained": null,
+          "stop_lost": null,
+          "synonymous": null
+        },
+        "no_frequency": {
+          "canonical_splice": null,
+          "frameshift": 0.5546,
+          "inframe_deletion": 0.9793,
+          "inframe_indel": null,
+          "inframe_insertion": null,
+          "missense": 0.9668,
+          "start_lost": null,
+          "stop_gained": null,
+          "stop_lost": null,
+          "synonymous": null
+        },
+        "no_esm": {
+          "canonical_splice": null,
+          "frameshift": 0.8394,
+          "inframe_deletion": 0.9778,
+          "inframe_indel": null,
+          "inframe_insertion": null,
+          "missense": 0.9816,
+          "start_lost": null,
+          "stop_gained": null,
+          "stop_lost": null,
+          "synonymous": null
+        }
+      }
+    },
+    "temporal_validation_gene": {
+      "variants": 21484,
+      "final": {
+        "canonical_splice": {
+          "n": 1152,
+          "positives": 1140,
+          "eligible": false,
+          "decisions": {
+            "likely_pathogenic": 0.9913,
+            "uncertain": 0.0052,
+            "likely_benign": 0.0035
+          }
+        },
+        "frameshift": {
+          "roc_auc": 0.9443,
+          "pr_auc": 0.9993,
+          "mcc": 0.7091,
+          "balanced_accuracy": 0.8058,
+          "brier": 0.0038,
+          "ece": 0.002,
+          "threshold": 0.5,
+          "n": 3033,
+          "positives": 3002,
+          "eligible": true,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.8848,
+              0.9931
+            ],
+            "pr_auc": [
+              0.9984,
+              0.9999
+            ]
+          },
+          "decisions": {
+            "likely_pathogenic": 0.9894,
+            "uncertain": 0.0046,
+            "likely_benign": 0.0059
+          }
+        },
+        "inframe_deletion": {
+          "roc_auc": 0.9911,
+          "pr_auc": 0.9919,
+          "mcc": 0.9061,
+          "balanced_accuracy": 0.9487,
+          "brier": 0.0356,
+          "ece": 0.0342,
+          "threshold": 0.5,
+          "n": 82,
+          "positives": 43,
+          "eligible": true,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9756,
+              1.0
+            ],
+            "pr_auc": [
+              0.9781,
+              1.0
+            ]
+          },
+          "decisions": {
+            "likely_pathogenic": 0.4878,
+            "uncertain": 0.1098,
+            "likely_benign": 0.4024
+          }
+        },
+        "inframe_indel": {
+          "n": 9,
+          "positives": 6,
+          "eligible": false,
+          "decisions": {
+            "likely_pathogenic": 0.6667,
+            "uncertain": 0.2222,
+            "likely_benign": 0.1111
+          }
+        },
+        "inframe_insertion": {
+          "n": 47,
+          "positives": 12,
+          "eligible": false,
+          "decisions": {
+            "likely_pathogenic": 0.1915,
+            "uncertain": 0.1064,
+            "likely_benign": 0.7021
+          }
+        },
+        "missense": {
+          "roc_auc": 0.9872,
+          "pr_auc": 0.9771,
+          "mcc": 0.8909,
+          "balanced_accuracy": 0.9504,
+          "brier": 0.0395,
+          "ece": 0.0203,
+          "threshold": 0.5,
+          "n": 2982,
+          "positives": 1033,
+          "eligible": true,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9824,
+              0.9913
+            ],
+            "pr_auc": [
+              0.9698,
+              0.9849
+            ]
+          },
+          "decisions": {
+            "likely_pathogenic": 0.2988,
+            "uncertain": 0.1408,
+            "likely_benign": 0.5604
+          }
+        },
+        "start_lost": {
+          "n": 63,
+          "positives": 62,
+          "eligible": false,
+          "decisions": {
+            "likely_pathogenic": 0.9683,
+            "uncertain": 0.0317,
+            "likely_benign": 0.0
+          }
+        },
+        "stop_gained": {
+          "n": 1526,
+          "positives": 1511,
+          "eligible": false,
+          "decisions": {
+            "likely_pathogenic": 0.9928,
+            "uncertain": 0.0066,
+            "likely_benign": 0.0007
+          }
+        },
+        "stop_lost": {
+          "n": 11,
+          "positives": 9,
+          "eligible": false,
+          "decisions": {
+            "likely_pathogenic": 0.9091,
+            "uncertain": 0.0909,
+            "likely_benign": 0.0
+          }
+        },
+        "synonymous": {
+          "n": 12579,
+          "positives": 11,
+          "eligible": false,
+          "decisions": {
+            "likely_pathogenic": 0.0,
+            "uncertain": 0.0021,
+            "likely_benign": 0.9979
+          }
+        }
+      },
+      "compare_roc_auc": {
+        "lightgbm": {
+          "canonical_splice": null,
+          "frameshift": 0.9443,
+          "inframe_deletion": 0.9839,
+          "inframe_indel": null,
+          "inframe_insertion": null,
+          "missense": 0.9852,
+          "start_lost": null,
+          "stop_gained": null,
+          "stop_lost": null,
+          "synonymous": null
+        },
+        "dual_tower": {
+          "canonical_splice": null,
+          "frameshift": 0.9356,
+          "inframe_deletion": 0.9911,
+          "inframe_indel": null,
+          "inframe_insertion": null,
+          "missense": 0.9848,
+          "start_lost": null,
+          "stop_gained": null,
+          "stop_lost": null,
+          "synonymous": null
+        },
+        "no_frequency": {
+          "canonical_splice": null,
+          "frameshift": 0.7305,
+          "inframe_deletion": 0.91,
+          "inframe_indel": null,
+          "inframe_insertion": null,
+          "missense": 0.9633,
+          "start_lost": null,
+          "stop_gained": null,
+          "stop_lost": null,
+          "synonymous": null
+        },
+        "no_esm": {
+          "canonical_splice": null,
+          "frameshift": 0.9372,
+          "inframe_deletion": 0.9797,
+          "inframe_indel": null,
+          "inframe_insertion": null,
+          "missense": 0.9796,
+          "start_lost": null,
+          "stop_gained": null,
+          "stop_lost": null,
+          "synonymous": null
+        }
+      }
+    }
+  },
+  "missense_v1_test_roc_auc": 0.9902,
+  "seconds": 851.5
+}

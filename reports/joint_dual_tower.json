@@ -1,0 +1,305 @@
+{
+  "model": "Dual tower (all coding types, phase 2)",
+  "config": {
+    "hidden": 512,
+    "tabular_depth": 3,
+    "fusion_depth": 2,
+    "aa_dim": 4,
+    "batch_size": 512,
+    "esm_form": "window3",
+    "dropout": 0.3756925792705057,
+    "tower_dropout": 0.2136558952815515,
+    "lr": 0.0022831367510608163,
+    "weight_decay": 0.000452066849651031
+  },
+  "esm_model": "facebook/esm2_t33_650M_UR50D",
+  "torch_version": "2.14.1+cu130",
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "test_set_opened": false,
+  "rows": {
+    "fit": 655663,
+    "stop": 62424,
+    "validation": 153822
+  },
+  "protein_tower_masked_rows": {
+    "fit": 25824,
+    "stop": 2804,
+    "validation": 6605
+  },
+  "validation_by_type_seeds": {
+    "canonical_splice": {
+      "roc_auc_mean": 0.9249,
+      "roc_auc_std": 0.0061,
+      "pr_auc_mean": 0.9984
+    },
+    "frameshift": {
+      "roc_auc_mean": 0.9334,
+      "roc_auc_std": 0.0087,
+      "pr_auc_mean": 0.9986
+    },
+    "inframe_deletion": {
+      "roc_auc_mean": 0.9911,
+      "roc_auc_std": 0.0019,
+      "pr_auc_mean": 0.9843
+    },
+    "inframe_insertion": {
+      "roc_auc_mean": 0.9818,
+      "roc_auc_std": 0.005,
+      "pr_auc_mean": 0.9567
+    },
+    "missense": {
+      "roc_auc_mean": 0.9886,
+      "roc_auc_std": 0.0005,
+      "pr_auc_mean": 0.9733
+    },
+    "stop_gained": {
+      "roc_auc_mean": 0.9299,
+      "roc_auc_std": 0.0029,
+      "pr_auc_mean": 0.9986
+    },
+    "synonymous": {
+      "roc_auc_mean": 0.8268,
+      "roc_auc_std": 0.0041,
+      "pr_auc_mean": 0.0224
+    }
+  },
+  "mean_type_roc_auc_seed0": 0.9372,
+  "joint_lightgbm_by_type": {
+    "canonical_splice": 0.9662,
+    "frameshift": 0.9645,
+    "inframe_deletion": 0.9914,
+    "inframe_indel": null,
+    "inframe_insertion": 0.9783,
+    "missense": 0.9894,
+    "start_lost": null,
+    "stop_gained": 0.9513,
+    "stop_lost": null,
+    "synonymous": 0.8904
+  },
+  "ensemble_by_type": {
+    "canonical_splice": {
+      "roc_auc": 0.9567,
+      "pr_auc": 0.9991,
+      "mcc": 0.6628,
+      "balanced_accuracy": 0.7379,
+      "brier": 0.006,
+      "ece": 0.0053,
+      "threshold": 0.5,
+      "n": 6575,
+      "positives": 6491,
+      "eligible": true,
+      "gene_bootstrap_95ci": {
+        "roc_auc": [
+          0.9242,
+          0.9867
+        ],
+        "pr_auc": [
+          0.9982,
+          0.9998
+        ]
+      }
+    },
+    "frameshift": {
+      "roc_auc": 0.9571,
+      "pr_auc": 0.9992,
+      "mcc": 0.8143,
+      "balanced_accuracy": 0.846,
+      "brier": 0.0032,
+      "ece": 0.0045,
+      "threshold": 0.5,
+      "n": 14479,
+      "positives": 14336,
+      "eligible": true,
+      "gene_bootstrap_95ci": {
+        "roc_auc": [
+          0.9291,
+          0.985
+        ],
+        "pr_auc": [
+          0.9984,
+          0.9998
+        ]
+      }
+    },
+    "inframe_deletion": {
+      "roc_auc": 0.9928,
+      "pr_auc": 0.9907,
+      "mcc": 0.9219,
+      "balanced_accuracy": 0.9601,
+      "brier": 0.0346,
+      "ece": 0.0594,
+      "threshold": 0.5,
+      "n": 643,
+      "positives": 298,
+      "eligible": true,
+      "gene_bootstrap_95ci": {
+        "roc_auc": [
+          0.9853,
+          0.9969
+        ],
+        "pr_auc": [
+          0.9804,
+          0.997
+        ]
+      }
+    },
+    "inframe_indel": {
+      "n": 48,
+      "positives": 45,
+      "eligible": false
+    },
+    "inframe_insertion": {
+      "roc_auc": 0.9857,
+      "pr_auc": 0.9679,
+      "mcc": 0.8372,
+      "balanced_accuracy": 0.9349,
+      "brier": 0.0568,
+      "ece": 0.1096,
+      "threshold": 0.5,
+      "n": 321,
+      "positives": 87,
+      "eligible": true,
+      "gene_bootstrap_95ci": {
+        "roc_auc": [
+          0.9748,
+          0.9956
+        ],
+        "pr_auc": [
+          0.9365,
+          0.9917
+        ]
+      }
+    },
+    "missense": {
+      "roc_auc": 0.99,
+      "pr_auc": 0.9772,
+      "mcc": 0.9056,
+      "balanced_accuracy": 0.9458,
+      "brier": 0.0309,
+      "ece": 0.0233,
+      "threshold": 0.5,
+      "n": 27500,
+      "positives": 8003,
+      "eligible": true,
+      "gene_bootstrap_95ci": {
+        "roc_auc": [
+          0.9882,
+          0.9915
+        ],
+        "pr_auc": [
+          0.9726,
+          0.9808
+        ]
+      }
+    },
+    "start_lost": {
+      "n": 389,
+      "positives": 373,
+      "eligible": false
+    },
+    "stop_gained": {
+      "roc_auc": 0.9475,
+      "pr_auc": 0.999,
+      "mcc": 0.81,
+      "balanced_accuracy": 0.8787,
+      "brier": 0.0031,
+      "ece": 0.0058,
+      "threshold": 0.5,
+      "n": 8994,
+      "positives": 8907,
+      "eligible": true,
+      "gene_bootstrap_95ci": {
+        "roc_auc": [
+          0.9074,
+          0.9744
+        ],
+        "pr_auc": [
+          0.9979,
+          0.9996
+        ]
+      }
+    },
+    "stop_lost": {
+      "n": 54,
+      "positives": 37,
+      "eligible": false
+    },
+    "synonymous": {
+      "roc_auc": 0.8974,
+      "pr_auc": 0.2466,
+      "mcc": 0.195,
+      "balanced_accuracy": 0.5286,
+      "brier": 0.0009,
+      "ece": 0.0003,
+      "threshold": 0.5,
+      "n": 94819,
+      "positives": 105,
+      "eligible": true,
+      "gene_bootstrap_95ci": {
+        "roc_auc": [
+          0.8568,
+          0.9417
+        ],
+        "pr_auc": [
+          0.1612,
+          0.3389
+        ]
+      }
+    }
+  },
+  "ensemble_mean_type_roc_auc": 0.961,
+  "ablations": {
+    "no_frequency": {
+      "mean_type_roc_auc": 0.8249,
+      "roc_auc_by_type": {
+        "canonical_splice": 0.5826,
+        "frameshift": 0.77,
+        "inframe_deletion": 0.9632,
+        "inframe_indel": null,
+        "inframe_insertion": 0.9173,
+        "missense": 0.9642,
+        "start_lost": null,
+        "stop_gained": 0.781,
+        "stop_lost": null,
+        "synonymous": 0.7959
+      }
+    },
+    "no_esm": {
+      "mean_type_roc_auc": 0.9328,
+      "roc_auc_by_type": {
+        "canonical_splice": 0.9244,
+        "frameshift": 0.9438,
+        "inframe_deletion": 0.9846,
+        "inframe_indel": null,
+        "inframe_insertion": 0.9237,
+        "missense": 0.9833,
+        "start_lost": null,
+        "stop_gained": 0.9356,
+        "stop_lost": null,
+        "synonymous": 0.834
+      }
+    }
+  },
+  "runs": [
+    {
+      "seed": 0,
+      "best_epoch": 0,
+      "seconds": 2006.3
+    },
+    {
+      "seed": 1,
+      "best_epoch": 2,
+      "seconds": 1984.0
+    },
+    {
+      "seed": 2,
+      "best_epoch": 2,
+      "seconds": 743.1
+    }
+  ],
+  "seconds": 5015.3
+}

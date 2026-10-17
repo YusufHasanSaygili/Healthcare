@@ -479,6 +479,39 @@ def run_prepare_dual_tower() -> int:
     return 0
 
 
+JOINT_ESM_BLOCKS = ARTIFACTS_DIR / "esm_variants" / "joint_open.npy"
+
+
+def run_prepare_joint_dual_tower() -> int:
+    from healthcare.models import joint_tower
+
+    log_path = start_log("prepare-joint-dual-tower")
+    summary = {"log": log_path} | joint_tower.prepare(
+        DATA_DIR / "processed" / "splits", ESM_STORE, JOINT_ESM_BLOCKS
+    )
+    write_summary("prepare-joint-dual-tower", summary)
+    rows, size, missing = summary["rows"], summary["gigabytes"], summary["missing"]
+    print(f"ESM blocks: {rows} variants, {size} GB, without a protein position {missing}")
+    return 0
+
+
+def run_train_joint_dual_tower() -> int:
+    from healthcare.models import joint_tower
+
+    if not JOINT_ESM_BLOCKS.exists():
+        print("missing inputs: run `healthcare prepare-joint-dual-tower` first")
+        return 2
+    log_path = start_log("train-joint-dual-tower")
+    report = {"log": log_path} | joint_tower.run(
+        DATA_DIR / "processed" / "splits", JOINT_ESM_BLOCKS, ARTIFACTS_DIR / "models", REPORTS_DIR
+    )
+    write_summary("train-joint-dual-tower", report)
+    for consequence, metrics in report["validation_by_type_seeds"].items():
+        print(f"{consequence}: ROC-AUC {metrics['roc_auc_mean']} ± {metrics['roc_auc_std']}")
+    print(f"report: {REPORTS_DIR / 'joint_dual_tower.json'}")
+    return 0
+
+
 def dual_tower_data():
     from healthcare.models import dual_tower
 
@@ -795,6 +828,12 @@ def main(argv: list[str] | None = None) -> int:
         "build-esm", help="Precompute ESM-2 log-probabilities and embeddings for MANE proteins"
     )
     build_esm_parser.add_argument("--limit", type=int, help="Only the N shortest proteins")
+    commands.add_parser(
+        "prepare-joint-dual-tower", help="Precompute ESM blocks for the joint open splits"
+    )
+    commands.add_parser(
+        "train-joint-dual-tower", help="Train the dual tower on missense and Phase 2 types"
+    )
     commands.add_parser("prepare-dual-tower", help="Precompute ESM input blocks for open splits")
     sweep_parser = commands.add_parser("sweep-dual-tower", help="Resumable dual tower sweep")
     sweep_parser.add_argument("--hours", type=float, default=12.0, help="Time budget")
@@ -845,6 +884,10 @@ def main(argv: list[str] | None = None) -> int:
         return run_build_features(args.force)
     if args.command == "build-phase2-features":
         return run_build_phase2_features(args.limit, args.force)
+    if args.command == "prepare-joint-dual-tower":
+        return run_prepare_joint_dual_tower()
+    if args.command == "train-joint-dual-tower":
+        return run_train_joint_dual_tower()
     if args.command == "train-joint-baseline":
         return run_train_joint_baseline(args.trials)
     if args.command == "build-phase2-split":

@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 8.3b Joint dual tower
+**Current task:** 8.4 Final evaluation v2 and integration
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -250,7 +250,7 @@ Rules:
   - Acceptance: per-type validation metrics; missense not meaningfully below Phase 1; no 🔴 leakage findings
   - Try it: the per-type validation table is read
 
-- [ ] **8.3b Joint dual tower** 🔍
+- [x] **8.3b Joint dual tower** 🔍
   - Dual tower retrained on all types (protein tower masked for types without ESM inputs; variant type
     one-hot/embedding; no-ESM ablation also masks the in-frame ESM span features)
   - Acceptance: per-type validation metrics side by side with the joint LightGBM
@@ -321,3 +321,4 @@ Rules:
 - 2026-10-16 · 8.2a · `build-phase2-features`: 9 Phase 2 types, 51 `f_` columns (18 type-specific: truncation, NMD 55 nt rule via mRNA built from GRCh38 + MANE exons, stop-loss extension, next Met, splice side/skipped-exon frame, boundary distance, indel length; span phyloP). Train 845,024 rows (73% synonymous), temporal 112,503, VUS 71,778; 303 multi-gene dropped; type-specific missing <1% except partial stop-loss deletions. Benign frameshifts escape NMD 48% vs 15%. Missense table unchanged (serve-check 0 diffs). Leakage audit PASS: 181 missense variants also scored as Phase 2 in another gene, to be settled in 8.3; type alone nearly separates labels, so report per type.
 - 2026-10-16 · 8.2b · 4 `f_esm_*` span features for in-frame indels from stored wild-type marginals (removed/inserted residue log-prob, their difference, site entropy); 55 features. Inserted residues score lower when pathogenic (insertions −4.28 vs −1.56, delins −7.85 vs −5.32); deletions barely separate (wild-type marginals are near 1 for residues in the input). Leakage audit PASS; 8.3 must mask `SPAN_FEATURES` in the dual tower's no-ESM ablation, and 8.4 must compute them when serving.
 - 2026-10-16 · 8.3a · Phase 2 rows in the pinned gene split (train 589,925 / val 126,322 / test 128,777; 0 overlaps within or across tables; 369 multi-gene keys excluded). Joint LightGBM (40 trials, mean per-type val ROC-AUC 0.9616): missense 0.9894 (Phase 1 0.9899), frameshift 0.9645, stop_gained 0.9513, splice 0.9662, in-frame del 0.9914, ins 0.9783, synonymous 0.8904 (PR-AUC 0.34). Without allele frequency: frameshift 0.79, stop_gained 0.78, splice 0.82 (ClinVar benign LoF labels lean on frequency); no-ESM −0.003. Leakage audit PASS.
+- 2026-10-17 · 8.3b · Joint dual tower (Phase 1 winner config, 3 seeds, per-row protein mask for 35,754 rows without a protein position, variant type one-hot; 84 min): val ROC-AUC missense 0.9886, in-frame del 0.9911, ins 0.9818, but below LightGBM on LoF types (frameshift 0.933 vs 0.965, stop_gained 0.930 vs 0.951, splice 0.925 vs 0.966, synonymous 0.827 vs 0.890); best epochs 0–2, so it overfits fast on few LoF benigns. Average with LightGBM: missense 0.9900, in-frame del 0.9928, ins 0.9857, synonymous 0.8974. Leakage audit PASS.

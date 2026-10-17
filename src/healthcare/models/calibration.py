@@ -163,6 +163,7 @@ def tower_probabilities(
         torch.from_numpy(amino_acids).to(device),
         torch.from_numpy(np.ascontiguousarray(blocks.reshape(len(table), -1))).to(device),
         torch.from_numpy(table["label"].to_numpy().astype(np.float32)).to(device),
+        torch.ones(len(table), device=device),
     )
     return dual_tower.predict(model.to(device), tensors)
 

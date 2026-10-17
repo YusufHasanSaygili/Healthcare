@@ -112,3 +112,31 @@ def test_enqueued_trials_are_flagged_random(tmp_path):
     study.enqueue_trial(sweep.random_config(random.Random(2)))
     assert sweep.is_enqueued(study, study.ask())
     assert not sweep.is_enqueued(study, study.ask())
+
+
+def test_encoder_one_hot_encodes_variant_type_and_tolerates_missing_amino_acids():
+    from healthcare.models.dual_tower import VARIANT_TYPE_COUNT, TabularEncoder
+
+    table = pl.DataFrame(
+        {
+            "f_phylop": [1.0, 2.0, None],
+            "f_variant_type": [0.0, 6.0, 1.0],
+            "f_aa_ref": ["R", None, None],
+            "f_aa_alt": ["W", None, None],
+        }
+    )
+    encoder = TabularEncoder.fit(table)
+    numeric, amino_acids = encoder.encode(table)
+    assert encoder.columns == ["f_phylop"]
+    assert numeric.shape == (3, 2 + VARIANT_TYPE_COUNT)
+    assert numeric[1, 2 + 6] == 1.0 and numeric[1, 2:].sum() == 1.0
+    assert amino_acids.shape == (3, 2)
+
+
+def test_encoder_without_variant_type_keeps_the_missense_layout():
+    from healthcare.models.dual_tower import TabularEncoder
+
+    table = pl.DataFrame({"f_phylop": [1.0, 2.0], "f_aa_ref": ["R", "K"], "f_aa_alt": ["W", "E"]})
+    encoder = TabularEncoder.fit(table)
+    assert encoder.variant_types == 0
+    assert encoder.width == 1

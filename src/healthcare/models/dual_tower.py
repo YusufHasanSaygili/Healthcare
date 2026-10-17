@@ -1,4 +1,5 @@
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -34,6 +35,8 @@ MAX_EPOCHS = 60
 ESM_SCALARS = tuple(ESM_FEATURES)
 NO_FREQUENCY = tuple(FREQUENCY_FEATURES)
 PATIENCE = 4
+VARIANT_TYPE = "f_variant_type"
+VARIANT_TYPE_COUNT = 10
 
 
 def transform(column: str, values: np.ndarray) -> np.ndarray:
@@ -51,19 +54,24 @@ class TabularEncoder:
     means: np.ndarray
     stds: np.ndarray
     flag_columns: list[str]
+    variant_types: int = 0
 
     @classmethod
     def fit(cls, table: pl.DataFrame, dropped: tuple[str, ...] = ()) -> "TabularEncoder":
         columns = [
             c
             for c in table.columns
-            if c.startswith("f_") and c not in CATEGORICAL_FEATURES and c not in dropped
+            if c.startswith("f_")
+            and c not in CATEGORICAL_FEATURES
+            and c != VARIANT_TYPE
+            and not any(c.startswith(d) for d in dropped)
         ]
         raw = cls.raw(table, columns)
         medians = np.nanmedian(raw, axis=0)
         filled = np.where(np.isnan(raw), medians, raw)
         flags = [c for c, has in zip(columns, np.isnan(raw).any(axis=0), strict=True) if has]
-        return cls(columns, medians, filled.mean(axis=0), filled.std(axis=0) + 1e-6, flags)
+        types = VARIANT_TYPE_COUNT if VARIANT_TYPE in table.columns else 0
+        return cls(columns, medians, filled.mean(axis=0), filled.std(axis=0) + 1e-6, flags, types)
 
     @staticmethod
     def raw(table: pl.DataFrame, columns: list[str]) -> np.ndarray:
@@ -78,10 +86,17 @@ class TabularEncoder:
         missing = np.isnan(raw)
         scaled = (np.where(missing, self.medians, raw) - self.means) / self.stds
         flags = missing[:, [self.columns.index(c) for c in self.flag_columns]]
-        numeric = np.hstack([scaled, flags]).astype(np.float32)
+        parts = [scaled, flags]
+        if self.variant_types:
+            codes = table[VARIANT_TYPE].cast(pl.Int64).to_numpy()
+            parts.append(np.eye(self.variant_types)[codes])
+        numeric = np.hstack(parts).astype(np.float32)
         amino_acids = np.stack(
             [
-                table[c].replace_strict(AMINO_ACID_CODES, default=AA_VOCAB - 1).to_numpy()
+                table[c]
+                .fill_null("")
+                .replace_strict(AMINO_ACID_CODES, default=AA_VOCAB - 1)
+                .to_numpy()
                 for c in CATEGORICAL_FEATURES
             ],
             axis=1,
@@ -90,7 +105,7 @@ class TabularEncoder:
 
     @property
     def width(self) -> int:
-        return len(self.columns) + len(self.flag_columns)
+        return len(self.columns) + len(self.flag_columns) + self.variant_types
 
 
 class DualTower(nn.Module):
@@ -136,19 +151,29 @@ class Tensors:
     amino_acids: torch.Tensor
     protein: torch.Tensor
     labels: torch.Tensor
+    available: torch.Tensor
 
 
 class Data:
-    def __init__(self, splits_dir: Path, esm_blocks_path: Path, device: str = "cuda"):
-        train = load_split(splits_dir, "train")
+    def __init__(
+        self,
+        splits_dir: Path,
+        esm_blocks_path: Path,
+        device: str = "cuda",
+        loader: Callable[[Path, str], pl.DataFrame] = load_split,
+        esm_columns: list[int] | None = None,
+    ):
+        train = loader(splits_dir, "train")
         stop = early_stopping_genes(train)
         self.tables = {
             "fit": train.filter(~pl.col("gene_name").is_in(stop)),
             "stop": train.filter(pl.col("gene_name").is_in(stop)),
-            "validation": load_split(splits_dir, "validation"),
+            "validation": loader(splits_dir, "validation"),
         }
+        self.esm_columns = esm_columns or list(range(len(variant_inputs.BLOCKS)))
         self.blocks = {
-            name: variant_inputs.load(esm_blocks_path, table) for name, table in self.tables.items()
+            name: variant_inputs.load(esm_blocks_path, table, esm_columns)
+            for name, table in self.tables.items()
         }
         self.device = device
         self.cache: dict = {}
@@ -170,25 +195,27 @@ class Data:
             arrays = {}
             for name, table in self.tables.items():
                 numeric, amino_acids = encoder.encode(table)
+                available = table["protein_position"].is_not_null().to_numpy()
                 arrays[name] = (
                     torch.from_numpy(numeric).to(self.device),
                     torch.from_numpy(amino_acids).to(self.device),
                     torch.from_numpy(table["label"].to_numpy().astype(np.float32)).to(self.device),
+                    torch.from_numpy(available.astype(np.float32)).to(self.device),
                 )
             self.cache[key] = (encoder, arrays)
         return self.cache[key]
 
     def tensors(self, dropped: tuple[str, ...], esm_form: str) -> tuple[TabularEncoder, dict]:
         encoder, arrays = self.encoded(dropped)
-        blocks = ESM_FORMS[esm_form]
+        blocks = [self.esm_columns.index(b) for b in ESM_FORMS[esm_form]]
         tensors = {}
-        for name, (numeric, amino_acids, labels) in arrays.items():
+        for name, (numeric, amino_acids, labels, available) in arrays.items():
             protein = (
                 self.protein_blocks(name)[:, blocks].flatten(1)
                 if blocks
                 else torch.zeros((labels.shape[0], 0), dtype=torch.float16, device=self.device)
             )
-            tensors[name] = Tensors(numeric, amino_acids, protein, labels)
+            tensors[name] = Tensors(numeric, amino_acids, protein, labels, available)
         return encoder, tensors
 
 
@@ -196,7 +223,6 @@ class Data:
 def predict(model: DualTower, tensors: Tensors, batch: int = 8192) -> np.ndarray:
     model.eval()
     outputs = []
-    ones = torch.ones(batch, device=tensors.numeric.device)
     for start in range(0, tensors.labels.shape[0], batch):
         end = min(start + batch, tensors.labels.shape[0])
         with torch.autocast("cuda", dtype=torch.bfloat16):
@@ -204,7 +230,7 @@ def predict(model: DualTower, tensors: Tensors, batch: int = 8192) -> np.ndarray
                 tensors.numeric[start:end],
                 tensors.amino_acids[start:end],
                 tensors.protein[start:end].float(),
-                ones[: end - start],
+                tensors.available[start:end],
             )
         outputs.append(torch.sigmoid(logits.float()).cpu().numpy())
     return np.concatenate(outputs)
@@ -235,7 +261,7 @@ def train(
             mask = (
                 torch.rand(index.shape[0], device=data.device, generator=generator)
                 >= config["tower_dropout"]
-            ).float()
+            ).float() * fit.available[index]
             with torch.autocast("cuda", dtype=torch.bfloat16):
                 logits = model(
                     fit.numeric[index],

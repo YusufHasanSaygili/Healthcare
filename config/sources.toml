@@ -525,3 +525,4 @@ md5 = "d37e66bb85d448b6f89fb6fdc1810b9e"
 [sources.uniprot_human]
 url = "https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/taxonomic_divisions/uniprot_sprot_human.dat.gz"
 version = "UniProtKB/Swiss-Prot release 2026_03 (human)"
+sha256 = "1af63498762d426240e30c9eb40e0124cd6af1b9eb35f440d1b4e89a097999bc"

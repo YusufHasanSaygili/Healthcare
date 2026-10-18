@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 9.1 Final README and model card
+**Current task:** 9.2 Demo pack and release
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -273,7 +273,7 @@ Rules:
 
 ## Phase 9 — Delivery
 
-- [ ] **9.1 Final README and model card**
+- [x] **9.1 Final README and model card**
   - Single README with English and Turkish sections: results, architecture diagram, screenshots, data sources and
     licenses, reproduction steps, limitations, disclaimer
   - Try it: the README steps can be followed end to end on a clean clone
@@ -333,3 +333,5 @@ Rules:
 - 2026-10-17 · 8.3b · Joint dual tower (Phase 1 winner config, 3 seeds, per-row protein mask for 35,754 rows without a protein position, variant type one-hot; 84 min): val ROC-AUC missense 0.9886, in-frame del 0.9911, ins 0.9818, but below LightGBM on LoF types (frameshift 0.933 vs 0.965, stop_gained 0.930 vs 0.951, splice 0.925 vs 0.966, synonymous 0.827 vs 0.890); best epochs 0–2, so it overfits fast on few LoF benigns. Average with LightGBM: missense 0.9900, in-frame del 0.9928, ins 0.9857, synonymous 0.8974. Leakage audit PASS.
 - 2026-10-18 · 8.4a · v2 routes on validation (average with the dual tower: missense, in-frame del/ins, synonymous; LightGBM: LoF and small types), per-type Platt; test opened once, models unchanged (hashes). Test ROC-AUC: missense 0.9902, stop_gained 0.972, splice 0.950, frameshift 0.902 [0.84–0.96], in-frame del 0.990, ins 0.985, synonymous 0.889 (PR 0.29). No-AF: frameshift 0.72, stop_gained 0.83, splice 0.84. Temporal LoF lower (stop_gained 0.883, splice 0.909).
 - 2026-10-18 · 8.4b · `all_types_v2.onnx` (13.9 MB, one graph, per-type route + Platt gathered by type code; tower parity 7e-7). Serving takes VCF-style indels (normalized, REF-checked) through the Phase 2 feature functions; serve-check 0 feature / 0 probability diffs on 100 variants across types, median ~670 ms. API/UI show the type, indel/NMD explanations and per-type model card.
+- 2026-10-18 · 9.1 · README rewritten (EN + TR): per-type v2 test and temporal results, Mermaid architecture, data licenses, full reproduction steps (~240 GB; `build-split --force` on a fresh clone, empty `git diff` confirms the split), limitations; `reports/model_card.md`; 3 screenshots via headless Edge. Fresh clone: `uv sync`, `doctor`, 231 pytest, ruff, 25 Vitest and `vite build` pass.
+- 2026-10-18 · 9.1 · UniProt 2026_03 is still UniProt's current release (no archive URL), so `uniprot_human` is pinned by sha256; switch to `previous_releases/release-2026_03` (all species, tar) after 2026_04 ships. UI tagline/batch hint updated to model v2 and indels.

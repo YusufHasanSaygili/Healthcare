@@ -117,7 +117,7 @@ export type Messages = {
 
 const en: Messages = {
   title: "Variant Pathogenicity",
-  tagline: "Missense model v1 · runs on this computer",
+  tagline: "All coding types, model v2 · runs on this computer",
   inputLabel: "Variant",
   inputHint:
     "Genomic position (17:43063931 G>A) or protein change (BRCA1 p.Arg1699Trp). GRCh38; coding SNVs and small indels, VCF style (7:117559592 CTTT>C).",
@@ -221,7 +221,7 @@ const en: Messages = {
   nav: { single: "Single variant", batch: "Batch (VCF)", model: "Model card" },
   batchTitle: "Batch query",
   batchHint:
-    "Plain-text VCF (GRCh38), tab-separated CHROM POS ID REF ALT. Up to 2 MB and 500 variants; SNVs only.",
+    "Plain-text VCF (GRCh38), tab-separated CHROM POS ID REF ALT. Up to 2 MB and 500 variants; coding SNVs and small indels.",
   batchFileLabel: "VCF file",
   batchSubmit: "Analyze file",
   batchSubmitting: "Analyzing…",
@@ -374,7 +374,7 @@ const en: Messages = {
 
 const tr: Messages = {
   title: "Varyant Patojenitesi",
-  tagline: "Missense modeli v1 · bu bilgisayarda çalışır",
+  tagline: "Tüm kodlayan türler, model v2 · bu bilgisayarda çalışır",
   inputLabel: "Varyant",
   inputHint:
     "Genomik konum (17:43063931 G>A) ya da protein değişimi (BRCA1 p.Arg1699Trp). GRCh38; kodlayan SNV'ler ve küçük indel'ler, VCF biçiminde (7:117559592 CTTT>C).",
@@ -479,7 +479,7 @@ const tr: Messages = {
   nav: { single: "Tek varyant", batch: "Toplu (VCF)", model: "Model kartı" },
   batchTitle: "Toplu sorgu",
   batchHint:
-    "Düz metin VCF (GRCh38), sekmeyle ayrılmış CHROM POS ID REF ALT. En fazla 2 MB ve 500 varyant; yalnızca SNV.",
+    "Düz metin VCF (GRCh38), sekmeyle ayrılmış CHROM POS ID REF ALT. En fazla 2 MB ve 500 varyant; kodlayan SNV'ler ve küçük indel'ler.",
   batchFileLabel: "VCF dosyası",
   batchSubmit: "Dosyayı analiz et",
   batchSubmitting: "Analiz ediliyor…",

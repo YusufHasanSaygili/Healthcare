@@ -9,69 +9,208 @@
 
 ## English
 
-A from-scratch AI model that predicts whether germline genetic variants are **pathogenic** or **benign**, with a web
-interface that runs locally.
+A model trained from scratch that predicts whether a germline genetic variant in a protein-coding gene is
+**pathogenic** or **benign**, plus a web interface that runs on your own machine.
 
-- No precomputed pathogenicity scores (CADD, REVEL, AlphaMissense, SpliceAI, …) are used anywhere. The model learns
-  only from raw public data: ClinVar labels, the GRCh38 reference genome, MANE Select transcripts, gnomAD allele
-  frequencies, evolutionary conservation, UniProt curated features and ESM-2 protein language model outputs computed
-  locally.
-- Evaluation uses gene-disjoint splits and a temporal hold-out; results are reported per variant type.
+The rule behind the project: **no precomputed pathogenicity scores.** CADD, REVEL, AlphaMissense, SpliceAI, SIFT,
+PolyPhen-2, dbNSFP and every other variant-effect predictor are left out as features, labels, filters and
+benchmarks. The model learns only from raw public data and from features computed in this repository, including
+ESM-2 protein language model outputs run locally. Variant consequences (codon, amino acid change, frameshift, NMD)
+come from our own annotator built on MANE Select, not from VEP.
 
-**Status:** missense model v1 finished and evaluated; prediction service and web interface in progress.
+Contents: [Screenshots](#screenshots) · [Results](#results) · [How it works](#how-it-works) ·
+[Data sources and licenses](#data-sources-and-licenses) · [Reproduce from scratch](#reproduce-from-scratch) ·
+[Use the model](#use-the-model) · [Limitations](#limitations) · [Model card](reports/model_card.md)
 
-### Results (missense SNVs, model v1)
+### Screenshots
 
-Final model: calibrated average of LightGBM and a dual tower network (ESM-2 protein tower + measurement tower),
-exported to a single ONNX file. Thresholds and calibration come from the validation set only. Full report:
-[`reports/missense_v1.md`](reports/missense_v1.md).
+| Single variant | Batch (VCF) | Model card |
+|---|---|---|
+| ![Single variant result](docs/screenshots/single-variant.png) | ![Batch results](docs/screenshots/batch.png) | ![Model card page](docs/screenshots/model-card.png) |
 
-| Evaluation set | Variants | ROC-AUC [95% gene CI] | PR-AUC | Uncertain share |
-|---|---|---|---|---|
-| Gene-disjoint test | 27,501 | 0.990 [0.988–0.992] | 0.977 | 12.2% |
-| Temporal (new in ClinVar after Oct 2025) | 18,205 | 0.989 [0.987–0.990] | 0.980 | 15.1% |
-| Temporal, genes unseen in training | 2,919 | 0.988 [0.984–0.991] | 0.973 | 14.4% |
-| Test, without allele frequency | 27,501 | 0.969 [0.966–0.972] | 0.926 | – |
-| Test, without ESM-2 | 27,501 | 0.985 [0.983–0.987] | 0.964 | – |
+### Results
 
-Calibration drifts on the newer temporal variants (ECE 0.033 vs 0.004 on test).
+All numbers come from data the model never saw during training or model selection. Every table is split by variant
+type, because the type alone almost separates the labels (nearly all ClinVar frameshifts are pathogenic, nearly all
+synonymous variants benign) and a pooled number would look better than the model is.
 
-### Results (all coding types, model v2, gene-disjoint test)
+**Gene-disjoint test set** (whole genes held out, opened once, model unchanged afterwards).
+Full report: [`reports/all_types_v2.md`](reports/all_types_v2.md).
 
-Joint LightGBM, averaged with a joint dual tower for missense, in-frame indels and synonymous (routes and
-per-type Platt calibration chosen on validation only). ROC-AUC per variant type; the no-allele-frequency column
-matters most for loss-of-function types, whose ClinVar benign labels largely follow population frequency. Full
-report: [`reports/all_types_v2.md`](reports/all_types_v2.md).
+| Variant type | Variants (minority class) | ROC-AUC [95% gene bootstrap CI] | PR-AUC | Uncertain | Without allele frequency |
+|---|---|---|---|---|---|
+| Missense | 27,500 (8,003 P) | 0.990 [0.989–0.992] | 0.976 | 11.2% | 0.961 |
+| Stop gained | 8,531 (67 B) | 0.972 [0.954–0.989] | 0.9997 | 0.3% | 0.827 |
+| Canonical splice | 6,293 (91 B) | 0.950 [0.926–0.973] | 0.999 | 0.5% | 0.840 |
+| Frameshift | 14,176 (138 B) | 0.902 [0.841–0.959] | 0.998 | 0.5% | 0.721 |
+| In-frame deletion | 490 (191 B) | 0.990 [0.982–0.997] | 0.992 | 10.8% | 0.948 |
+| In-frame insertion | 213 (87 P) | 0.985 [0.967–0.998] | 0.978 | 22.1% | 0.894 |
+| Synonymous | 98,509 (81 P) | 0.889 [0.836–0.936] | 0.290 | 0.1% | 0.831 |
 
-| Type | Variants (benign) | ROC-AUC [95% gene CI] | Without allele frequency |
+P = pathogenic, B = benign. Start lost, stop lost and in-frame delins have too few variants of one class to score.
+
+**Temporal test** (variants first added to ClinVar between October 2025 and October 2026, after the training
+release):
+
+| Variant type | All temporal genes | Genes never seen in training |
+|---|---|---|
+| Missense | 0.989 (18,197) | 0.988 (2,919) |
+| Frameshift | 0.934 (20,585) | 0.822 (2,848) |
+| Stop gained | 0.883 (9,346) | too few benign |
+| Canonical splice | 0.909 (6,563) | too few benign |
+| In-frame deletion | 0.985 (534) | 0.983 (75) |
+| Synonymous | 0.858 (74,871) | too few pathogenic |
+
+What these numbers say:
+
+- **Missense is the strong result.** ROC-AUC 0.99 holds on held-out genes and on newer variants. ESM-2 adds about
+  +0.005 test ROC-AUC on top of the other features, and about +0.02 on validation when allele frequency is
+  removed.
+- **Loss-of-function types lean on allele frequency.** Most ClinVar benign frameshift, stop-gained and splice labels
+  exist because the variant is common in the population. Without frequency, frameshift drops to 0.72. Treat the
+  no-frequency column as the honest measure of what the model learned beyond "common means benign".
+- **Synonymous is hard.** 81 pathogenic out of 98,509; PR-AUC 0.29. The model rarely flags one with confidence.
+- **Calibration drifts on newer variants.** Missense ECE is 0.002 on the test set and 0.032 on the temporal set,
+  where the model is overconfident between 0.3 and 0.8.
+- The first, missense-only model (v1) scored the same on the same test genes (0.990);
+  see [`reports/missense_v1.md`](reports/missense_v1.md).
+
+The decision shown to users is three-way, on the calibrated probability: **Likely pathogenic** (≥ 0.90),
+**Likely benign** (≤ 0.10), otherwise **Uncertain**. Thresholds and calibration were fixed on the validation set.
+
+### How it works
+
+```mermaid
+flowchart LR
+    subgraph Sources["Public data (pinned versions)"]
+        CV[ClinVar labels]
+        REF[GRCh38 genome]
+        MANE[MANE Select transcripts]
+        GN[gnomAD frequency + constraint]
+        CONS[phyloP / phastCons]
+        UP[UniProt curated regions]
+    end
+    REF --> ANN[Our annotator<br/>codon, amino acid change,<br/>frameshift, NMD, splice]
+    MANE --> ANN
+    CV --> ANN
+    ANN --> FEAT[Feature tables<br/>55 f_ columns]
+    GN --> FEAT
+    CONS --> FEAT
+    UP --> FEAT
+    MANE --> ESM[ESM-2 650M<br/>run locally, once per protein]
+    ESM --> FEAT
+    FEAT --> SPLIT[Gene-disjoint split<br/>+ temporal test, locked]
+    SPLIT --> LGBM[LightGBM]
+    SPLIT --> DT[Dual tower network<br/>protein tower + measurement tower]
+    LGBM --> ROUTE[Per-type route<br/>+ Platt calibration]
+    DT --> ROUTE
+    ROUTE --> ONNX[One ONNX file]
+    ONNX --> API[FastAPI on 127.0.0.1]
+    API --> WEB[React interface]
+```
+
+- **Annotator** (`src/healthcare/annotate/`): maps a GRCh38 SNV or small indel onto the MANE Select transcript of
+  its gene and works out the effect: missense, synonymous, stop gained/lost, start lost, canonical splice (intron
+  ±1/2), frameshift, in-frame deletion/insertion/delins. Indels are left-normalized and the reference allele is
+  checked against the genome. Agreement with ClinVar's own protein change is 100% for missense SNVs and 99.3–100%
+  for indel types.
+- **Features** (`src/healthcare/features/`): amino acid physicochemistry (Grantham, BLOSUM62, hydrophobicity,
+  volume, charge), conservation at the site, gnomAD allele frequency and whether the site was covered at all, gene
+  constraint (LOEUF, missense Z), UniProt curated regions, position in the protein, and type-specific features
+  (truncation point, nonsense-mediated decay rule, stop-loss extension, next in-frame Met, skipped-exon frame, indel
+  length). Only `f_`-prefixed columns reach a model; ClinVar metadata never does.
+- **Protein tower** (`src/healthcare/esm/`): ESM-2 (`esm2_t33_650M_UR50D`) runs once over all 19,228 MANE proteins.
+  From its outputs we compute the wild-type vs mutant log-likelihood ratio, the site entropy and the embedding
+  around the variant.
+- **Models** (`src/healthcare/models/`): LightGBM, and a dual tower network (protein tower + measurement tower +
+  fusion head). The protein tower is randomly masked during training so the same network also decides for types
+  without a protein position. For each variant type the validation set chose either LightGBM alone or the average
+  of both, followed by a per-type Platt calibration. Everything is exported to one ONNX file (14 MB); serving needs
+  ONNX Runtime and DuckDB, not PyTorch.
+- **Evaluation** (`src/healthcare/split/`, `src/healthcare/evaluate/`): all variants of a gene fall into one of
+  train / validation / test (70/15/15, fixed seed, genes with overlapping coding sequence grouped). Test and temporal
+  rows live in a separate locked folder that the training code cannot read without an explicit flag. Automated tests
+  check that no gene and no variant appears in two sets.
+- **Explanation**: for each prediction the service swaps one feature group at a time with values from 32 training
+  variants and reports how much the calibrated log-odds move. This shows which evidence pushed the decision.
+
+### Data sources and licenses
+
+Versions, URLs and checksums are pinned in [`config/sources.toml`](config/sources.toml). Nothing is downloaded at
+"latest".
+
+UniProt is the one exception to fixed URLs: release 2026_03 is still UniProt's current release and has no archive
+URL yet, so it is fetched from `current_release` and pinned by its sha256. Once UniProt publishes 2026_04 the
+download stops with a checksum error; the 2026_03 archive (`previous_releases/release-2026_03/knowledgebase/`,
+all species, ~1.6 GB) will then be the source.
+
+| Source | Version | Used for | License / terms |
 |---|---|---|---|
-| Missense | 27,500 (19,497) | 0.990 [0.989–0.992] | 0.961 |
-| Stop gained | 8,531 (67) | 0.972 [0.954–0.989] | 0.827 |
-| Canonical splice | 6,293 (91) | 0.950 [0.926–0.973] | 0.840 |
-| Frameshift | 14,176 (138) | 0.902 [0.841–0.959] | 0.721 |
-| In-frame deletion | 490 (191) | 0.990 [0.982–0.997] | 0.948 |
-| In-frame insertion | 213 (126) | 0.985 [0.967–0.998] | 0.894 |
-| Synonymous | 98,509 (81 pathogenic) | 0.889 [0.836–0.936] | 0.831 |
+| [ClinVar](https://www.ncbi.nlm.nih.gov/clinvar/) | 2025-10-06 (training), 2026-10-04 (temporal test) | Labels only (classification ≥ 1 review star) | Public domain (NCBI); cite Landrum et al., *Nucleic Acids Res* 2018 |
+| [GRCh38 primary assembly](https://www.ensembl.org/) | Ensembl release 115 | Reference bases, codons | Ensembl data: no restrictions |
+| [MANE Select](https://www.ncbi.nlm.nih.gov/refseq/MANE/) | v1.5 | One transcript and protein per gene | Public domain (NCBI / EMBL-EBI); cite Morales et al., *Nature* 2022 |
+| [gnomAD](https://gnomad.broadinstitute.org/) | v4.1 exomes, constraint, allele number at all sites | Allele frequency, site coverage, gene constraint | CC0 1.0; cite Chen et al., *Nature* 2024 |
+| [UCSC phyloP100way / phastCons100way](https://genome.ucsc.edu/) | hg38 | Conservation | Free for academic and personal use, see UCSC conditions; cite Pollard et al. 2010, Siepel et al. 2005 |
+| [UniProtKB/Swiss-Prot](https://www.uniprot.org/) | 2026_03, human | Curated protein regions | CC BY 4.0 |
+| [ESM-2](https://github.com/facebookresearch/esm) | `facebook/esm2_t33_650M_UR50D`, pinned revision | Protein tower (weights only, run locally) | MIT |
+| Amino acid tables | Grantham 1974, BLOSUM62 (Henikoff 1992), Kyte–Doolittle 1982 | Physicochemistry | Published literature |
 
-Start loss, stop loss and in-frame delins have too few of one class in the test set to score.
+### Reproduce from scratch
 
-### Requirements
+Everything below runs on one desktop machine. Developed on Windows 11 with an RTX 4070 Ti (12 GB), an i5-13600KF
+and an NVMe drive.
 
-- Windows 11 / Linux, Python 3.12, [uv](https://docs.astral.sh/uv/)
-- NVIDIA GPU with a recent driver (developed on an RTX 4070 Ti, 12 GB)
+**Requirements**
 
-### Setup
+- Python 3.12 and [uv](https://docs.astral.sh/uv/); Node.js 20.19+ or 22.12+ for the interface
+- An NVIDIA GPU with CUDA for ESM-2 and the dual tower (CPU is enough for serving)
+- About **240 GB** of free disk: raw downloads ~196 GB (mostly gnomAD), intermediate and processed tables ~6 GB,
+  ESM-2 outputs and models ~38 GB
+
+**Steps.** Each command skips work whose output already exists (`--force` rebuilds), writes a log under `logs/` and a
+small summary JSON under `logs/summaries/`. Most build steps accept `--chrom 22` to try one chromosome first.
 
 ```bash
 uv sync
-uv run healthcare doctor
+uv run healthcare doctor                  # Python, PyTorch, CUDA, GPU, free disk
+
+# 1. Download pinned sources (resumable, checksum-verified; ~196 GB, hours)
+uv run healthcare download
+
+# 2. Reference data and labels
+uv run healthcare build-transcripts       # MANE transcripts, translation check
+uv run healthcare build-clinvar           # labels, VUS, temporal and reclassification tables
+uv run healthcare build-annotations       # our annotator over ClinVar
+uv run healthcare build-gnomad            # gnomAD exomes -> Parquet (longest step)
+uv run healthcare build-conservation
+uv run healthcare build-uniprot
+uv run healthcare build-esm               # ESM-2 over all MANE proteins (~11 min on a 4070 Ti)
+
+# 3. Features and the gene-disjoint split
+uv run healthcare build-features          # missense table
+uv run healthcare build-split --force     # --force on a fresh clone, see below
+uv run healthcare build-phase2-features   # other coding types
+uv run healthcare build-phase2-split
+
+# 4. Models (the dual tower uses the configuration committed in reports/dual_tower.json)
+uv run healthcare train-joint-baseline    # LightGBM sweep
+uv run healthcare prepare-joint-dual-tower
+uv run healthcare train-joint-dual-tower  # ~1.5 h on a 4070 Ti
+uv run healthcare choose-final-v2         # routes, calibration and ablations on validation only
+uv run healthcare export-onnx-v2          # artifacts/models/all_types_v2.onnx
+
+# 5. Optional: re-run the final evaluation on the locked test set
+uv run healthcare evaluate-final-v2 --force
 ```
 
-### Predict a variant
+`build-split` refuses to run when `reports/split_summary.json` pins a split file that is missing, which is the case
+on a fresh clone. `--force` rebuilds it with the fixed seed; afterwards `git diff reports/split_summary.json` should
+be empty, which confirms you got the same split. The dual tower hyperparameter search from the first phase
+(`sweep-dual-tower`, `confirm-dual-tower`, about 8 hours) is not needed to rebuild the final model.
 
-After the data is built and the v2 model is exported (`uv run healthcare export-onnx-v2`), any coding SNV or small
-indel can be queried by genomic position (VCF style, left-normalized automatically) or a missense change by protein
-notation:
+### Use the model
+
+**Command line** — genomic position (VCF style; indels are left-normalized for you) or a protein change:
 
 ```bash
 uv run healthcare predict 17:43063931 G>A
@@ -80,18 +219,18 @@ uv run healthcare predict BRCA1 p.Arg1699Trp
 ```
 
 The output shows the variant type, the calibrated probability, the three-way decision and the evidence groups that
-moved it most. Non-coding variants get an explicit out-of-scope message.
+moved it most. Variants outside coding regions get an explicit out-of-scope message.
 
-The same predictions are available from a local API (bound to `127.0.0.1` only); its interactive documentation
-opens at `http://127.0.0.1:8000/docs`:
+**API** — bound to `127.0.0.1` only; interactive docs at `http://127.0.0.1:8000/docs`:
 
 ```bash
 uv run healthcare serve
 ```
 
-### Web interface
+Endpoints: `/api/health`, `/api/predict`, `/api/predict/batch` (plain-text VCF, up to 2 MB and 500 variants, read
+in memory and never stored), `/api/model-card`.
 
-With the API running, start the interface in a second terminal and open `http://127.0.0.1:5173`:
+**Web interface** — with the API running, in a second terminal, then open `http://127.0.0.1:5173`:
 
 ```bash
 cd web
@@ -99,83 +238,187 @@ npm install
 npm run dev
 ```
 
-After changing an API schema, regenerate the frontend types with `uv run healthcare openapi` and then
-`npm run gen:api` in `web/`; `npm run build` type-checks and builds the interface, and `npm test` runs its unit
-tests. The interface has light and dark themes and an English/Turkish language switch.
+Three pages: **Single variant** (decision, probability gauge, chart of the evidence behind the decision),
+**Batch (VCF)** (results table and CSV download; try `web/public/sample.vcf`) and **Model card**. Light and dark
+themes, English and Turkish.
 
-Three pages: **Single variant** (genomic or protein change, with the explanation), **Batch (VCF)** (upload a
-plain-text GRCh38 VCF of up to 2 MB and 500 SNVs, see the results table and download a CSV; `web/public/sample.vcf`
-is a ready-made example) and **Model card** (thresholds, test and temporal metrics, baseline and ablations, data
-versions, limitations). Uploaded files are read in memory by the local API and never saved.
+**Tests**
+
+```bash
+uv run pytest
+uv run ruff check
+cd web && npm test && npm run build
+```
+
+After changing an API schema, run `uv run healthcare openapi` and `npm run gen:api` in `web/`; a pytest check fails
+until the frontend types are regenerated.
+
+### Limitations
+
+- **Scope:** GRCh38, MANE Select transcripts, coding SNVs and small indels only. Deep intronic, non-canonical
+  splice, UTR, regulatory, mitochondrial, structural and somatic variants are out of scope: without splice or
+  regulatory predictors, which this project does not use, there is no reliable signal for them.
+- **Labels are ClinVar's.** ClinVar contains errors and its benign labels for loss-of-function variants largely
+  reflect population frequency, so part of the measured skill is the model learning that rule.
+- **Population bias:** gnomAD and ClinVar over-represent people of European ancestry; frequency-based evidence is
+  weaker for under-represented groups.
+- **Small classes:** benign loss-of-function and pathogenic synonymous variants number in the tens to low hundreds
+  in the test set, so their confidence intervals are wide. Start loss, stop loss and in-frame delins could not be
+  scored at all.
+- **Calibration drift:** probabilities on variants submitted after the training release are overconfident in the
+  middle range.
+- **One transcript per gene:** effects on other isoforms are ignored.
+- **Not a clinical tool.** No clinical validation was done. The output is a research estimate, not an ACMG
+  classification.
 
 ---
 
 ## Türkçe
 
-Germline genetik varyantların **patojenik** mi **benign** mi olduğunu tahmin eden, sıfırdan eğitilmiş bir yapay
-zeka modeli ve yerelde çalışan bir web arayüzü.
+Protein kodlayan bir gendeki germline genetik varyantın **patojenik** mi **benign** mi olduğunu tahmin eden,
+sıfırdan eğitilmiş bir model ve kendi bilgisayarında çalışan bir web arayüzü.
 
-- Hiçbir hazır patojenite skoru (CADD, REVEL, AlphaMissense, SpliceAI, …) kullanılmaz. Model yalnızca ham açık
-  verilerden öğrenir: ClinVar etiketleri, GRCh38 referans genomu, MANE Select transkriptleri, gnomAD alel
-  frekansları, evrimsel korunmuşluk, UniProt küratörlü özellikleri ve yerelde hesaplanan ESM-2 protein dil modeli
-  çıktıları.
-- Değerlendirme gen bazında ayrık setler ve zamansal bir test setiyle yapılır; sonuçlar varyant türüne göre ayrı
-  raporlanır.
+Projenin temel kuralı: **hiçbir hazır patojenite skoru kullanılmaz.** CADD, REVEL, AlphaMissense, SpliceAI, SIFT,
+PolyPhen-2, dbNSFP ve diğer tüm varyant etkisi tahmin araçları özellik, etiket, filtre ya da kıyas olarak
+kullanılmadı. Model yalnızca ham açık verilerden ve bu depoda hesaplanan özelliklerden öğrenir; ESM-2 protein dil
+modelinin çıktıları da yerelde hesaplanır. Varyant etkileri (kodon, amino asit değişimi, frameshift, NMD) VEP'ten
+değil, MANE Select üzerine kurulu kendi anotatörümüzden gelir.
 
-**Durum:** missense modeli v1 tamamlandı ve değerlendirildi; tahmin servisi ve web arayüzü geliştiriliyor.
+İçerik: [Ekran görüntüleri](#ekran-görüntüleri) · [Sonuçlar](#sonuçlar) · [Nasıl çalışır](#nasıl-çalışır) ·
+[Veri kaynakları ve lisanslar](#veri-kaynakları-ve-lisanslar) · [Sıfırdan yeniden üretme](#sıfırdan-yeniden-üretme) ·
+[Modeli kullanma](#modeli-kullanma) · [Sınırlamalar](#sınırlamalar) · [Model kartı](reports/model_card.md)
 
-### Sonuçlar (missense SNV'ler, model v1)
+### Ekran görüntüleri
 
-Final model: LightGBM ile çift kuleli ağın (ESM-2 protein kulesi + ölçüm kulesi) kalibre edilmiş ortalaması, tek
-bir ONNX dosyası. Eşikler ve kalibrasyon yalnızca doğrulama setinden belirlendi. Tam rapor (İngilizce):
-[`reports/missense_v1.md`](reports/missense_v1.md).
+| Tek varyant | Toplu (VCF) | Model kartı |
+|---|---|---|
+| ![Tek varyant sonucu](docs/screenshots/single-variant.png) | ![Toplu sonuçlar](docs/screenshots/batch.png) | ![Model kartı sayfası](docs/screenshots/model-card.png) |
 
-| Değerlendirme seti | Varyant | ROC-AUC [%95 gen GA] | PR-AUC | Belirsiz payı |
-|---|---|---|---|---|
-| Gen bazında ayrık test | 27.501 | 0,990 [0,988–0,992] | 0,977 | %12,2 |
-| Zamansal (Ekim 2025 sonrası ClinVar'a eklenen) | 18.205 | 0,989 [0,987–0,990] | 0,980 | %15,1 |
-| Zamansal, eğitimde görülmemiş genler | 2.919 | 0,988 [0,984–0,991] | 0,973 | %14,4 |
-| Test, alel frekansı olmadan | 27.501 | 0,969 [0,966–0,972] | 0,926 | – |
-| Test, ESM-2 olmadan | 27.501 | 0,985 [0,983–0,987] | 0,964 | – |
+### Sonuçlar
 
-Yeni (zamansal) varyantlarda kalibrasyon kayıyor (ECE 0,033; testte 0,004).
+Tüm sayılar, modelin eğitimde ve model seçiminde hiç görmediği verilerden gelir. Her tablo varyant türüne göre
+ayrılmıştır: tür tek başına etiketleri neredeyse ayırır (ClinVar'daki frameshift'lerin neredeyse hepsi patojenik,
+synonymous varyantların neredeyse hepsi benign), bu yüzden türleri karıştıran tek bir sayı modeli olduğundan iyi
+gösterirdi.
 
-### Sonuçlar (tüm kodlayan türler, model v2, gen bazında ayrık test)
+**Gen bazında ayrık test seti** (genlerin tamamı ayrı tutuldu, bir kez açıldı, sonrasında model değişmedi).
+Tam rapor (İngilizce): [`reports/all_types_v2.md`](reports/all_types_v2.md).
 
-Ortak LightGBM; missense, in-frame indel ve synonymous için ortak çift kuleli modelle ortalaması alınır (yollar ve
-tür bazında Platt kalibrasyonu yalnızca doğrulama setinden). ROC-AUC tür bazındadır; alel frekansı olmadan sütunu
-özellikle işlev kaybı türlerinde önemlidir, çünkü bu türlerdeki ClinVar benign etiketleri büyük ölçüde toplumdaki
-sıklığa dayanır. Tam rapor (İngilizce): [`reports/all_types_v2.md`](reports/all_types_v2.md).
+| Varyant türü | Varyant (azınlık sınıfı) | ROC-AUC [%95 gen bootstrap GA] | PR-AUC | Belirsiz | Alel frekansı olmadan |
+|---|---|---|---|---|---|
+| Missense | 27.500 (8.003 P) | 0,990 [0,989–0,992] | 0,976 | %11,2 | 0,961 |
+| Stop kazanımı | 8.531 (67 B) | 0,972 [0,954–0,989] | 0,9997 | %0,3 | 0,827 |
+| Kanonik splice | 6.293 (91 B) | 0,950 [0,926–0,973] | 0,999 | %0,5 | 0,840 |
+| Frameshift | 14.176 (138 B) | 0,902 [0,841–0,959] | 0,998 | %0,5 | 0,721 |
+| In-frame silme | 490 (191 B) | 0,990 [0,982–0,997] | 0,992 | %10,8 | 0,948 |
+| In-frame ekleme | 213 (87 P) | 0,985 [0,967–0,998] | 0,978 | %22,1 | 0,894 |
+| Synonymous | 98.509 (81 P) | 0,889 [0,836–0,936] | 0,290 | %0,1 | 0,831 |
 
-| Tür | Varyant (benign) | ROC-AUC [%95 gen GA] | Alel frekansı olmadan |
+P = patojenik, B = benign. Start kaybı, stop kaybı ve in-frame delins'te bir sınıftan skorlanacak kadar örnek yok.
+
+**Zamansal test** (eğitim sürümünden sonra, Ekim 2025 ile Ekim 2026 arasında ClinVar'a ilk kez eklenen varyantlar):
+
+| Varyant türü | Tüm zamansal genler | Eğitimde hiç görülmemiş genler |
+|---|---|---|
+| Missense | 0,989 (18.197) | 0,988 (2.919) |
+| Frameshift | 0,934 (20.585) | 0,822 (2.848) |
+| Stop kazanımı | 0,883 (9.346) | benign sayısı yetersiz |
+| Kanonik splice | 0,909 (6.563) | benign sayısı yetersiz |
+| In-frame silme | 0,985 (534) | 0,983 (75) |
+| Synonymous | 0,858 (74.871) | patojenik sayısı yetersiz |
+
+Bu sayıların söyledikleri:
+
+- **Asıl güçlü sonuç missense.** ROC-AUC 0,99, ayrı tutulan genlerde de yeni varyantlarda da korunuyor. ESM-2 diğer
+  özelliklerin üzerine testte yaklaşık +0,005 ROC-AUC, alel frekansı çıkarıldığında ise doğrulamada yaklaşık
+  +0,02 ekliyor.
+- **İşlev kaybı türleri alel frekansına dayanıyor.** ClinVar'daki benign frameshift, stop kazanımı ve splice
+  etiketlerinin çoğu, varyant toplumda yaygın olduğu için verilmiş. Frekans olmadan frameshift 0,72'ye düşüyor.
+  "Yaygınsa benigndir" kuralının ötesinde modelin ne öğrendiğinin dürüst ölçüsü bu sütun.
+- **Synonymous zor.** 98.509 varyantın 81'i patojenik; PR-AUC 0,29. Model bunları nadiren güvenle işaretliyor.
+- **Yeni varyantlarda kalibrasyon kayıyor.** Missense ECE testte 0,002, zamansal sette 0,032; model 0,3–0,8
+  aralığında fazla emin.
+- İlk, yalnızca missense modeli (v1) aynı test genlerinde aynı sonucu verdi (0,990);
+  bkz. [`reports/missense_v1.md`](reports/missense_v1.md).
+
+Kullanıcıya gösterilen karar, kalibre edilmiş olasılık üzerinde üç yollu: **Muhtemelen patojenik** (≥ 0,90),
+**Muhtemelen benign** (≤ 0,10), aksi halde **Belirsiz**. Eşikler ve kalibrasyon doğrulama setinde sabitlendi.
+
+### Nasıl çalışır
+
+Mimari şeması İngilizce bölümde ([How it works](#how-it-works)).
+
+- **Anotatör** (`src/healthcare/annotate/`): GRCh38 üzerindeki bir SNV'yi ya da küçük indel'i genin MANE Select
+  transkriptine yerleştirir ve etkisini bulur: missense, synonymous, stop kazanımı/kaybı, start kaybı, kanonik
+  splice (intron ±1/2), frameshift, in-frame silme/ekleme/delins. İndel'ler sola hizalanır, referans alel genomla
+  karşılaştırılır. ClinVar'ın kendi protein değişimiyle uyum missense SNV'lerde %100, indel türlerinde %99,3–100.
+- **Özellikler** (`src/healthcare/features/`): amino asit fizikokimyası (Grantham, BLOSUM62, hidrofobiklik, hacim,
+  yük), konumdaki evrimsel korunmuşluk, gnomAD alel frekansı ve konumun ölçülüp ölçülmediği, gen kısıtı (LOEUF,
+  missense Z), UniProt küratörlü bölgeler, proteindeki konum ve türe özel özellikler (kesilme noktası, anlamsız
+  mRNA yıkımı (NMD) kuralı, stop kaybında uzama, sonraki çerçeve içi Met, atlanan ekzonun çerçevesi, indel uzunluğu).
+  Modele yalnızca `f_` önekli sütunlar girer; ClinVar meta verisi asla girmez.
+- **Protein kulesi** (`src/healthcare/esm/`): ESM-2 (`esm2_t33_650M_UR50D`) 19.228 MANE proteininin tamamında bir
+  kez çalıştırılır. Çıktılarından yabanıl tip/mutant log-olabilirlik oranı, konum entropisi ve varyant çevresindeki
+  temsil hesaplanır.
+- **Modeller** (`src/healthcare/models/`): LightGBM ve çift kuleli ağ (protein kulesi + ölçüm kulesi + birleştirme
+  katmanı). Eğitimde protein kulesi rastgele maskelenir; böylece aynı ağ protein konumu olmayan türler için de karar
+  verebilir. Her varyant türü için doğrulama seti ya yalnız LightGBM'i ya da ikisinin ortalamasını seçti, ardından
+  türe özel Platt kalibrasyonu uygulandı. Hepsi tek bir ONNX dosyasına aktarıldı (14 MB); servis tarafı PyTorch
+  değil, ONNX Runtime ve DuckDB kullanır.
+- **Değerlendirme** (`src/healthcare/split/`, `src/healthcare/evaluate/`): bir genin tüm varyantları eğitim /
+  doğrulama / test setlerinden yalnızca birine düşer (70/15/15, sabit tohum, kodlama dizisi örtüşen genler
+  gruplanır). Test ve zamansal satırlar, eğitim kodunun açık bir bayrak olmadan okuyamadığı kilitli bir klasörde
+  durur. Hiçbir gen ve varyantın iki sette birden bulunmadığını otomatik testler doğrular.
+- **Açıklama:** her tahminde servis, özellik gruplarını tek tek 32 eğitim varyantının değerleriyle değiştirir ve
+  kalibre log-odds'un ne kadar oynadığını gösterir. Kararı hangi kanıtın ittiği böylece görülür.
+
+### Veri kaynakları ve lisanslar
+
+Sürümler, adresler ve sağlama toplamları [`config/sources.toml`](config/sources.toml) içinde sabitlenmiştir; hiçbir
+şey "en son sürüm" olarak indirilmez.
+
+Sabit adres kuralının tek istisnası UniProt: 2026_03 hâlâ UniProt'un güncel sürümü ve henüz arşiv adresi yok; bu
+yüzden `current_release` adresinden indirilir ve sha256 ile sabitlenir. UniProt 2026_04'ü yayımladığında indirme
+sağlama toplamı hatasıyla durur; o zaman kaynak 2026_03 arşivi olacaktır
+(`previous_releases/release-2026_03/knowledgebase/`, tüm türler, ~1,6 GB).
+
+| Kaynak | Sürüm | Kullanım | Lisans / koşullar |
 |---|---|---|---|
-| Missense | 27.500 (19.497) | 0,990 [0,989–0,992] | 0,961 |
-| Stop kazanımı | 8.531 (67) | 0,972 [0,954–0,989] | 0,827 |
-| Kanonik splice | 6.293 (91) | 0,950 [0,926–0,973] | 0,840 |
-| Frameshift | 14.176 (138) | 0,902 [0,841–0,959] | 0,721 |
-| In-frame silme | 490 (191) | 0,990 [0,982–0,997] | 0,948 |
-| In-frame ekleme | 213 (126) | 0,985 [0,967–0,998] | 0,894 |
-| Synonymous | 98.509 (81 patojenik) | 0,889 [0,836–0,936] | 0,831 |
+| [ClinVar](https://www.ncbi.nlm.nih.gov/clinvar/) | 2025-10-06 (eğitim), 2026-10-04 (zamansal test) | Yalnızca etiketler (≥ 1 yıldız inceleme durumu) | Kamu malı (NCBI); Landrum vd., *Nucleic Acids Res* 2018 |
+| [GRCh38 birincil montaj](https://www.ensembl.org/) | Ensembl sürüm 115 | Referans bazlar, kodonlar | Ensembl verisi: kısıtlama yok |
+| [MANE Select](https://www.ncbi.nlm.nih.gov/refseq/MANE/) | v1.5 | Gen başına tek transkript ve protein | Kamu malı (NCBI / EMBL-EBI); Morales vd., *Nature* 2022 |
+| [gnomAD](https://gnomad.broadinstitute.org/) | v4.1 ekzom, kısıt, tüm konumlarda alel sayısı | Alel frekansı, konum kapsamı, gen kısıtı | CC0 1.0; Chen vd., *Nature* 2024 |
+| [UCSC phyloP100way / phastCons100way](https://genome.ucsc.edu/) | hg38 | Korunmuşluk | Akademik ve kişisel kullanım için serbest, UCSC koşullarına bakın; Pollard vd. 2010, Siepel vd. 2005 |
+| [UniProtKB/Swiss-Prot](https://www.uniprot.org/) | 2026_03, insan | Küratörlü protein bölgeleri | CC BY 4.0 |
+| [ESM-2](https://github.com/facebookresearch/esm) | `facebook/esm2_t33_650M_UR50D`, sabit revizyon | Protein kulesi (yalnızca ağırlıklar, yerelde) | MIT |
+| Amino asit tabloları | Grantham 1974, BLOSUM62 (Henikoff 1992), Kyte–Doolittle 1982 | Fizikokimya | Yayımlanmış literatür |
 
-Start kaybı, stop kaybı ve in-frame delins'te testte bir sınıftan yeterli örnek yok.
+### Sıfırdan yeniden üretme
 
-### Gereksinimler
+Aşağıdaki her şey tek bir masaüstü bilgisayarda çalışır. Windows 11, RTX 4070 Ti (12 GB), i5-13600KF ve NVMe disk
+üzerinde geliştirildi.
 
-- Windows 11 / Linux, Python 3.12, [uv](https://docs.astral.sh/uv/)
-- Güncel sürücülü NVIDIA GPU (RTX 4070 Ti, 12 GB üzerinde geliştirildi)
+**Gereksinimler**
 
-### Kurulum
+- Python 3.12 ve [uv](https://docs.astral.sh/uv/); arayüz için Node.js 20.19+ ya da 22.12+
+- ESM-2 ve çift kuleli model için CUDA destekli NVIDIA GPU (servis için CPU yeterli)
+- Yaklaşık **240 GB** boş disk: ham indirmeler ~196 GB (çoğu gnomAD), ara ve işlenmiş tablolar ~6 GB, ESM-2
+  çıktıları ve modeller ~38 GB
 
-```bash
-uv sync
-uv run healthcare doctor
-```
+**Adımlar.** Komutlar İngilizce bölümdeki [Reproduce from scratch](#reproduce-from-scratch) listesindekiyle
+aynıdır ve aynı sırayla çalıştırılır. Her komut çıktısı zaten varsa işi atlar (`--force` yeniden üretir), `logs/`
+altına bir log ve `logs/summaries/` altına küçük bir özet JSON yazar. Çoğu adım önce tek kromozomda denemek için
+`--chrom 22` kabul eder.
 
-### Varyant sorgulama
+Yeni bir klonda `reports/split_summary.json` eksik bir ayrım dosyasını sabitlediği için `build-split` çalışmayı
+reddeder; `--force` aynı tohumla yeniden üretir. Ardından `git diff reports/split_summary.json` boş çıkmalıdır, bu
+da aynı ayrımı elde ettiğinizi doğrular. İlk aşamadaki çift kule hiperparametre araması (`sweep-dual-tower`,
+`confirm-dual-tower`, yaklaşık 8 saat) final modeli yeniden üretmek için gerekmez; yapılandırma
+`reports/dual_tower.json` içinde kayıtlıdır.
 
-Veriler hazırlanıp v2 modeli dışa aktarıldıktan sonra (`uv run healthcare export-onnx-v2`) kodlayan her SNV ya da
-küçük indel genomik konumla (VCF biçiminde, otomatik sola hizalanır), missense değişimler ise protein gösterimiyle
-sorgulanabilir:
+### Modeli kullanma
+
+**Komut satırı** — genomik konum (VCF biçiminde; indel'ler otomatik sola hizalanır) ya da protein değişimi:
 
 ```bash
 uv run healthcare predict 17:43063931 G>A
@@ -183,19 +426,19 @@ uv run healthcare predict 17:43124027 ACT>A
 uv run healthcare predict BRCA1 p.Arg1699Trp
 ```
 
-Çıktıda varyant türü, kalibre olasılık, üç yollu karar ve sonucu en çok etkileyen kanıt grupları yer alır. Kodlamayan
-varyantlar için açık bir "kapsam dışı" mesajı verilir.
+Çıktıda varyant türü, kalibre olasılık, üç yollu karar ve sonucu en çok etkileyen kanıt grupları yer alır.
+Kodlayan bölge dışındaki varyantlar için açık bir "kapsam dışı" mesajı verilir.
 
-Aynı tahminler yerel bir API üzerinden de alınabilir (yalnızca `127.0.0.1`); etkileşimli belgeleri
-`http://127.0.0.1:8000/docs` adresinde açılır:
+**API** — yalnızca `127.0.0.1`'e bağlanır; etkileşimli belgeler `http://127.0.0.1:8000/docs` adresindedir:
 
 ```bash
 uv run healthcare serve
 ```
 
-### Web arayüzü
+Uç noktalar: `/api/health`, `/api/predict`, `/api/predict/batch` (düz metin VCF, en fazla 2 MB ve 500 varyant;
+bellekte okunur, asla kaydedilmez), `/api/model-card`.
 
-API çalışırken ikinci bir terminalde arayüzü başlatın ve `http://127.0.0.1:5173` adresini açın:
+**Web arayüzü** — API çalışırken ikinci bir terminalde başlatıp `http://127.0.0.1:5173` adresini açın:
 
 ```bash
 cd web
@@ -203,14 +446,29 @@ npm install
 npm run dev
 ```
 
-API şeması değiştiğinde frontend tiplerini `uv run healthcare openapi` ve ardından `web/` içinde
-`npm run gen:api` ile yeniden üretin; `npm run build` tip kontrolü yapar ve arayüzü derler, `npm test` birim
-testlerini çalıştırır. Arayüzde açık/koyu tema ve İngilizce/Türkçe dil seçeneği vardır.
+Üç sayfa: **Tek varyant** (karar, olasılık göstergesi, kararın arkasındaki kanıtların grafiği), **Toplu (VCF)**
+(sonuç tablosu ve CSV indirme; `web/public/sample.vcf` ile deneyin) ve **Model kartı**. Açık/koyu tema, İngilizce
+ve Türkçe.
 
-Üç sayfa vardır: **Tek varyant** (genomik ya da protein değişimi, açıklamasıyla), **Toplu (VCF)** (en fazla
-2 MB ve 500 SNV içeren düz metin GRCh38 VCF yükleyin, sonuç tablosunu görün ve CSV indirin; `web/public/sample.vcf`
-hazır bir örnektir) ve **Model kartı** (eşikler, test ve zamansal metrikler, temel model ve ablasyonlar, veri
-sürümleri, sınırlamalar). Yüklenen dosyalar yerel API tarafından bellekte okunur ve asla kaydedilmez.
+**Testler:** `uv run pytest`, `uv run ruff check`, `web/` içinde `npm test` ve `npm run build`. API şeması
+değiştiğinde `uv run healthcare openapi` ve `web/` içinde `npm run gen:api` çalıştırın; frontend tipleri yeniden
+üretilene kadar bir pytest kontrolü başarısız olur.
+
+### Sınırlamalar
+
+- **Kapsam:** yalnızca GRCh38, MANE Select transkriptleri, kodlayan SNV'ler ve küçük indel'ler. Derin intronik,
+  kanonik olmayan splice, UTR, düzenleyici, mitokondriyal, yapısal ve somatik varyantlar kapsam dışıdır: bu projenin
+  kullanmadığı splice ve düzenleyici bölge tahmin araçları olmadan bunlar için güvenilir bir sinyal yok.
+- **Etiketler ClinVar'ındır.** ClinVar hata içerir ve işlev kaybı varyantlarındaki benign etiketler büyük ölçüde
+  toplumdaki sıklığı yansıtır; ölçülen başarının bir kısmı modelin bu kuralı öğrenmesidir.
+- **Popülasyon yanlılığı:** gnomAD ve ClinVar'da Avrupa kökenli bireyler fazla temsil edilir; az temsil edilen
+  gruplarda frekansa dayalı kanıt daha zayıftır.
+- **Küçük sınıflar:** test setinde benign işlev kaybı ve patojenik synonymous varyantlar onlarla birkaç yüz arasında;
+  güven aralıkları geniş. Start kaybı, stop kaybı ve in-frame delins hiç skorlanamadı.
+- **Kalibrasyon kayması:** eğitim sürümünden sonra eklenen varyantlarda olasılıklar orta aralıkta fazla emin.
+- **Gen başına tek transkript:** diğer izoformlar üzerindeki etkiler göz ardı edilir.
+- **Klinik bir araç değildir.** Klinik doğrulama yapılmadı. Çıktı bir araştırma tahminidir, ACMG sınıflandırması
+  değildir.
 
 > **Sorumluluk reddi:** Bu proje yalnızca araştırma ve eğitim amaçlıdır; klinik tanı veya tedavi kararları için
 > kullanılamaz.

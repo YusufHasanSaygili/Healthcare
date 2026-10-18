@@ -14,3 +14,4 @@ web/dist/
 !.env.example
 .claude/settings.local.json
 *.graphify-bak
+demo/

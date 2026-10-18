@@ -1,6 +1,7 @@
 import argparse
 import sys
 import time
+from pathlib import Path
 
 import polars as pl
 from pyfaidx import Fasta
@@ -202,6 +203,8 @@ def run_frequency(variant: str) -> int:
 
 CONSERVATION_DIR = DATA_DIR / "processed" / "conservation"
 ESM_STORE = ARTIFACTS_DIR / "esm"
+DEMO_DIR = PROJECT_ROOT / "demo"
+DEMO_BUILD_DIR = ARTIFACTS_DIR / "demo"
 
 
 def run_build_conservation(chrom: str | None, force: bool, workers: int) -> int:
@@ -663,7 +666,15 @@ def run_evaluate_final() -> int:
     return 0
 
 
-def load_predictor():
+def load_predictor(demo_dir: Path | None = None):
+    if demo_dir is not None:
+        from healthcare.serve import demo
+
+        try:
+            return demo.load(demo_dir)
+        except FileNotFoundError as error:
+            print(error)
+            return None
     from healthcare.serve.pipeline import Predictor
 
     inputs = feature_inputs()
@@ -680,7 +691,9 @@ def load_predictor():
         if UNIPROT_FUNCTIONS.exists()
         else {}
     )
-    return Predictor(inputs, model, train, REFERENCE, functions)
+    from pyfaidx import Fasta
+
+    return Predictor(inputs, model, train, Fasta(str(REFERENCE)), functions)
 
 
 def print_result(result) -> None:
@@ -713,8 +726,8 @@ def print_result(result) -> None:
         print(f"    {group.replace('_', ' '):<20} {delta:+.2f}  {direction}")
 
 
-def run_predict(words: list[str]) -> int:
-    predictor = load_predictor()
+def run_predict(words: list[str], demo_dir: Path | None) -> int:
+    predictor = load_predictor(demo_dir)
     if predictor is None:
         return 2
     started = time.perf_counter()
@@ -730,7 +743,7 @@ def run_predict(words: list[str]) -> int:
     return 0
 
 
-def run_serve(port: int) -> int:
+def run_serve(port: int, demo_dir: Path | None) -> int:
     import json
 
     import uvicorn
@@ -741,13 +754,71 @@ def run_serve(port: int) -> int:
     if not report_path.exists():
         print(f"missing inputs: {report_path}")
         return 2
-    predictor = load_predictor()
+    predictor = load_predictor(demo_dir)
     if predictor is None:
         return 2
     versions = json.loads((REPORTS_DIR / "missense_v1.json").read_text())["data_versions"]
     card = model_card(json.loads(report_path.read_text()), versions, predictor.thresholds)
     print(f"API docs: http://127.0.0.1:{port}/docs")
     uvicorn.run(create_app(predictor, card), host="127.0.0.1", port=port)
+    return 0
+
+
+def run_build_demo(genes: str | None, force: bool) -> int:
+    import json
+
+    import onnxruntime as ort
+
+    from healthcare.models.joint import load_joint
+    from healthcare.serve import demo
+
+    zip_path = DEMO_BUILD_DIR / "healthcare-demo-v2.zip"
+    if zip_path.exists() and not force:
+        print(f"skipped: {zip_path} exists (use --force)")
+        return 0
+    inputs = feature_inputs()
+    model = ARTIFACTS_DIR / "models" / demo.MODEL_NAME
+    missing = missing_inputs(inputs) + [
+        str(p) for p in (model, REFERENCE, UNIPROT_FUNCTIONS) if not p.exists()
+    ]
+    if missing:
+        print(f"missing inputs: {', '.join(missing)}")
+        return 2
+    metadata = ort.InferenceSession(str(model), providers=["CPUExecutionProvider"]).get_modelmeta()
+    feature_names = json.loads(metadata.custom_metadata_map["feature_names"])
+    chosen = [g.strip().upper() for g in genes.split(",")] if genes else list(demo.DEFAULT_GENES)
+    log_path = start_log("build-demo")
+    splits_dir = DATA_DIR / "processed" / "splits"
+    train = load_joint(splits_dir, "train")
+    try:
+        summary = demo.build(
+            chosen,
+            inputs,
+            UNIPROT_FUNCTIONS,
+            REFERENCE,
+            model,
+            train,
+            feature_names,
+            DEMO_BUILD_DIR / "demo",
+            zip_path,
+        )
+    except ValueError as error:
+        print(error)
+        return 2
+    open_rows = pl.concat(
+        [train, load_joint(splits_dir, "validation")], how="diagonal_relaxed"
+    ).filter(pl.col("gene_name").is_in(summary["pack_genes"]))
+    variants = open_rows.sample(min(200, open_rows.height), seed=20261018)
+    summary["parity"] = demo.parity(
+        demo.load(DEMO_BUILD_DIR / "demo"),
+        load_predictor(),
+        variants.select("chrom", "pos", "ref", "alt").rows(),
+    )
+    summary_path = write_summary("build-demo", {"log": log_path} | summary)
+    print(f"{len(summary['pack_genes'])} genes, {summary['esm_proteins']} ESM proteins")
+    print(f"parity with the full data: {summary['parity']}")
+    print(f"zip: {zip_path} ({summary['zip_bytes'] / 1e6:.1f} MB)")
+    print(f"summary: {summary_path}")
     return 0
 
 
@@ -919,6 +990,15 @@ def main(argv: list[str] | None = None) -> int:
     predict_parser.add_argument("variant", nargs="+")
     serve_parser = commands.add_parser("serve", help="Run the local API on 127.0.0.1")
     serve_parser.add_argument("--port", type=int, default=8000)
+    for demo_parser in (predict_parser, serve_parser):
+        demo_parser.add_argument(
+            "--demo", action="store_true", help="Use the demo pack in demo/, not the full data"
+        )
+    build_demo_parser = commands.add_parser(
+        "build-demo", help="Build the demo pack (model + lookup tables for a few genes)"
+    )
+    build_demo_parser.add_argument("--genes", help="Comma-separated MANE gene names")
+    build_demo_parser.add_argument("--force", action="store_true", help="Rebuild even if present")
     commands.add_parser("openapi", help="Write the API schema to web/openapi.json")
     serve_check_parser = commands.add_parser(
         "serve-check", help="Check served features and latency against validation variants"
@@ -989,9 +1069,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "export-onnx":
         return run_export_onnx()
     if args.command == "predict":
-        return run_predict(args.variant)
+        return run_predict(args.variant, DEMO_DIR if args.demo else None)
     if args.command == "serve":
-        return run_serve(args.port)
+        return run_serve(args.port, DEMO_DIR if args.demo else None)
+    if args.command == "build-demo":
+        return run_build_demo(args.genes, args.force)
     if args.command == "openapi":
         return run_openapi()
     if args.command == "serve-check":

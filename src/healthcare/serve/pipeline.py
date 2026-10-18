@@ -230,12 +230,12 @@ class Predictor:
         inputs: missense.Inputs,
         model_path: Path,
         train: pl.DataFrame,
-        genome_path: Path,
+        genome: Fasta,
         functions: dict[str, str] | None = None,
     ):
         transcripts = load_transcripts(inputs.transcripts)
         self.transcripts = {t.transcript_id: t for t in transcripts}
-        self.genome = Fasta(str(genome_path))
+        self.genome = genome
         self.utr3 = phase2.utr3_lookup(self.genome)
         self.functions = functions or {}
         self.inputs = inputs

@@ -18,9 +18,28 @@ benchmarks. The model learns only from raw public data and from features compute
 ESM-2 protein language model outputs run locally. Variant consequences (codon, amino acid change, frameshift, NMD)
 come from our own annotator built on MANE Select, not from VEP.
 
-Contents: [Screenshots](#screenshots) · [Results](#results) · [How it works](#how-it-works) ·
+Contents: [Try the demo](#try-the-demo) · [Screenshots](#screenshots) · [Results](#results) · [How it works](#how-it-works) ·
 [Data sources and licenses](#data-sources-and-licenses) · [Reproduce from scratch](#reproduce-from-scratch) ·
 [Use the model](#use-the-model) · [Limitations](#limitations) · [Model card](reports/model_card.md)
+
+### Try the demo
+
+The full data is about 240 GB. The demo pack (`healthcare-demo-v2.zip`, ~110 MB, attached to the GitHub release) holds
+the same ONNX model plus every lookup table it needs for 14 well-known disease genes: APC, BRCA1, BRCA2, CFTR, FBN1,
+KCNQ1, LDLR, MLH1, MSH2, MYH7, PTEN, RYR1, SCN5A and TP53 (26 genes once overlapping ones are included). Inside those
+genes it gives exactly the same predictions as the full data; anything else gets an "outside the demo pack" message.
+
+```bash
+git clone https://github.com/YusufHasanSaygili/Healthcare.git
+cd Healthcare
+uv sync
+# download healthcare-demo-v2.zip from the latest release and unzip it here; it creates demo/
+uv run healthcare predict --demo "BRCA1 p.Arg1699Trp"
+uv run healthcare serve --demo
+```
+
+Then start the web interface as described in [Use the model](#use-the-model). `uv sync` still installs PyTorch,
+because training code shares the package; the demo itself only runs ONNX Runtime on the CPU.
 
 ### Screenshots
 
@@ -201,7 +220,13 @@ uv run healthcare export-onnx-v2          # artifacts/models/all_types_v2.onnx
 
 # 5. Optional: re-run the final evaluation on the locked test set
 uv run healthcare evaluate-final-v2 --force
+
+# 6. Optional: build the demo pack (artifacts/demo/healthcare-demo-v2.zip)
+uv run healthcare build-demo
 ```
+
+`build-demo` also checks the pack against the full data on 200 open-split variants of the pack genes and writes the
+result to `logs/summaries/build-demo.json` (expected: 0 feature and 0 decision differences).
 
 `build-split` refuses to run when `reports/split_summary.json` pins a split file that is missing, which is the case
 on a fresh clone. `--force` rebuilds it with the fixed seed; afterwards `git diff reports/split_summary.json` should
@@ -213,8 +238,8 @@ be empty, which confirms you got the same split. The dual tower hyperparameter s
 **Command line** — genomic position (VCF style; indels are left-normalized for you) or a protein change:
 
 ```bash
-uv run healthcare predict 17:43063931 G>A
-uv run healthcare predict 17:43124027 ACT>A
+uv run healthcare predict "17:43063931 G>A"
+uv run healthcare predict "17:43124027 ACT>A"
 uv run healthcare predict BRCA1 p.Arg1699Trp
 ```
 
@@ -284,9 +309,28 @@ kullanılmadı. Model yalnızca ham açık verilerden ve bu depoda hesaplanan ö
 modelinin çıktıları da yerelde hesaplanır. Varyant etkileri (kodon, amino asit değişimi, frameshift, NMD) VEP'ten
 değil, MANE Select üzerine kurulu kendi anotatörümüzden gelir.
 
-İçerik: [Ekran görüntüleri](#ekran-görüntüleri) · [Sonuçlar](#sonuçlar) · [Nasıl çalışır](#nasıl-çalışır) ·
+İçerik: [Demoyu deneyin](#demoyu-deneyin) · [Ekran görüntüleri](#ekran-görüntüleri) · [Sonuçlar](#sonuçlar) · [Nasıl çalışır](#nasıl-çalışır) ·
 [Veri kaynakları ve lisanslar](#veri-kaynakları-ve-lisanslar) · [Sıfırdan yeniden üretme](#sıfırdan-yeniden-üretme) ·
 [Modeli kullanma](#modeli-kullanma) · [Sınırlamalar](#sınırlamalar) · [Model kartı](reports/model_card.md)
+
+### Demoyu deneyin
+
+Tam veri yaklaşık 240 GB tutar. Demo paketi (`healthcare-demo-v2.zip`, ~110 MB, GitHub sürümüne ekli) aynı ONNX
+modelini ve 14 bilinen hastalık geni için gereken tüm arama tablolarını içerir: APC, BRCA1, BRCA2, CFTR, FBN1, KCNQ1,
+LDLR, MLH1, MSH2, MYH7, PTEN, RYR1, SCN5A ve TP53 (örtüşen genlerle birlikte 26 gen). Bu genlerde tam veriyle
+birebir aynı tahminleri verir; diğer varyantlar için "demo paketinin dışında" mesajı gösterilir.
+
+```bash
+git clone https://github.com/YusufHasanSaygili/Healthcare.git
+cd Healthcare
+uv sync
+# healthcare-demo-v2.zip dosyasını son sürümden indirip buraya açın; demo/ klasörü oluşur
+uv run healthcare predict --demo "BRCA1 p.Arg1699Trp"
+uv run healthcare serve --demo
+```
+
+Ardından web arayüzünü [Modeli kullanma](#modeli-kullanma) bölümündeki gibi başlatın. Eğitim koduyla aynı paketi
+paylaştığı için `uv sync` yine PyTorch kurar; demonun kendisi yalnızca CPU üzerinde ONNX Runtime çalıştırır.
 
 ### Ekran görüntüleri
 
@@ -410,6 +454,10 @@ aynıdır ve aynı sırayla çalıştırılır. Her komut çıktısı zaten vars
 altına bir log ve `logs/summaries/` altına küçük bir özet JSON yazar. Çoğu adım önce tek kromozomda denemek için
 `--chrom 22` kabul eder.
 
+İsteğe bağlı son adım `uv run healthcare build-demo` demo paketini (`artifacts/demo/healthcare-demo-v2.zip`)
+üretir. Paket, kendi genlerindeki 200 açık set varyantında tam veriyle karşılaştırılır ve sonuç
+`logs/summaries/build-demo.json` dosyasına yazılır (beklenen: 0 özellik ve 0 karar farkı).
+
 Yeni bir klonda `reports/split_summary.json` eksik bir ayrım dosyasını sabitlediği için `build-split` çalışmayı
 reddeder; `--force` aynı tohumla yeniden üretir. Ardından `git diff reports/split_summary.json` boş çıkmalıdır, bu
 da aynı ayrımı elde ettiğinizi doğrular. İlk aşamadaki çift kule hiperparametre araması (`sweep-dual-tower`,
@@ -421,8 +469,8 @@ da aynı ayrımı elde ettiğinizi doğrular. İlk aşamadaki çift kule hiperpa
 **Komut satırı** — genomik konum (VCF biçiminde; indel'ler otomatik sola hizalanır) ya da protein değişimi:
 
 ```bash
-uv run healthcare predict 17:43063931 G>A
-uv run healthcare predict 17:43124027 ACT>A
+uv run healthcare predict "17:43063931 G>A"
+uv run healthcare predict "17:43124027 ACT>A"
 uv run healthcare predict BRCA1 p.Arg1699Trp
 ```
 

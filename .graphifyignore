@@ -4,3 +4,4 @@
 web/node_modules/
 .venv/
 .claude/
+demo/

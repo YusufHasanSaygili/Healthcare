@@ -11,22 +11,21 @@ export type ReasonKey =
   | "esmTolerated"
   | "chemDifferent"
   | "chemSimilar"
-  | "inRegion";
+  | "inRegion"
+  | "nmdTriggered"
+  | "nmdEscapes"
+  | "mostlyLost"
+  | "mostlyKept";
 
 export type Reason = { key: ReasonKey; direction: Direction };
 
-export type Change = {
-  chrom: string;
-  position: string;
-  ref: string;
-  alt: string;
-  residue: string;
-  aaRef: string;
-  aaAlt: string;
-};
+export type Genomic = { chrom: string; position: string; ref: string; alt: string };
 
-const VARIANT = /^(\w+):(\d+) ([ACGT])>([ACGT])$/;
-const PROTEIN = /^p\.([A-Z][a-z]{2})(\d+)([A-Z][a-z]{2})$/;
+export type Substitution = { residue: string; aaRef: string; aaAlt: string };
+
+const VARIANT = /^(\w+):(\d+) ([ACGT]+)>([ACGT]+)$/;
+const SUBSTITUTION = /^p\.([A-Z][a-z]{2})(\d+)([A-Z][a-z]{2})$/;
+const RESIDUE = /(\d+)/;
 
 export const THRESHOLDS = {
   conserved: 4,
@@ -36,22 +35,37 @@ export const THRESHOLDS = {
   esmTolerated: -3,
   chemDifferent: 100,
   chemSimilar: 50,
+  mostlyLost: 0.5,
+  mostlyKept: 0.9,
 };
 
-export function parseChange(variant: string, hgvs: string): Change | null {
-  const genomic = VARIANT.exec(variant);
-  const protein = PROTEIN.exec(hgvs);
-  if (!genomic || !protein) {
+export function parseGenomic(variant: string): Genomic | null {
+  const match = VARIANT.exec(variant);
+  if (!match) {
     return null;
   }
-  const [, chrom = "", position = "", ref = "", alt = ""] = genomic;
-  const [, aaRef = "", residue = "", aaAlt = ""] = protein;
-  return { chrom, position, ref, alt, residue, aaRef, aaAlt };
+  const [, chrom = "", position = "", ref = "", alt = ""] = match;
+  return { chrom, position, ref, alt };
+}
+
+export function parseSubstitution(hgvs: string | null): Substitution | null {
+  const match = hgvs ? SUBSTITUTION.exec(hgvs) : null;
+  if (!match) {
+    return null;
+  }
+  const [, aaRef = "", residue = "", aaAlt = ""] = match;
+  return { residue, aaRef, aaAlt };
+}
+
+export function residueOf(hgvs: string | null): string {
+  return (hgvs && RESIDUE.exec(hgvs)?.[1]) ?? "";
 }
 
 export function reasons(evidence: PredictedVariant["evidence"]): Reason[] {
   const found: Reason[] = [];
   const { phylop, gnomad_af, esm_llr, grantham, protein_regions } = evidence;
+  const nmd = evidence.nmd_escape ?? null;
+  const retained = evidence.protein_retained ?? null;
   if (phylop !== null && phylop >= THRESHOLDS.conserved) {
     found.push({ key: "conserved", direction: "pathogenic" });
   } else if (phylop !== null && phylop <= THRESHOLDS.notConserved) {
@@ -74,6 +88,16 @@ export function reasons(evidence: PredictedVariant["evidence"]): Reason[] {
   }
   if (protein_regions.length > 0) {
     found.push({ key: "inRegion", direction: "pathogenic" });
+  }
+  if (nmd === 0) {
+    found.push({ key: "nmdTriggered", direction: "pathogenic" });
+  } else if (nmd === 1) {
+    found.push({ key: "nmdEscapes", direction: "benign" });
+  }
+  if (retained !== null && retained < THRESHOLDS.mostlyLost) {
+    found.push({ key: "mostlyLost", direction: "pathogenic" });
+  } else if (retained !== null && retained >= THRESHOLDS.mostlyKept) {
+    found.push({ key: "mostlyKept", direction: "benign" });
   }
   return found;
 }

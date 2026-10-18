@@ -1,9 +1,60 @@
 import { useId } from "react";
 import type { PredictedVariant } from "../api/client";
-import { type Direction, parseChange, type Reason, reasons, shownDirections } from "../explain";
+import {
+  type Direction,
+  type Genomic,
+  parseGenomic,
+  parseSubstitution,
+  type Reason,
+  reasons,
+  residueOf,
+  shownDirections,
+} from "../explain";
 import { formatFrequency } from "../format";
-import { fill } from "../i18n";
+import { fill, type Messages } from "../i18n";
 import { useSettings } from "../settings";
+
+function dnaSentence(change: Genomic, messages: Messages, locale: string): string {
+  const position = Number(change.position).toLocaleString(locale);
+  if (change.ref.length === 1 && change.alt.length === 1) {
+    return fill(messages.explainVariant, {
+      chrom: change.chrom,
+      position,
+      ref: change.ref,
+      alt: change.alt,
+    });
+  }
+  const shared = change.ref[0] === change.alt[0] ? 1 : 0;
+  const deleted = change.ref.length - shared;
+  const inserted = change.alt.length - shared;
+  const text =
+    inserted === 0
+      ? fill(messages.indelDeleted, { count: String(deleted) })
+      : deleted === 0
+        ? fill(messages.indelInserted, { count: String(inserted) })
+        : fill(messages.indelReplaced, { deleted: String(deleted), inserted: String(inserted) });
+  return fill(messages.explainIndel, { chrom: change.chrom, position, change: text });
+}
+
+function proteinSentence(result: PredictedVariant, messages: Messages): string | null {
+  if (result.consequence === "missense") {
+    const substitution = parseSubstitution(result.hgvs_p);
+    if (!substitution) {
+      return null;
+    }
+    return fill(messages.explainProtein, {
+      gene: result.gene,
+      residue: substitution.residue,
+      aaRef: messages.aminoAcids[substitution.aaRef] ?? substitution.aaRef,
+      aaAlt: messages.aminoAcids[substitution.aaAlt] ?? substitution.aaAlt,
+    });
+  }
+  return fill(messages.explainType[result.consequence], {
+    gene: result.gene,
+    residue: residueOf(result.hgvs_p),
+    hgvs: result.hgvs_p ?? "",
+  });
+}
 
 function ReasonList({ items, values }: { items: Reason[]; values: Record<string, string> }) {
   const { messages } = useSettings();
@@ -21,7 +72,8 @@ function ReasonList({ items, values }: { items: Reason[]; values: Record<string,
 export function VariantExplanation({ result }: { result: PredictedVariant }) {
   const { locale, messages } = useSettings();
   const titleId = useId();
-  const change = parseChange(result.variant, result.hgvs_p);
+  const change = parseGenomic(result.variant);
+  const protein = proteinSentence(result, messages);
   const found = reasons(result.evidence);
   const directions = shownDirections(result.decision);
   const frequency = formatFrequency(result.evidence.gnomad_af, locale);
@@ -41,24 +93,12 @@ export function VariantExplanation({ result }: { result: PredictedVariant }) {
     found.filter((reason) => reason.direction === direction),
   ]);
   const shown = groups.some(([, items]) => items.length > 0);
-  const name = (code: string) => messages.aminoAcids[code] ?? code;
   return (
     <section className="card-section explain" aria-labelledby={titleId}>
       <h3 id={titleId}>{messages.explainTitle}</h3>
       {change && (
         <p>
-          {fill(messages.explainVariant, {
-            chrom: change.chrom,
-            position: Number(change.position).toLocaleString(locale),
-            ref: change.ref,
-            alt: change.alt,
-          })}{" "}
-          {fill(messages.explainProtein, {
-            gene: result.gene,
-            residue: change.residue,
-            aaRef: name(change.aaRef),
-            aaAlt: name(change.aaAlt),
-          })}
+          {dnaSentence(change, messages, locale)} {protein}
         </p>
       )}
       <h4>{messages.explainWhy[result.decision]}</h4>

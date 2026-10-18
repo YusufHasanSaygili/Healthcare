@@ -78,10 +78,14 @@ function PredictedCard({ result }: { result: PredictedVariant }) {
     <article className="card hud" data-decision={result.decision}>
       <header className="card-header">
         <p className="specimen">
-          {messages.specimen} · <span translate="no">{result.variant} · {result.transcript_id}</span>
+          {messages.specimen} · {messages.typeNames[result.consequence]} ·{" "}
+          <span translate="no">
+            {result.variant} · {result.transcript_id}
+          </span>
         </p>
         <h2 className="card-title" translate="no">
-          {result.gene} <span className="hgvs">{result.hgvs_p}</span>
+          {result.gene}{" "}
+          <span className="hgvs">{result.hgvs_p ?? messages.typeNames[result.consequence]}</span>
         </h2>
       </header>
       <div className="verdict">

@@ -78,7 +78,7 @@ function row(item: BatchItem): (string | number | null)[] {
     result.decision,
     result.lightgbm,
     result.dual_tower,
-    null,
+    result.consequence,
     null,
   ];
 }

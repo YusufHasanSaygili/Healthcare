@@ -7,24 +7,24 @@ from pathlib import Path
 import numpy as np
 import onnxruntime as ort
 import polars as pl
+from pyfaidx import Fasta
 
+from healthcare.annotate.indel import VARIANT_PATTERN, annotate_variant, normalize, parse_variant
 from healthcare.annotate.snv import (
-    SNV_PATTERN,
     Annotation,
     TranscriptIndex,
     parse_protein_change,
-    parse_snv,
     protein_change_snvs,
 )
 from healthcare.data.annotations import load_transcripts
 from healthcare.esm import store, variant_inputs
-from healthcare.features import missense
-from healthcare.features.esm_features import ESM_FEATURES, esm_features
+from healthcare.features import missense, phase2
+from healthcare.features.esm_features import ESM_FEATURES, SPAN_FEATURES, esm_features
 
 FEATURE_GROUPS = {
     "allele_frequency": tuple(missense.FREQUENCY_FEATURES),
-    "conservation": ("f_phylop", "f_phastcons"),
-    "esm_scores": tuple(ESM_FEATURES),
+    "conservation": ("f_phylop", "f_phastcons", "f_phylop_max"),
+    "esm_scores": (*ESM_FEATURES, *SPAN_FEATURES),
     "gene_constraint": tuple(missense.CONSTRAINT_FEATURES.values()),
     "protein_regions": (*missense.UNIPROT_GROUPS, "f_uniprot_mapped"),
     "amino_acid_change": (
@@ -36,11 +36,33 @@ FEATURE_GROUPS = {
         "f_delta_hydropathy",
         "f_delta_polarity",
         "f_delta_volume",
+        "f_indel_length",
+        "f_residues_removed",
+        "f_residues_added",
     ),
     "protein_position": ("f_relative_position", "f_protein_length"),
+    "truncation": (
+        "f_no_stop",
+        "f_protein_retained",
+        "f_new_length_ratio",
+        "f_novel_residues",
+        "f_ptc_junction_distance",
+        "f_ptc_in_last_exon",
+        "f_nmd_escape",
+        "f_next_met_fraction",
+    ),
+    "splicing": (
+        "f_boundary_distance",
+        "f_splice_donor",
+        "f_splice_intron_position",
+        "f_skipped_exon_in_frame",
+        "f_skipped_exon_cds_fraction",
+        "f_skipped_exon_rank",
+    ),
 }
-PHASE_TWO = {"synonymous", "stop_gained", "stop_lost", "start_lost", "canonical_splice"}
-NON_CODING = {"intronic", "utr"}
+UNGROUPED = {"f_variant_type"}
+SCORED = set(phase2.VARIANT_TYPES)
+NON_CODING = {"intronic", "utr", "splice_region"}
 OUTPUTS = ["probability", "lightgbm", "dual_tower"]
 BACKGROUND_SEED = 20261016
 Variant = tuple[str, int, str, str]
@@ -52,6 +74,8 @@ EXAMPLES = (
     "TP53 p.Arg175His",
     "CFTR p.Gly551Asp",
     "BRCA1 p.Pro871Leu",
+    "17:43124027 ACT>A",
+    "7:117559592 CTTT>C",
 )
 
 
@@ -60,7 +84,8 @@ class Prediction:
     variant: str
     gene: str
     transcript_id: str
-    hgvs_p: str
+    hgvs_p: str | None
+    consequence: str
     probability: float
     decision: str
     lightgbm: float
@@ -101,11 +126,8 @@ def parse_vcf(text: str, max_variants: int = MAX_BATCH_VARIANTS) -> ParsedVcf:
             continue
         chrom, pos, _, ref, alts = (field.strip() for field in fields[:5])
         for alt in alts.split(","):
-            if len(ref) != 1 or len(alt) != 1:
-                errors.append((line_number, f"{ref}>{alt} is not an SNV (indels are planned)"))
-                continue
             try:
-                variants.append((line_number, parse_snv(f"{chrom}:{pos} {ref}>{alt}")))
+                variants.append((line_number, parse_variant(f"{chrom}:{pos} {ref}>{alt}")))
             except ValueError as error:
                 errors.append((line_number, str(error)))
             if len(variants) > max_variants:
@@ -118,8 +140,8 @@ def variant_text(chrom: str, pos: int, ref: str, alt: str) -> str:
 
 
 def scope_reason(consequence: str) -> str:
-    if consequence in PHASE_TWO:
-        return f"{consequence} variants are not supported yet (planned for phase 2)"
+    if consequence == "multi_nucleotide":
+        return "multi-nucleotide substitutions are not supported"
     if consequence in NON_CODING:
         return f"{consequence} variants are permanently out of scope (non-coding)"
     return f"{consequence} variants are out of scope"
@@ -130,15 +152,15 @@ def classify(name: str, annotations: list[Annotation]) -> Annotation | OutOfScop
         return OutOfScope(name, None, "intergenic", "no MANE Select transcript overlaps it")
     if any(a.consequence == "ref_mismatch" for a in annotations):
         raise ValueError(f"REF does not match the reference genome at {name}")
-    missense = [a for a in annotations if a.consequence == "missense"]
-    if len(missense) > 1:
-        genes = ", ".join(a.gene_name for a in missense)
+    scored = [a for a in annotations if a.consequence in SCORED]
+    if len({a.gene_name for a in scored}) > 1:
+        genes = ", ".join(a.gene_name for a in scored)
         return OutOfScope(
-            name, genes, "multiple_genes", "it is missense in more than one MANE gene (excluded)"
+            name, genes, "multiple_genes", "it is scored in more than one MANE gene (excluded)"
         )
-    if missense:
-        return missense[0]
-    annotation = min(annotations, key=lambda a: a.consequence not in PHASE_TWO)
+    if scored:
+        return scored[0]
+    annotation = min(annotations, key=lambda a: a.consequence in NON_CODING)
     return OutOfScope(
         name, annotation.gene_name, annotation.consequence, scope_reason(annotation.consequence)
     )
@@ -180,15 +202,41 @@ def background_sample(train: pl.DataFrame, names: list[str], size: int = 32) -> 
     return missense.to_matrix(sample, names).astype(np.float32)
 
 
+def background_by_type(train: pl.DataFrame, names: list[str]) -> dict[str, np.ndarray]:
+    return {
+        consequence: background_sample(group, names)
+        for (consequence,), group in train.group_by("consequence")
+    }
+
+
+ANNOTATION_SCHEMA = {
+    "chrom": pl.String,
+    "pos": pl.Int64,
+    "ref": pl.String,
+    "alt": pl.String,
+    "gene_name": pl.String,
+    "transcript_id": pl.String,
+    "consequence": pl.String,
+    "protein_position": pl.Int64,
+    "hgvs_p": pl.String,
+    "aa_ref": pl.String,
+    "aa_alt": pl.String,
+}
+
+
 class Predictor:
     def __init__(
         self,
         inputs: missense.Inputs,
         model_path: Path,
         train: pl.DataFrame,
+        genome_path: Path,
         functions: dict[str, str] | None = None,
     ):
         transcripts = load_transcripts(inputs.transcripts)
+        self.transcripts = {t.transcript_id: t for t in transcripts}
+        self.genome = Fasta(str(genome_path))
+        self.utr3 = phase2.utr3_lookup(self.genome)
         self.functions = functions or {}
         self.inputs = inputs
         self.index = TranscriptIndex(transcripts)
@@ -202,13 +250,33 @@ class Predictor:
         self.thresholds: dict = metadata["thresholds"]
         self.blocks = [variant_inputs.BLOCKS.index(b) for b in metadata["esm_blocks"]]
         grouped = sorted(c for columns in FEATURE_GROUPS.values() for c in columns)
-        if grouped != sorted(self.feature_names):
+        if grouped != sorted(set(self.feature_names) - UNGROUPED):
             raise ValueError("explanation groups do not partition the model's features")
-        self.background = background_sample(train, self.feature_names)
+        self.background = background_by_type(train, self.feature_names)
+
+    def reference(self, chrom: str, pos: int, ref: str) -> str:
+        sequence = self.genome[chrom]
+        if pos + len(ref) - 1 > len(sequence):
+            raise ValueError(f"position {pos} is beyond the end of chromosome {chrom}")
+        return sequence[pos - 1 : pos - 1 + len(ref)].seq.upper()
+
+    def normalized(self, chrom: str, pos: int, ref: str, alt: str) -> Variant:
+        genome_ref = self.reference(chrom, pos, ref)
+        if genome_ref != ref:
+            raise ValueError(
+                f"REF does not match the reference genome at {chrom}:{pos}: {genome_ref}, not {ref}"
+            )
+        if len(ref) == 1 and len(alt) == 1:
+            return chrom, pos, ref, alt
+        sequence = self.genome[chrom]
+        position, reference, alternate = normalize(
+            pos, ref, alt, lambda start, end: sequence[start - 1 : end].seq.upper()
+        )
+        return chrom, position, reference, alternate
 
     def predict(self, text: str) -> list[Prediction | OutOfScope]:
-        if SNV_PATTERN.match(text.strip()):
-            return [self.predict_variant(*parse_snv(text))]
+        if VARIANT_PATTERN.match(text.strip()):
+            return [self.predict_variant(*parse_variant(text))]
         gene, aa_ref, position, aa_alt = parse_protein_change(text)
         transcript = self.by_gene.get(gene)
         if transcript is None:
@@ -235,21 +303,25 @@ class Predictor:
         self, variants: list[Variant]
     ) -> list[Prediction | OutOfScope | InvalidVariant]:
         outcomes: list[Annotation | OutOfScope | InvalidVariant] = []
+        keys: list[Variant] = []
         for chrom, pos, ref, alt in variants:
             name = variant_text(chrom, pos, ref, alt)
             try:
-                outcomes.append(classify(name, self.index.annotate(chrom, pos, ref, alt)))
+                key = self.normalized(chrom, pos, ref, alt)
+                outcomes.append(classify(variant_text(*key), annotate_variant(self.index, *key)))
             except ValueError as error:
+                key = (chrom, pos, ref, alt)
                 outcomes.append(InvalidVariant(name, str(error)))
+            keys.append(key)
         pending = {
-            variant: outcome
-            for variant, outcome in zip(variants, outcomes, strict=True)
+            key: outcome
+            for key, outcome in zip(keys, outcomes, strict=True)
             if isinstance(outcome, Annotation)
         }
         predictions = self.score(pending) if pending else {}
         return [
-            predictions[variant] if isinstance(outcome, Annotation) else outcome
-            for variant, outcome in zip(variants, outcomes, strict=True)
+            predictions[key] if isinstance(outcome, Annotation) else outcome
+            for key, outcome in zip(keys, outcomes, strict=True)
         ]
 
     def score(self, pending: dict[Variant, Annotation]) -> dict[Variant, Prediction]:
@@ -262,24 +334,31 @@ class Predictor:
             annotation = pending[key]
             if annotation.transcript_id not in embeddings:
                 embeddings[annotation.transcript_id] = self.embeddings(annotation.transcript_id)
-            rows = explanation_rows(matrix[row], self.background, self.feature_names)
-            protein = np.repeat(
-                self.protein(embeddings[annotation.transcript_id], annotation.protein_position),
-                len(rows),
-                0,
+            background = self.background[annotation.consequence]
+            rows = explanation_rows(matrix[row], background, self.feature_names)
+            protein, available = self.protein(
+                embeddings[annotation.transcript_id], annotation.protein_position
             )
-            outputs = self.session.run(OUTPUTS, {"features": rows, "protein": protein})
+            outputs = self.session.run(
+                OUTPUTS,
+                {
+                    "features": rows,
+                    "protein": np.repeat(protein, len(rows), 0),
+                    "protein_mask": np.full(len(rows), available, dtype=np.float32),
+                },
+            )
             probability = float(outputs[0][0])
             predictions[key] = Prediction(
                 variant=variant_text(*key),
                 gene=annotation.gene_name,
                 transcript_id=annotation.transcript_id,
                 hgvs_p=annotation.hgvs_p,
+                consequence=annotation.consequence,
                 probability=probability,
                 decision=decide(probability, self.thresholds),
                 lightgbm=float(outputs[1][0]),
                 dual_tower=float(outputs[2][0]),
-                contributions=group_contributions(outputs[0], len(self.background)),
+                contributions=group_contributions(outputs[0], len(background)),
                 features=features[row],
                 gene_function=self.functions.get(annotation.transcript_id),
             )
@@ -288,36 +367,61 @@ class Predictor:
     def features(self, pending: dict[Variant, Annotation]) -> pl.DataFrame:
         rows = pl.DataFrame(
             [
-                (*variant, a.gene_name, a.transcript_id, a.protein_position, a.aa_ref, a.aa_alt)
+                (
+                    *variant,
+                    a.gene_name,
+                    a.transcript_id,
+                    a.consequence,
+                    a.protein_position,
+                    a.hgvs_p,
+                    a.aa_ref,
+                    a.aa_alt,
+                )
                 for variant, a in pending.items()
             ],
-            schema={
-                "chrom": pl.String,
-                "pos": pl.Int64,
-                "ref": pl.String,
-                "alt": pl.String,
-                "gene_name": pl.String,
-                "transcript_id": pl.String,
-                "protein_position": pl.Int64,
-                "aa_ref": pl.String,
-                "aa_alt": pl.String,
-            },
+            schema=ANNOTATION_SCHEMA,
             orient="row",
         )
-        joined = missense.join_sources(rows, self.inputs)
-        return missense.finalize(esm_features(joined, self.inputs.esm_store))
+        tables = []
+        missense_rows = rows.filter(pl.col("consequence") == "missense")
+        if missense_rows.height:
+            joined = missense.join_sources(missense_rows.drop("consequence", "hgvs_p"), self.inputs)
+            tables.append(
+                missense.finalize(esm_features(joined, self.inputs.esm_store)).with_columns(
+                    pl.lit("missense").alias("consequence"), pl.lit(0.0).alias("f_variant_type")
+                )
+            )
+        other_rows = rows.filter(pl.col("consequence") != "missense")
+        if other_rows.height:
+            typed = phase2.indel_esm_features(
+                phase2.type_features(other_rows, self.transcripts, self.utr3),
+                self.transcripts,
+                self.inputs.esm_store,
+            )
+            joined = missense.join_sources(typed, self.inputs)
+            tables.append(
+                phase2.finalize(joined, phase2.span_conservation(typed, self.inputs.conservation))
+            )
+        table = pl.concat(tables, how="diagonal_relaxed")
+        return table.with_columns(
+            pl.lit(None, pl.String if name in missense.CATEGORICAL_FEATURES else pl.Float64).alias(
+                name
+            )
+            for name in self.feature_names
+            if name not in table.columns
+        )
 
     def embeddings(self, transcript_id: str) -> np.ndarray | None:
         if not store.is_done(self.inputs.esm_store, transcript_id):
             return None
         return np.asarray(store.load(self.inputs.esm_store, transcript_id)[1])
 
-    def protein(self, embeddings: np.ndarray | None, position: int) -> np.ndarray:
+    def protein(self, embeddings: np.ndarray | None, position: int | None) -> tuple:
         width = len(self.blocks) * 1280
-        if embeddings is None:
-            return np.zeros((1, width), dtype=np.float32)
+        if embeddings is None or position is None or not 1 <= position <= embeddings.shape[0]:
+            return np.zeros((1, width), dtype=np.float32), 0.0
         blocks = variant_inputs.variant_blocks(embeddings, position)[self.blocks]
-        return blocks.reshape(1, width).astype(np.float32)
+        return blocks.reshape(1, width).astype(np.float32), 1.0
 
 
 def parity_check(predictor: Predictor, table: pl.DataFrame, blocks_path: Path) -> dict:
@@ -325,9 +429,10 @@ def parity_check(predictor: Predictor, table: pl.DataFrame, blocks_path: Path) -
         OUTPUTS,
         {
             "features": missense.to_matrix(table, predictor.feature_names).astype(np.float32),
-            "protein": variant_inputs.load(blocks_path, table)[:, predictor.blocks]
+            "protein": variant_inputs.load(blocks_path, table, predictor.blocks)
             .reshape(table.height, -1)
             .astype(np.float32),
+            "protein_mask": table["protein_position"].is_not_null().to_numpy().astype(np.float32),
         },
     )[0]
     feature_mismatches, probability_diffs, timings = 0, [], []

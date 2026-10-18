@@ -27,9 +27,14 @@ def test_serve_pipeline_never_imports_torch():
     [
         ([], "intergenic", "no MANE Select transcript"),
         ([annotation("missense", "A"), annotation("missense", "B")], "multiple_genes", "more than"),
-        ([annotation("synonymous")], "synonymous", "phase 2"),
-        ([annotation("canonical_splice")], "canonical_splice", "phase 2"),
+        (
+            [annotation("missense", "A"), annotation("canonical_splice", "B")],
+            "multiple_genes",
+            "more than",
+        ),
         ([annotation("intronic")], "intronic", "permanently out of scope"),
+        ([annotation("splice_region")], "splice_region", "permanently out of scope"),
+        ([annotation("multi_nucleotide")], "multi_nucleotide", "not supported"),
     ],
 )
 def test_classify_explains_out_of_scope_variants(annotations, consequence, reason):
@@ -45,9 +50,10 @@ def test_classify_matches_the_training_rule_for_nested_genes():
     assert coding.consequence == "synonymous"
 
 
-def test_classify_accepts_missense_and_rejects_ref_mismatch():
-    missense = annotation("missense")
-    assert pipeline.classify("1:100 A>G", [missense]) is missense
+def test_classify_accepts_every_scored_type_and_rejects_ref_mismatch():
+    for consequence in ("missense", "synonymous", "frameshift", "canonical_splice"):
+        scored = annotation(consequence)
+        assert pipeline.classify("1:100 A>G", [scored, annotation("intronic", "X")]) is scored
     with pytest.raises(ValueError, match="REF does not match"):
         pipeline.classify("1:100 A>G", [annotation("ref_mismatch")])
 

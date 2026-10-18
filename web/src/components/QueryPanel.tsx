@@ -4,9 +4,11 @@ import { HazardIcon } from "./Icons";
 const EXAMPLES = [
   "BRCA1 p.Arg1699Trp",
   "TP53 p.Arg175His",
-  "CFTR p.Gly551Asp",
   "BRCA1 p.Ser1613Gly",
-  "17:43063931 G>A",
+  "13:32316497 G>T",
+  "17:43124027 ACT>A",
+  "7:117559592 CTTT>C",
+  "17:7669612 G>A",
 ];
 
 export function QueryPanel({

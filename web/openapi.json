@@ -118,6 +118,10 @@
             "type": "string",
             "title": "Name"
           },
+          "variant_type": {
+            "type": "string",
+            "title": "Variant Type"
+          },
           "roc_auc": {
             "type": "number",
             "title": "Roc Auc"
@@ -126,6 +130,7 @@
         "type": "object",
         "required": [
           "name",
+          "variant_type",
           "roc_auc"
         ],
         "title": "Ablation"
@@ -235,7 +240,9 @@
               "gene_constraint",
               "protein_regions",
               "amino_acid_change",
-              "protein_position"
+              "protein_position",
+              "truncation",
+              "splicing"
             ],
             "title": "Group"
           },
@@ -256,6 +263,10 @@
           "name": {
             "type": "string",
             "title": "Name"
+          },
+          "variant_type": {
+            "type": "string",
+            "title": "Variant Type"
           },
           "variants": {
             "type": "integer",
@@ -295,6 +306,7 @@
         "type": "object",
         "required": [
           "name",
+          "variant_type",
           "variants",
           "roc_auc",
           "roc_auc_ci",
@@ -356,6 +368,28 @@
             },
             "type": "array",
             "title": "Protein Regions"
+          },
+          "nmd_escape": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nmd Escape"
+          },
+          "protein_retained": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Protein Retained"
           }
         },
         "type": "object",
@@ -596,8 +630,31 @@
             "title": "Transcript Id"
           },
           "hgvs_p": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Hgvs P"
+          },
+          "consequence": {
+            "type": "string",
+            "enum": [
+              "missense",
+              "synonymous",
+              "stop_gained",
+              "stop_lost",
+              "start_lost",
+              "canonical_splice",
+              "frameshift",
+              "inframe_deletion",
+              "inframe_insertion",
+              "inframe_indel"
+            ],
+            "title": "Consequence"
           },
           "probability": {
             "type": "number",
@@ -649,6 +706,7 @@
           "gene",
           "transcript_id",
           "hgvs_p",
+          "consequence",
           "probability",
           "decision",
           "lightgbm",

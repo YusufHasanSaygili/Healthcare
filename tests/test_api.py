@@ -25,6 +25,7 @@ def prediction(variant: str) -> Prediction:
         gene="BRCA1",
         transcript_id="ENST00000357654.9",
         hgvs_p="p.Arg1699Trp",
+        consequence="missense",
         probability=0.95,
         decision="likely_pathogenic",
         lightgbm=0.9,
@@ -58,32 +59,44 @@ class FakePredictor:
 def report() -> dict:
     def metrics(roc):
         return {
+            "n": 100,
             "roc_auc": roc,
             "pr_auc": 0.97,
             "ece": 0.004,
+            "eligible": True,
             "gene_bootstrap_95ci": {"roc_auc": [roc - 0.002, roc + 0.002]},
+            "decisions": {"uncertain": 0.12},
         }
 
-    def result(roc, ece=0.004):
+    def result(roc):
         return {
-            "variants": 100,
-            "models": {
-                "ensemble_calibrated": metrics(roc) | {"ece": ece},
-                "lightgbm": metrics(0.989),
-                "dual_tower": metrics(0.988),
-                "no_esm/ensemble_uncalibrated": metrics(0.985),
-                "no_frequency/ensemble_uncalibrated": metrics(0.969),
+            "variants": 300,
+            "final": {
+                "missense": metrics(roc),
+                "frameshift": metrics(roc - 0.05),
+                "canonical_splice": metrics(roc - 0.04),
+                "stop_gained": metrics(roc - 0.03),
+                "start_lost": {"n": 10, "positives": 9, "eligible": False},
             },
-            "decisions": {"uncertain": {"share": 0.12}},
+            "compare_roc_auc": {
+                "lightgbm": {"missense": 0.989, "frameshift": 0.94},
+                "dual_tower": {"missense": 0.988, "frameshift": 0.90},
+                "no_esm": {"missense": 0.985, "frameshift": 0.93},
+                "no_frequency": {
+                    "missense": 0.961,
+                    "frameshift": 0.721,
+                    "canonical_splice": 0.84,
+                    "stop_gained": 0.827,
+                    "start_lost": None,
+                },
+            },
         }
 
     return {
-        "onnx": "missense_v1.onnx",
-        "variant_type": "missense",
-        "data_versions": {"clinvar": "2025-10-06"},
+        "routes": {"missense": "average", "frameshift": "lightgbm"},
         "results": {
             "test": result(0.990),
-            "temporal_all": result(0.989, ece=0.033),
+            "temporal_all": result(0.989),
             "temporal_test_gene": result(0.988),
         },
     }
@@ -96,12 +109,17 @@ def predictor():
 
 @pytest.fixture
 def client(predictor):
-    return TestClient(api.create_app(predictor, api.model_card(report(), THRESHOLDS)))
+    card = api.model_card(report(), {"clinvar": "2025-10-06"}, THRESHOLDS)
+    return TestClient(api.create_app(predictor, card))
 
 
 def test_health_reports_model_and_scope(client):
     body = client.get("/api/health").json()
-    assert body == {"status": "ok", "model": "missense_v1.onnx", "variant_types": ["missense"]}
+    assert body == {
+        "status": "ok",
+        "model": "all_types_v2.onnx",
+        "variant_types": ["frameshift", "missense"],
+    }
 
 
 def test_predict_returns_decision_contributions_and_evidence(client):
@@ -155,19 +173,23 @@ VCF = (
 )
 
 
-def test_batch_predicts_snvs_and_reports_line_errors(client, predictor):
+def test_batch_predicts_snvs_and_indels_and_reports_line_errors(client, predictor):
     response = client.post("/api/predict/batch", content=VCF.encode())
     assert response.status_code == 200
     body = response.json()
     assert predictor.batches == [
-        [("17", 43063931, "G", "A"), ("17", 43063931, "G", "T"), ("17", 999, "C", "T")]
+        [
+            ("17", 43063931, "G", "A"),
+            ("17", 43063931, "G", "T"),
+            ("17", 43063932, "GA", "G"),
+            ("17", 999, "C", "T"),
+        ]
     ]
-    assert body["variants"] == 3
-    assert [item["line"] for item in body["results"]] == [3, 3]
-    assert [error["line"] for error in body["errors"]] == [4, 5, 6, 7]
-    assert "not an SNV" in body["errors"][0]["message"]
-    assert "REF does not match" in body["errors"][1]["message"]
-    assert body["error_count"] == 4
+    assert body["variants"] == 4
+    assert [item["line"] for item in body["results"]] == [3, 3, 4]
+    assert [error["line"] for error in body["errors"]] == [5, 6, 7]
+    assert "REF does not match" in body["errors"][0]["message"]
+    assert body["error_count"] == 3
 
 
 def test_batch_rejects_oversized_uploads(client, monkeypatch):
@@ -203,10 +225,12 @@ def test_cors_allows_only_the_local_vite_origin(client):
 def test_model_card_lists_metrics_ablations_and_limitations(client):
     card = client.get("/api/model-card").json()
     assert card["thresholds"] == THRESHOLDS
-    assert [row["roc_auc"] for row in card["evaluation"]] == [0.990, 0.989, 0.988]
-    assert {a["name"] for a in card["ablations"]} >= {"Without allele frequency", "Without ESM-2"}
-    assert any("0.033" in line for line in card["limitations"])
-    assert any("0.969" in line for line in card["limitations"])
+    missense = [row for row in card["evaluation"] if row["variant_type"] == "missense"]
+    assert [row["roc_auc"] for row in missense] == [0.990, 0.989, 0.988]
+    assert "start_lost" not in {row["variant_type"] for row in card["evaluation"]}
+    names = {a["name"] for a in card["ablations"]}
+    assert names >= {"LightGBM without allele frequency", "LightGBM without ESM-2"}
+    assert any("0.72 (frameshift)" in line for line in card["limitations"])
 
 
 def test_openapi_documents_the_plain_text_batch_body(client):

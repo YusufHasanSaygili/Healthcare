@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
-import { ApiError, fetchModelCard, type ModelCard } from "../api/client";
+import { ApiError, fetchModelCard, type ModelCard, type VariantType } from "../api/client";
 import { collapseChromosomes, formatDecimal, formatPercent } from "../format";
-import { fill } from "../i18n";
+import { fill, type Messages } from "../i18n";
 import { useSettings } from "../settings";
 import { HazardIcon } from "./Icons";
+
+function typeLabel(messages: Messages, type: string): string {
+  return messages.typeNames[type as VariantType] ?? type;
+}
 
 type CardState = { card: ModelCard } | { error: string } | null;
 
@@ -21,6 +25,7 @@ function Evaluation({ card }: { card: ModelCard }) {
           <thead>
             <tr>
               <th scope="col">{messages.metrics.set}</th>
+              <th scope="col">{messages.metrics.type}</th>
               <th scope="col">{messages.metrics.variants}</th>
               <th scope="col">{messages.metrics.rocAuc}</th>
               <th scope="col">{messages.metrics.prAuc}</th>
@@ -30,8 +35,9 @@ function Evaluation({ card }: { card: ModelCard }) {
           </thead>
           <tbody>
             {card.evaluation.map((row) => (
-              <tr key={row.name}>
+              <tr key={`${row.name}-${row.variant_type}`}>
                 <th scope="row">{row.name}</th>
+                <td>{typeLabel(messages, row.variant_type)}</td>
                 <td className="numeric">{row.variants.toLocaleString(locale)}</td>
                 <td className="numeric">
                   {decimal(row.roc_auc)}{" "}
@@ -62,13 +68,15 @@ function Ablations({ card }: { card: ModelCard }) {
           <thead>
             <tr>
               <th scope="col">{messages.ablation}</th>
+              <th scope="col">{messages.metrics.type}</th>
               <th scope="col">{messages.metrics.rocAuc}</th>
             </tr>
           </thead>
           <tbody>
             {card.ablations.map((row) => (
-              <tr key={row.name}>
+              <tr key={`${row.name}-${row.variant_type}`}>
                 <th scope="row">{row.name}</th>
+                <td>{typeLabel(messages, row.variant_type)}</td>
                 <td className="numeric">{formatDecimal(row.roc_auc, locale, 4)}</td>
               </tr>
             ))}

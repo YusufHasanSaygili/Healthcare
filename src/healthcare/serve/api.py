@@ -34,7 +34,22 @@ EvidenceGroup = Literal[
     "protein_regions",
     "amino_acid_change",
     "protein_position",
+    "truncation",
+    "splicing",
 ]
+VariantType = Literal[
+    "missense",
+    "synonymous",
+    "stop_gained",
+    "stop_lost",
+    "start_lost",
+    "canonical_splice",
+    "frameshift",
+    "inframe_deletion",
+    "inframe_insertion",
+    "inframe_indel",
+]
+ONNX_FILE = "all_types_v2.onnx"
 
 
 class PredictionService(Protocol):
@@ -65,6 +80,8 @@ class Evidence(BaseModel):
     esm_llr: float | None
     grantham: float | None
     protein_regions: list[str]
+    nmd_escape: float | None = None
+    protein_retained: float | None = None
 
 
 class PredictedVariant(BaseModel):
@@ -72,7 +89,8 @@ class PredictedVariant(BaseModel):
     variant: str
     gene: str
     transcript_id: str
-    hgvs_p: str
+    hgvs_p: str | None
+    consequence: VariantType
     probability: float
     decision: Decision
     lightgbm: float
@@ -134,6 +152,7 @@ class Thresholds(BaseModel):
 
 class EvaluationRow(BaseModel):
     name: str
+    variant_type: str
     variants: int
     roc_auc: float
     roc_auc_ci: tuple[float, float]
@@ -144,6 +163,7 @@ class EvaluationRow(BaseModel):
 
 class Ablation(BaseModel):
     name: str
+    variant_type: str
     roc_auc: float
 
 
@@ -161,53 +181,60 @@ class ModelCard(BaseModel):
 EVALUATION_SETS = {
     "test": "Gene-disjoint test",
     "temporal_all": "Temporal (added to ClinVar after October 2025)",
-    "temporal_test_gene": "Temporal, genes unseen in training",
+    "temporal_test_gene": "Temporal, test genes only",
 }
-ABLATIONS = {
+COMPARISONS = {
     "lightgbm": "LightGBM only",
     "dual_tower": "Dual tower only",
-    "no_esm/ensemble_uncalibrated": "Without ESM-2",
-    "no_frequency/ensemble_uncalibrated": "Without allele frequency",
+    "no_esm": "LightGBM without ESM-2",
+    "no_frequency": "LightGBM without allele frequency",
 }
 
 
-def model_card(report: dict, thresholds: dict) -> ModelCard:
+def model_card(report: dict, data_versions: dict, thresholds: dict) -> ModelCard:
     results = report["results"]
-    rows = []
-    for key, name in EVALUATION_SETS.items():
-        metrics = results[key]["models"]["ensemble_calibrated"]
-        rows.append(
-            EvaluationRow(
-                name=name,
-                variants=results[key]["variants"],
-                roc_auc=metrics["roc_auc"],
-                roc_auc_ci=tuple(metrics["gene_bootstrap_95ci"]["roc_auc"]),
-                pr_auc=metrics["pr_auc"],
-                ece=metrics["ece"],
-                uncertain_share=results[key]["decisions"]["uncertain"]["share"],
-            )
+    rows = [
+        EvaluationRow(
+            name=name,
+            variant_type=variant_type,
+            variants=metrics["n"],
+            roc_auc=metrics["roc_auc"],
+            roc_auc_ci=tuple(metrics["gene_bootstrap_95ci"]["roc_auc"]),
+            pr_auc=metrics["pr_auc"],
+            ece=metrics["ece"],
+            uncertain_share=metrics["decisions"]["uncertain"],
         )
-    test = results["test"]["models"]
-    ablations = [
-        Ablation(name=name, roc_auc=test[key]["roc_auc"]) for key, name in ABLATIONS.items()
+        for key, name in EVALUATION_SETS.items()
+        for variant_type, metrics in results[key]["final"].items()
+        if metrics["eligible"]
     ]
-    temporal_ece = results["temporal_all"]["models"]["ensemble_calibrated"]["ece"]
-    test_ece = test["ensemble_calibrated"]["ece"]
-    no_frequency = test["no_frequency/ensemble_uncalibrated"]["roc_auc"]
+    ablations = [
+        Ablation(name=name, variant_type=variant_type, roc_auc=value)
+        for key, name in COMPARISONS.items()
+        for variant_type, value in results["test"]["compare_roc_auc"][key].items()
+        if value is not None
+    ]
+    test = results["test"]["final"]
+    loss = [t for t in ("frameshift", "stop_gained", "canonical_splice") if test[t]["eligible"]]
+    no_frequency = results["test"]["compare_roc_auc"]["no_frequency"]
     return ModelCard(
-        model=report["onnx"],
-        variant_types=[report["variant_type"]],
+        model=ONNX_FILE,
+        variant_types=sorted(report["routes"]),
         thresholds=Thresholds(**thresholds),
-        data_versions=report["data_versions"],
+        data_versions=data_versions,
         evaluation=rows,
         ablations=ablations,
         limitations=[
-            "Only missense SNVs in MANE Select transcripts (GRCh38) are scored; other variant "
-            "types are planned.",
-            f"Calibration drifts on variants added to ClinVar after the training release "
-            f"(ECE {temporal_ece:.3f} versus {test_ece:.3f} on the test set).",
-            f"Allele frequency carries part of the signal and may be partly circular: test "
-            f"ROC-AUC is {no_frequency:.3f} without it.",
+            "Only coding variants in MANE Select transcripts (GRCh38) are scored: missense, "
+            "synonymous, stop gained/lost, start lost, canonical splice (±1/2), frameshift and "
+            "in-frame indels. Deep intronic, UTR, regulatory and structural variants are out of "
+            "scope.",
+            "For loss-of-function types ClinVar benign labels largely follow population frequency; "
+            "without allele frequency test ROC-AUC drops to "
+            + ", ".join(f"{no_frequency[t]:.2f} ({t})" for t in loss)
+            + ".",
+            "Start loss, stop loss and in-frame delins have too few labelled examples of one class "
+            "to evaluate; their predictions are the least certain.",
             "Labels come from ClinVar and inherit its biases toward well-studied genes.",
             "The model is not clinically validated.",
         ],
@@ -224,6 +251,8 @@ def evidence(prediction: Prediction) -> Evidence:
         protein_regions=[
             name.removeprefix("f_uniprot_") for name in UNIPROT_GROUPS if features[name] == 1.0
         ],
+        nmd_escape=features.get("f_nmd_escape"),
+        protein_retained=features.get("f_protein_retained"),
     )
 
 
@@ -240,6 +269,7 @@ def to_result(result: Prediction | OutOfScope) -> PredictedVariant | OutOfScopeV
         gene=result.gene,
         transcript_id=result.transcript_id,
         hgvs_p=result.hgvs_p,
+        consequence=result.consequence,
         probability=result.probability,
         decision=result.decision,
         lightgbm=result.lightgbm,

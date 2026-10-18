@@ -455,6 +455,19 @@ def run_evaluate_final_v2(force: bool) -> int:
     return 0
 
 
+def run_export_onnx_v2() -> int:
+    from healthcare.models import export_v2
+
+    log_path = start_log("export-onnx-v2")
+    report = {"log": log_path} | export_v2.run(
+        DATA_DIR / "processed" / "splits", JOINT_ESM_BLOCKS, ARTIFACTS_DIR / "models", REPORTS_DIR
+    )
+    write_summary("export-onnx-v2", report)
+    print(f"{report['file']}: {report['megabytes']} MB, parity {report['parity_max_abs_diff']}")
+    print(f"decision mismatches: {report['parity_decision_mismatches']}")
+    return 0
+
+
 def run_train_baseline(trials: int) -> int:
     splits_dir = DATA_DIR / "processed" / "splits"
     if not (splits_dir / "missense_open.parquet").exists():
@@ -654,18 +667,20 @@ def load_predictor():
     from healthcare.serve.pipeline import Predictor
 
     inputs = feature_inputs()
-    model = ARTIFACTS_DIR / "models" / "missense_v1.onnx"
+    model = ARTIFACTS_DIR / "models" / "all_types_v2.onnx"
     missing = missing_inputs(inputs) + ([] if model.exists() else [str(model)])
     if missing:
         print(f"missing inputs: {', '.join(missing)}")
         return None
-    train = gene_split.load_split(DATA_DIR / "processed" / "splits", "train")
+    from healthcare.models.joint import load_joint
+
+    train = load_joint(DATA_DIR / "processed" / "splits", "train")
     functions = (
         dict(pl.read_parquet(UNIPROT_FUNCTIONS).select("transcript_id", "function").iter_rows())
         if UNIPROT_FUNCTIONS.exists()
         else {}
     )
-    return Predictor(inputs, model, train, functions)
+    return Predictor(inputs, model, train, REFERENCE, functions)
 
 
 def print_result(result) -> None:
@@ -722,14 +737,15 @@ def run_serve(port: int) -> int:
 
     from healthcare.serve.api import create_app, model_card
 
-    report_path = REPORTS_DIR / "missense_v1.json"
+    report_path = REPORTS_DIR / "all_types_v2.json"
     if not report_path.exists():
         print(f"missing inputs: {report_path}")
         return 2
     predictor = load_predictor()
     if predictor is None:
         return 2
-    card = model_card(json.loads(report_path.read_text()), predictor.thresholds)
+    versions = json.loads((REPORTS_DIR / "missense_v1.json").read_text())["data_versions"]
+    card = model_card(json.loads(report_path.read_text()), versions, predictor.thresholds)
     print(f"API docs: http://127.0.0.1:{port}/docs")
     uvicorn.run(create_app(predictor, card), host="127.0.0.1", port=port)
     return 0
@@ -754,10 +770,17 @@ def run_serve_check(count: int) -> int:
     if predictor is None:
         return 2
     log_path = start_log("serve-check")
-    table = gene_split.load_split(DATA_DIR / "processed" / "splits", "validation").sample(
-        count, seed=20261016
+    from healthcare.models.joint import load_joint
+
+    validation = load_joint(DATA_DIR / "processed" / "splits", "validation")
+    per_type = max(1, count // validation["consequence"].n_unique())
+    table = pl.concat(
+        [
+            group.sample(min(per_type, group.height), seed=20261016)
+            for _, group in validation.group_by("consequence", maintain_order=True)
+        ]
     )
-    summary = {"log": log_path} | parity_check(predictor, table, ESM_BLOCKS)
+    summary = {"log": log_path} | parity_check(predictor, table, JOINT_ESM_BLOCKS)
     summary["examples"] = {}
     for text in EXAMPLES:
         for result in predictor.predict(text):
@@ -869,6 +892,7 @@ def main(argv: list[str] | None = None) -> int:
         "build-esm", help="Precompute ESM-2 log-probabilities and embeddings for MANE proteins"
     )
     build_esm_parser.add_argument("--limit", type=int, help="Only the N shortest proteins")
+    commands.add_parser("export-onnx-v2", help="Export the v2 all-types model to one ONNX file")
     commands.add_parser(
         "choose-final-v2", help="Choose per-type routes and calibration on validation only"
     )
@@ -932,6 +956,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_build_features(args.force)
     if args.command == "build-phase2-features":
         return run_build_phase2_features(args.limit, args.force)
+    if args.command == "export-onnx-v2":
+        return run_export_onnx_v2()
     if args.command == "choose-final-v2":
         return run_choose_final_v2()
     if args.command == "evaluate-final-v2":

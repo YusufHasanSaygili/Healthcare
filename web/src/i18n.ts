@@ -1,10 +1,10 @@
-import type { Decision, EvidenceGroup } from "./api/client";
+import type { Decision, EvidenceGroup, VariantType } from "./api/client";
 import type { UploadProblem } from "./batch";
 import type { LabStatus } from "./components/VitalsMonitor";
 import type { Direction, ReasonKey } from "./explain";
 import type { Route } from "./route";
 
-type Messages = {
+export type Messages = {
   title: string;
   tagline: string;
   inputLabel: string;
@@ -82,7 +82,15 @@ type Messages = {
   thresholdsText: string;
   evaluationTitle: string;
   evaluationNote: string;
-  metrics: { set: string; variants: string; rocAuc: string; prAuc: string; ece: string; uncertain: string };
+  metrics: {
+    set: string;
+    type: string;
+    variants: string;
+    rocAuc: string;
+    prAuc: string;
+    ece: string;
+    uncertain: string;
+  };
   ablationsTitle: string;
   ablationsNote: string;
   ablation: string;
@@ -92,6 +100,12 @@ type Messages = {
   explainTitle: string;
   explainVariant: string;
   explainProtein: string;
+  explainIndel: string;
+  indelDeleted: string;
+  indelInserted: string;
+  indelReplaced: string;
+  explainType: Record<Exclude<VariantType, "missense">, string>;
+  typeNames: Record<VariantType, string>;
   explainWhy: Record<Decision, string>;
   explainToward: Record<Direction, string>;
   explainReasons: Record<ReasonKey, string>;
@@ -106,7 +120,7 @@ const en: Messages = {
   tagline: "Missense model v1 · runs on this computer",
   inputLabel: "Variant",
   inputHint:
-    "Genomic position (17:43063931 G>A) or protein change (BRCA1 p.Arg1699Trp). GRCh38, missense SNVs.",
+    "Genomic position (17:43063931 G>A) or protein change (BRCA1 p.Arg1699Trp). GRCh38; coding SNVs and small indels, VCF style (7:117559592 CTTT>C).",
   submit: "Analyze",
   submitting: "Analyzing…",
   examplesLabel: "Examples",
@@ -142,6 +156,8 @@ const en: Messages = {
     protein_regions: "Protein regions",
     amino_acid_change: "Amino acid change",
     protein_position: "Position in the protein",
+    truncation: "Truncation and NMD",
+    splicing: "Splicing",
   },
   measurementsTitle: "Measurements",
   frequencyLabel: "Population frequency (gnomAD)",
@@ -172,7 +188,7 @@ const en: Messages = {
     turn: "Turn",
   },
   notAvailable: "Not available",
-  members: "LightGBM {lightgbm} · dual tower {dualTower} · shown value is their calibrated average",
+  members: "LightGBM {lightgbm} · dual tower {dualTower} · shown value is calibrated per variant type (LightGBM alone or the average of both)",
   outOfScopeTitle: "Not analyzed",
   consequences: {
     intergenic: "No MANE Select transcript covers this position.",
@@ -242,9 +258,10 @@ const en: Messages = {
   thresholdsText: "Likely pathogenic at {high} or above, likely benign at {low} or below, uncertain in between.",
   evaluationTitle: "Evaluation",
   evaluationNote:
-    "Final model: calibrated average of LightGBM and the dual tower. Brackets show 95% intervals from a gene-level bootstrap.",
+    "Final model: per variant type, LightGBM alone or the average of LightGBM and the dual tower (chosen on validation), then calibrated per type. Brackets show 95% intervals from a gene-level bootstrap.",
   metrics: {
     set: "Set",
+    type: "Type",
     variants: "Variants",
     rocAuc: "ROC-AUC",
     prAuc: "PR-AUC",
@@ -262,6 +279,43 @@ const en: Messages = {
     "This is a variant: a one-letter change in the DNA. At position {position} of chromosome {chrom}, the reference genome has {ref}, but here there is {alt}.",
   explainProtein:
     "It changes part {residue} of the protein made from the {gene} gene: {aaRef} should be there, but {aaAlt} is made instead.",
+  explainIndel:
+    "This is a variant: a change of letters in the DNA. At position {position} of chromosome {chrom}, {change}.",
+  indelDeleted: "{count} letter(s) are missing",
+  indelInserted: "{count} extra letter(s) are inserted",
+  indelReplaced: "{deleted} letter(s) are replaced by {inserted} other letter(s)",
+  explainType: {
+    synonymous:
+      "The letter changes, but the amino acid it codes for stays the same ({hgvs}). The protein itself is not changed; any harm would come from how the recipe is copied or cut.",
+    stop_gained:
+      "It turns part {residue} of the {gene} protein into a stop signal, so the protein is cut short ({hgvs}).",
+    stop_lost:
+      "It removes the stop signal at the end of the {gene} protein, so the protein runs on too long.",
+    start_lost:
+      "It breaks the start signal of the {gene} protein, so the protein may not be made from the right place.",
+    canonical_splice:
+      "It hits the cut-and-join signal at an exon edge of {gene}. Part of the recipe may be skipped or kept by mistake.",
+    frameshift:
+      "The recipe is read three letters at a time. Adding or removing letters that are not a multiple of three shifts the reading from part {residue} of the {gene} protein onward, and the protein usually ends early ({hgvs}).",
+    inframe_deletion:
+      "It removes a few amino acids from the {gene} protein ({hgvs}); the rest of the protein stays intact.",
+    inframe_insertion:
+      "It adds a few amino acids to the {gene} protein ({hgvs}); the rest of the protein stays intact.",
+    inframe_indel:
+      "It replaces a few amino acids of the {gene} protein ({hgvs}); the rest of the protein stays intact.",
+  },
+  typeNames: {
+    missense: "Missense",
+    synonymous: "Synonymous",
+    stop_gained: "Nonsense (stop gained)",
+    stop_lost: "Stop lost",
+    start_lost: "Start lost",
+    canonical_splice: "Canonical splice site",
+    frameshift: "Frameshift",
+    inframe_deletion: "In-frame deletion",
+    inframe_insertion: "In-frame insertion",
+    inframe_indel: "In-frame deletion-insertion",
+  },
   explainWhy: {
     likely_pathogenic: "Why it may be harmful",
     uncertain: "Why the result is uncertain",
@@ -282,6 +336,12 @@ const en: Messages = {
       "The new amino acid is chemically very different from the original: size, charge and affinity for water change.",
     chemSimilar: "The new amino acid is chemically similar to the original.",
     inRegion: "It falls in a known working part of the protein: {regions}.",
+    nmdTriggered:
+      "The early stop is far from the end of the message, so the cell will probably destroy it (nonsense-mediated decay) and make no protein.",
+    nmdEscapes:
+      "The early stop is near the end of the message, so it probably escapes destruction and a shortened protein is made.",
+    mostlyLost: "More than half of the protein is lost.",
+    mostlyKept: "Only the very end of the protein is affected.",
   },
   explainNoReasons:
     "No single measurement stands out; the result comes from all measurements together.",
@@ -317,7 +377,7 @@ const tr: Messages = {
   tagline: "Missense modeli v1 · bu bilgisayarda çalışır",
   inputLabel: "Varyant",
   inputHint:
-    "Genomik konum (17:43063931 G>A) ya da protein değişimi (BRCA1 p.Arg1699Trp). GRCh38, missense SNV'ler.",
+    "Genomik konum (17:43063931 G>A) ya da protein değişimi (BRCA1 p.Arg1699Trp). GRCh38; kodlayan SNV'ler ve küçük indel'ler, VCF biçiminde (7:117559592 CTTT>C).",
   submit: "Analiz et",
   submitting: "Analiz ediliyor…",
   examplesLabel: "Örnekler",
@@ -353,6 +413,8 @@ const tr: Messages = {
     protein_regions: "Protein bölgeleri",
     amino_acid_change: "Amino asit değişimi",
     protein_position: "Proteindeki konum",
+    truncation: "Kesilme ve NMD",
+    splicing: "Kırpılma (splicing)",
   },
   measurementsTitle: "Ölçümler",
   frequencyLabel: "Popülasyon sıklığı (gnomAD)",
@@ -384,7 +446,7 @@ const tr: Messages = {
   },
   notAvailable: "Yok",
   members:
-    "LightGBM {lightgbm} · çift kuleli ağ {dualTower} · gösterilen değer ikisinin kalibre ortalamasıdır",
+    "LightGBM {lightgbm} · çift kuleli ağ {dualTower} · gösterilen değer varyant türüne göre kalibre edilir (yalnız LightGBM ya da ikisinin ortalaması)",
   outOfScopeTitle: "Analiz edilmedi",
   consequences: {
     intergenic: "Bu konumu kapsayan bir MANE Select transkripti yok.",
@@ -454,9 +516,10 @@ const tr: Messages = {
   thresholdsText: "{high} ve üstü olası patojenik, {low} ve altı olası benign, arası belirsiz.",
   evaluationTitle: "Değerlendirme",
   evaluationNote:
-    "Nihai model: LightGBM ve çift kuleli modelin kalibre edilmiş ortalaması. Köşeli parantezler gen düzeyinde bootstrap ile %95 aralıklardır.",
+    "Nihai model: her varyant türü için doğrulama kümesinde seçilen yalnız LightGBM ya da LightGBM ile çift kuleli modelin ortalaması, ardından türe göre kalibrasyon. Köşeli parantezler gen düzeyinde bootstrap ile %95 aralıklardır.",
   metrics: {
     set: "Küme",
+    type: "Tür",
     variants: "Varyant",
     rocAuc: "ROC-AUC",
     prAuc: "PR-AUC",
@@ -474,6 +537,43 @@ const tr: Messages = {
     "Bu bir varyant: DNA'da tek harflik bir değişiklik. {chrom}. kromozomun {position}. harfinde referans genomda {ref} varken burada {alt} var.",
   explainProtein:
     "{gene} geninden yapılan proteinin {residue}. parçasını değiştiriyor: orada {aaRef} olması gerekirken {aaAlt} yapılıyor.",
+  explainIndel:
+    "Bu bir varyant: DNA'da harf değişikliği. {chrom}. kromozomun {position}. harfinde {change}.",
+  indelDeleted: "{count} harf eksik",
+  indelInserted: "{count} fazladan harf eklenmiş",
+  indelReplaced: "{deleted} harf, {inserted} başka harfle değiştirilmiş",
+  explainType: {
+    synonymous:
+      "Harf değişiyor ama kodladığı aminoasit aynı kalıyor ({hgvs}). Proteinin kendisi değişmiyor; bir zarar varsa tarifin kopyalanması ya da kesilip birleştirilmesinden gelir.",
+    stop_gained:
+      "{gene} proteininin {residue}. parçasını bir dur işaretine çeviriyor; protein yarıda kesiliyor ({hgvs}).",
+    stop_lost:
+      "{gene} proteininin sonundaki dur işaretini siliyor; protein olması gerekenden uzun devam ediyor.",
+    start_lost:
+      "{gene} proteininin başlangıç işaretini bozuyor; protein doğru yerden üretilemeyebilir.",
+    canonical_splice:
+      "{gene} geninde bir exon kenarındaki kes-birleştir işaretine denk geliyor. Tarifin bir parçası yanlışlıkla atlanabilir ya da içeride kalabilir.",
+    frameshift:
+      "Tarif üçer harf okunur. Üçün katı olmayan sayıda harf eklenip silinince {gene} proteininin {residue}. parçasından itibaren okuma kayar ve protein genelde erken biter ({hgvs}).",
+    inframe_deletion:
+      "{gene} proteininden birkaç aminoasit çıkarıyor ({hgvs}); proteinin geri kalanı sağlam kalıyor.",
+    inframe_insertion:
+      "{gene} proteinine birkaç aminoasit ekliyor ({hgvs}); proteinin geri kalanı sağlam kalıyor.",
+    inframe_indel:
+      "{gene} proteininin birkaç aminoasidini değiştiriyor ({hgvs}); proteinin geri kalanı sağlam kalıyor.",
+  },
+  typeNames: {
+    missense: "Missense",
+    synonymous: "Synonymous (sessiz)",
+    stop_gained: "Nonsense (erken dur)",
+    stop_lost: "Dur işareti kaybı",
+    start_lost: "Başlangıç kaybı",
+    canonical_splice: "Kanonik splice bölgesi",
+    frameshift: "Frameshift (çerçeve kayması)",
+    inframe_deletion: "Çerçeve içi silme",
+    inframe_insertion: "Çerçeve içi ekleme",
+    inframe_indel: "Çerçeve içi silme-ekleme",
+  },
   explainWhy: {
     likely_pathogenic: "Neden zararlı olabilir?",
     uncertain: "Sonuç neden belirsiz?",
@@ -493,6 +593,12 @@ const tr: Messages = {
       "Yeni aminoasit kimyasal olarak orijinalinden çok farklı: boyutu, yükü ve suya yatkınlığı değişiyor.",
     chemSimilar: "Yeni aminoasit kimyasal olarak orijinaline benziyor.",
     inRegion: "Proteinin bilinen çalışan bir bölgesine denk geliyor: {regions}.",
+    nmdTriggered:
+      "Erken dur işareti mesajın sonundan uzakta; hücre büyük ihtimalle bu mesajı imha eder (NMD) ve protein hiç üretilmez.",
+    nmdEscapes:
+      "Erken dur işareti mesajın sonuna yakın; mesaj büyük ihtimalle imhadan kaçar ve kısalmış bir protein üretilir.",
+    mostlyLost: "Proteinin yarısından fazlası kayboluyor.",
+    mostlyKept: "Sadece proteinin en son kısmı etkileniyor.",
   },
   explainNoReasons:
     "Tek başına öne çıkan bir ölçüm yok; sonuç tüm ölçümlerin birleşiminden geliyor.",

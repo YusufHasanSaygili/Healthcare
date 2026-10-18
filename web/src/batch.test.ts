@@ -10,6 +10,7 @@ const PREDICTED: BatchItem = {
     gene: "BRCA1",
     transcript_id: "ENST00000357654.9",
     hgvs_p: "p.Arg1699Trp",
+    consequence: "missense",
     probability: 0.954,
     decision: "likely_pathogenic",
     lightgbm: 0.894,
@@ -45,7 +46,7 @@ describe("batchCsv", () => {
     expect(lines[0]).toBe(CSV_COLUMNS.join(","));
     expect(lines).toHaveLength(3);
     expect(lines[1]).toBe(
-      "3,17:43063931 G>A,predicted,BRCA1,ENST00000357654.9,p.Arg1699Trp,0.954000,likely_pathogenic,0.894000,0.911000,,",
+      "3,17:43063931 G>A,predicted,BRCA1,ENST00000357654.9,p.Arg1699Trp,0.954000,likely_pathogenic,0.894000,0.911000,missense,",
     );
   });
 

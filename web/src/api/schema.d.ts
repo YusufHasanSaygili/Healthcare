@@ -80,6 +80,8 @@ export interface components {
         Ablation: {
             /** Name */
             name: string;
+            /** Variant Type */
+            variant_type: string;
             /** Roc Auc */
             roc_auc: number;
         };
@@ -121,7 +123,7 @@ export interface components {
              * Group
              * @enum {string}
              */
-            group: "allele_frequency" | "conservation" | "esm_scores" | "gene_constraint" | "protein_regions" | "amino_acid_change" | "protein_position";
+            group: "allele_frequency" | "conservation" | "esm_scores" | "gene_constraint" | "protein_regions" | "amino_acid_change" | "protein_position" | "truncation" | "splicing";
             /** Log Odds */
             log_odds: number;
         };
@@ -129,6 +131,8 @@ export interface components {
         EvaluationRow: {
             /** Name */
             name: string;
+            /** Variant Type */
+            variant_type: string;
             /** Variants */
             variants: number;
             /** Roc Auc */
@@ -157,6 +161,10 @@ export interface components {
             grantham: number | null;
             /** Protein Regions */
             protein_regions: string[];
+            /** Nmd Escape */
+            nmd_escape?: number | null;
+            /** Protein Retained */
+            protein_retained?: number | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -252,7 +260,12 @@ export interface components {
             /** Transcript Id */
             transcript_id: string;
             /** Hgvs P */
-            hgvs_p: string;
+            hgvs_p: string | null;
+            /**
+             * Consequence
+             * @enum {string}
+             */
+            consequence: "missense" | "synonymous" | "stop_gained" | "stop_lost" | "start_lost" | "canonical_splice" | "frameshift" | "inframe_deletion" | "inframe_insertion" | "inframe_indel";
             /** Probability */
             probability: number;
             /**

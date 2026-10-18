@@ -7,6 +7,7 @@ export type PredictedVariant = Schemas["PredictedVariant"];
 export type OutOfScopeVariant = Schemas["OutOfScopeVariant"];
 export type Decision = PredictedVariant["decision"];
 export type EvidenceGroup = Schemas["Contribution"]["group"];
+export type VariantType = PredictedVariant["consequence"];
 export type BatchResponse = Schemas["BatchResponse"];
 export type BatchItem = BatchResponse["results"][number];
 export type ModelCard = Schemas["ModelCard"];

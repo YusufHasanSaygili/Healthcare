@@ -1,0 +1,82 @@
+{
+  "model": "v2 all coding types (LightGBM + dual tower, per-type route + Platt), ONNX",
+  "test_set_opened_before_export": true,
+  "model_unchanged_since_test": true,
+  "file": "all_types_v2.onnx",
+  "megabytes": 13.91,
+  "versions": {
+    "onnx": "1.23.2",
+    "onnxruntime": "1.31.0"
+  },
+  "inputs": {
+    "features": "['batch', 68]",
+    "protein": "['batch', 2560]",
+    "protein_mask": "['batch']"
+  },
+  "parity_rows": 153822,
+  "parity_max_abs_diff": {
+    "probability": 0.0321288,
+    "lightgbm": 0.0464574,
+    "dual_tower": 7e-07
+  },
+  "parity_decision_mismatches": 3,
+  "validation_onnx_by_type": {
+    "canonical_splice": {
+      "n": 6575,
+      "roc_auc": 0.9662,
+      "ece": 0.0015
+    },
+    "frameshift": {
+      "n": 14479,
+      "roc_auc": 0.9645,
+      "ece": 0.0006
+    },
+    "inframe_deletion": {
+      "n": 643,
+      "roc_auc": 0.9928,
+      "ece": 0.014
+    },
+    "inframe_indel": {
+      "n": 48,
+      "roc_auc": null,
+      "ece": null
+    },
+    "inframe_insertion": {
+      "n": 321,
+      "roc_auc": 0.9857,
+      "ece": 0.0371
+    },
+    "missense": {
+      "n": 27500,
+      "roc_auc": 0.99,
+      "ece": 0.0036
+    },
+    "start_lost": {
+      "n": 389,
+      "roc_auc": null,
+      "ece": null
+    },
+    "stop_gained": {
+      "n": 8994,
+      "roc_auc": 0.9513,
+      "ece": 0.0007
+    },
+    "stop_lost": {
+      "n": 54,
+      "roc_auc": null,
+      "ece": null
+    },
+    "synonymous": {
+      "n": 94819,
+      "roc_auc": 0.8976,
+      "ece": 0.0001
+    }
+  },
+  "latency_cpu_single_variant": {
+    "runs": 200,
+    "median_ms": 0.364,
+    "p95_ms": 0.909,
+    "threads": 1
+  },
+  "seconds": 16.6
+}

@@ -69,16 +69,18 @@ uv run healthcare doctor
 
 ### Predict a variant
 
-After the data is built and the model is exported, a missense SNV can be queried by genomic position or by protein
-change:
+After the data is built and the v2 model is exported (`uv run healthcare export-onnx-v2`), any coding SNV or small
+indel can be queried by genomic position (VCF style, left-normalized automatically) or a missense change by protein
+notation:
 
 ```bash
 uv run healthcare predict 17:43063931 G>A
+uv run healthcare predict 17:43124027 ACT>A
 uv run healthcare predict BRCA1 p.Arg1699Trp
 ```
 
-The output shows the calibrated probability, the three-way decision and the evidence groups that moved it most.
-Other variant types get an explicit out-of-scope message.
+The output shows the variant type, the calibrated probability, the three-way decision and the evidence groups that
+moved it most. Non-coding variants get an explicit out-of-scope message.
 
 The same predictions are available from a local API (bound to `127.0.0.1` only); its interactive documentation
 opens at `http://127.0.0.1:8000/docs`:
@@ -171,16 +173,18 @@ uv run healthcare doctor
 
 ### Varyant sorgulama
 
-Veriler hazırlanıp model dışa aktarıldıktan sonra bir missense SNV, genomik konumla ya da protein değişimiyle
+Veriler hazırlanıp v2 modeli dışa aktarıldıktan sonra (`uv run healthcare export-onnx-v2`) kodlayan her SNV ya da
+küçük indel genomik konumla (VCF biçiminde, otomatik sola hizalanır), missense değişimler ise protein gösterimiyle
 sorgulanabilir:
 
 ```bash
 uv run healthcare predict 17:43063931 G>A
+uv run healthcare predict 17:43124027 ACT>A
 uv run healthcare predict BRCA1 p.Arg1699Trp
 ```
 
-Çıktıda kalibre olasılık, üç yollu karar ve sonucu en çok etkileyen kanıt grupları yer alır. Diğer varyant türleri
-için açık bir "kapsam dışı" mesajı verilir.
+Çıktıda varyant türü, kalibre olasılık, üç yollu karar ve sonucu en çok etkileyen kanıt grupları yer alır. Kodlamayan
+varyantlar için açık bir "kapsam dışı" mesajı verilir.
 
 Aynı tahminler yerel bir API üzerinden de alınabilir (yalnızca `127.0.0.1`); etkileşimli belgeleri
 `http://127.0.0.1:8000/docs` adresinde açılır:

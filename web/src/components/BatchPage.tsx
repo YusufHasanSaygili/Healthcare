@@ -77,7 +77,9 @@ function ResultRow({ item }: { item: BatchItem }) {
       <td className="numeric">{item.line}</td>
       <td translate="no">{result.variant}</td>
       <td translate="no">{result.gene ?? "—"}</td>
-      <td translate="no">{result.status === "predicted" ? result.hgvs_p : "—"}</td>
+      <td translate="no">{result.status === "predicted"
+          ? (result.hgvs_p ?? messages.typeNames[result.consequence])
+          : "—"}</td>
       <td className="numeric">
         {result.status === "predicted" ? formatPercent(result.probability, locale) : "—"}
       </td>

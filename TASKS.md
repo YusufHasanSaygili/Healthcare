@@ -3,7 +3,7 @@
 The project is split into small end-to-end tasks. Each task is finished as **code + tests + summary output** and ends
 with a concrete result the user can try on their own machine.
 
-**Current task:** 9.2 Demo pack and release
+**Current task:** none (all planned tasks done; optional tasks only on request)
 
 Rules:
 - Tasks are done in order. The next task does not start until the current one is finished.
@@ -278,7 +278,7 @@ Rules:
     licenses, reproduction steps, limitations, disclaimer
   - Try it: the README steps can be followed end to end on a clean clone
 
-- [ ] **9.2 Demo pack and release**
+- [x] **9.2 Demo pack and release**
   - Full data tables are too large, so a small demo pack for a selected gene subset (ONNX model + lookup tables for
     those genes) that fits GitHub Releases size limits
   - Going public is the user's decision
@@ -335,3 +335,4 @@ Rules:
 - 2026-10-18 · 8.4b · `all_types_v2.onnx` (13.9 MB, one graph, per-type route + Platt gathered by type code; tower parity 7e-7). Serving takes VCF-style indels (normalized, REF-checked) through the Phase 2 feature functions; serve-check 0 feature / 0 probability diffs on 100 variants across types, median ~670 ms. API/UI show the type, indel/NMD explanations and per-type model card.
 - 2026-10-18 · 9.1 · README rewritten (EN + TR): per-type v2 test and temporal results, Mermaid architecture, data licenses, full reproduction steps (~240 GB; `build-split --force` on a fresh clone, empty `git diff` confirms the split), limitations; `reports/model_card.md`; 3 screenshots via headless Edge. Fresh clone: `uv sync`, `doctor`, 231 pytest, ruff, 25 Vitest and `vite build` pass.
 - 2026-10-18 · 9.1 · UniProt 2026_03 is still UniProt's current release (no archive URL), so `uniprot_human` is pinned by sha256; switch to `previous_releases/release-2026_03` (all species, tar) after 2026_04 ships. UI tagline/batch hint updated to model v2 and indels.
+- 2026-10-20 · 9.2 · `build-demo`: v2 ONNX + lookup tables for 14 genes (26 with overlaps; genome stored as padded regions, 111 MB zip); `predict/serve --demo` read only `demo/`, other variants get "outside the demo pack". Parity with full data on 200 open-split variants: 0 feature / 0 decision diffs. Release v2.0 with the zip; repository made public.

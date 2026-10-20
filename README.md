@@ -12,9 +12,8 @@
 A model trained from scratch that predicts whether a germline genetic variant in a protein-coding gene is
 **pathogenic** or **benign**, plus a web interface that runs on your own machine.
 
-The rule behind the project: **no precomputed pathogenicity scores.** CADD, REVEL, AlphaMissense, SpliceAI, SIFT,
-PolyPhen-2, dbNSFP and every other variant-effect predictor are left out as features, labels, filters and
-benchmarks. The model learns only from raw public data and from features computed in this repository, including
+It uses no precomputed pathogenicity scores. CADD, REVEL, AlphaMissense, SpliceAI, SIFT, PolyPhen-2, dbNSFP and
+every other variant-effect predictor are left out as features, labels, filters and benchmarks. The model learns only from raw public data and from features computed in this repository, including
 ESM-2 protein language model outputs run locally. Variant consequences (codon, amino acid change, frameshift, NMD)
 come from our own annotator built on MANE Select, not from VEP.
 
@@ -80,19 +79,17 @@ release):
 | In-frame deletion | 0.985 (534) | 0.983 (75) |
 | Synonymous | 0.858 (74,871) | too few pathogenic |
 
-What these numbers say:
-
-- **Missense is the strong result.** ROC-AUC 0.99 holds on held-out genes and on newer variants. ESM-2 adds about
-  +0.005 test ROC-AUC on top of the other features, and about +0.02 on validation when allele frequency is
-  removed.
-- **Loss-of-function types lean on allele frequency.** Most ClinVar benign frameshift, stop-gained and splice labels
-  exist because the variant is common in the population. Without frequency, frameshift drops to 0.72. Treat the
-  no-frequency column as the honest measure of what the model learned beyond "common means benign".
-- **Synonymous is hard.** 81 pathogenic out of 98,509; PR-AUC 0.29. The model rarely flags one with confidence.
-- **Calibration drifts on newer variants.** Missense ECE is 0.002 on the test set and 0.032 on the temporal set,
-  where the model is overconfident between 0.3 and 0.8.
-- The first, missense-only model (v1) scored the same on the same test genes (0.990);
-  see [`reports/missense_v1.md`](reports/missense_v1.md).
+- Missense keeps ROC-AUC 0.99 on held-out genes and on newer variants. ESM-2 adds about 0.005 test ROC-AUC on top
+  of the other features, and about 0.02 on validation when allele frequency is removed.
+- Most ClinVar benign labels for frameshift, stop-gained and splice variants were given because the variant is
+  common in the population. Without allele frequency, frameshift falls to 0.72, so that column shows what the
+  model learned beyond "common means benign".
+- Only 81 of 98,509 synonymous test variants are pathogenic, and PR-AUC is 0.29. The model rarely flags one with
+  confidence.
+- Calibration drifts on newer variants: missense ECE is 0.002 on the test set and 0.032 on the temporal set, where
+  the model is overconfident between 0.3 and 0.8.
+- The first, missense-only model (v1) scored 0.990 on the same test genes; see
+  [`reports/missense_v1.md`](reports/missense_v1.md).
 
 The decision shown to users is three-way, on the calibrated probability: **Likely pathogenic** (≥ 0.90),
 **Likely benign** (≤ 0.10), otherwise **Uncertain**. Thresholds and calibration were fixed on the validation set.
@@ -151,7 +148,7 @@ flowchart LR
   rows live in a separate locked folder that the training code cannot read without an explicit flag. Automated tests
   check that no gene and no variant appears in two sets.
 - **Explanation**: for each prediction the service swaps one feature group at a time with values from 32 training
-  variants and reports how much the calibrated log-odds move. This shows which evidence pushed the decision.
+  variants and reports how much the calibrated log-odds move. The web interface draws these changes as a bar chart.
 
 ### Data sources and licenses
 
@@ -235,7 +232,7 @@ be empty, which confirms you got the same split. The dual tower hyperparameter s
 
 ### Use the model
 
-**Command line** — genomic position (VCF style; indels are left-normalized for you) or a protein change:
+**Command line.** Give a genomic position (VCF style; indels are left-normalized for you) or a protein change:
 
 ```bash
 uv run healthcare predict "17:43063931 G>A"
@@ -246,7 +243,7 @@ uv run healthcare predict BRCA1 p.Arg1699Trp
 The output shows the variant type, the calibrated probability, the three-way decision and the evidence groups that
 moved it most. Variants outside coding regions get an explicit out-of-scope message.
 
-**API** — bound to `127.0.0.1` only; interactive docs at `http://127.0.0.1:8000/docs`:
+**API.** It binds to `127.0.0.1` only; interactive docs open at `http://127.0.0.1:8000/docs`.
 
 ```bash
 uv run healthcare serve
@@ -255,7 +252,7 @@ uv run healthcare serve
 Endpoints: `/api/health`, `/api/predict`, `/api/predict/batch` (plain-text VCF, up to 2 MB and 500 variants, read
 in memory and never stored), `/api/model-card`.
 
-**Web interface** — with the API running, in a second terminal, then open `http://127.0.0.1:5173`:
+**Web interface.** With the API running, start it in a second terminal and open `http://127.0.0.1:5173`:
 
 ```bash
 cd web
@@ -283,7 +280,7 @@ until the frontend types are regenerated.
 - **Scope:** GRCh38, MANE Select transcripts, coding SNVs and small indels only. Deep intronic, non-canonical
   splice, UTR, regulatory, mitochondrial, structural and somatic variants are out of scope: without splice or
   regulatory predictors, which this project does not use, there is no reliable signal for them.
-- **Labels are ClinVar's.** ClinVar contains errors and its benign labels for loss-of-function variants largely
+- **Labels:** ClinVar contains errors and its benign labels for loss-of-function variants largely
   reflect population frequency, so part of the measured skill is the model learning that rule.
 - **Population bias:** gnomAD and ClinVar over-represent people of European ancestry; frequency-based evidence is
   weaker for under-represented groups.
@@ -293,7 +290,7 @@ until the frontend types are regenerated.
 - **Calibration drift:** probabilities on variants submitted after the training release are overconfident in the
   middle range.
 - **One transcript per gene:** effects on other isoforms are ignored.
-- **Not a clinical tool.** No clinical validation was done. The output is a research estimate, not an ACMG
+- **Clinical use:** none. No clinical validation was done. The output is a research estimate, not an ACMG
   classification.
 
 ---
@@ -303,9 +300,8 @@ until the frontend types are regenerated.
 Protein kodlayan bir gendeki germline genetik varyantın **patojenik** mi **benign** mi olduğunu tahmin eden,
 sıfırdan eğitilmiş bir model ve kendi bilgisayarında çalışan bir web arayüzü.
 
-Projenin temel kuralı: **hiçbir hazır patojenite skoru kullanılmaz.** CADD, REVEL, AlphaMissense, SpliceAI, SIFT,
-PolyPhen-2, dbNSFP ve diğer tüm varyant etkisi tahmin araçları özellik, etiket, filtre ya da kıyas olarak
-kullanılmadı. Model yalnızca ham açık verilerden ve bu depoda hesaplanan özelliklerden öğrenir; ESM-2 protein dil
+Hiçbir hazır patojenite skoru kullanılmaz. CADD, REVEL, AlphaMissense, SpliceAI, SIFT, PolyPhen-2, dbNSFP ve diğer
+tüm varyant etkisi tahmin araçları özellik, etiket, filtre ya da kıyas olarak dışarıda bırakıldı. Model yalnızca ham açık verilerden ve bu depoda hesaplanan özelliklerden öğrenir; ESM-2 protein dil
 modelinin çıktıları da yerelde hesaplanır. Varyant etkileri (kodon, amino asit değişimi, frameshift, NMD) VEP'ten
 değil, MANE Select üzerine kurulu kendi anotatörümüzden gelir.
 
@@ -371,19 +367,17 @@ P = patojenik, B = benign. Start kaybı, stop kaybı ve in-frame delins'te bir s
 | In-frame silme | 0,985 (534) | 0,983 (75) |
 | Synonymous | 0,858 (74.871) | patojenik sayısı yetersiz |
 
-Bu sayıların söyledikleri:
-
-- **Asıl güçlü sonuç missense.** ROC-AUC 0,99, ayrı tutulan genlerde de yeni varyantlarda da korunuyor. ESM-2 diğer
-  özelliklerin üzerine testte yaklaşık +0,005 ROC-AUC, alel frekansı çıkarıldığında ise doğrulamada yaklaşık
-  +0,02 ekliyor.
-- **İşlev kaybı türleri alel frekansına dayanıyor.** ClinVar'daki benign frameshift, stop kazanımı ve splice
-  etiketlerinin çoğu, varyant toplumda yaygın olduğu için verilmiş. Frekans olmadan frameshift 0,72'ye düşüyor.
-  "Yaygınsa benigndir" kuralının ötesinde modelin ne öğrendiğinin dürüst ölçüsü bu sütun.
-- **Synonymous zor.** 98.509 varyantın 81'i patojenik; PR-AUC 0,29. Model bunları nadiren güvenle işaretliyor.
-- **Yeni varyantlarda kalibrasyon kayıyor.** Missense ECE testte 0,002, zamansal sette 0,032; model 0,3–0,8
-  aralığında fazla emin.
-- İlk, yalnızca missense modeli (v1) aynı test genlerinde aynı sonucu verdi (0,990);
-  bkz. [`reports/missense_v1.md`](reports/missense_v1.md).
+- Missense, ayrı tutulan genlerde de yeni varyantlarda da ROC-AUC 0,99'u koruyor. ESM-2 diğer özelliklerin
+  üzerine testte yaklaşık 0,005 ROC-AUC, alel frekansı çıkarıldığında ise doğrulamada yaklaşık 0,02 ekliyor.
+- ClinVar'daki benign frameshift, stop kazanımı ve splice etiketlerinin çoğu, varyant toplumda yaygın olduğu için
+  verilmiş. Alel frekansı olmadan frameshift 0,72'ye düşüyor; bu sütun modelin "yaygınsa benigndir" kuralının
+  ötesinde ne öğrendiğini gösteriyor.
+- Test setindeki 98.509 synonymous varyantın yalnızca 81'i patojenik ve PR-AUC 0,29. Model bunları nadiren güvenle
+  işaretliyor.
+- Yeni varyantlarda kalibrasyon kayıyor: missense ECE testte 0,002, zamansal sette 0,032; model 0,3–0,8 aralığında
+  fazla emin.
+- İlk, yalnızca missense modeli (v1) aynı test genlerinde 0,990 aldı; bkz.
+  [`reports/missense_v1.md`](reports/missense_v1.md).
 
 Kullanıcıya gösterilen karar, kalibre edilmiş olasılık üzerinde üç yollu: **Muhtemelen patojenik** (≥ 0,90),
 **Muhtemelen benign** (≤ 0,10), aksi halde **Belirsiz**. Eşikler ve kalibrasyon doğrulama setinde sabitlendi.
@@ -414,7 +408,7 @@ Mimari şeması İngilizce bölümde ([How it works](#how-it-works)).
   gruplanır). Test ve zamansal satırlar, eğitim kodunun açık bir bayrak olmadan okuyamadığı kilitli bir klasörde
   durur. Hiçbir gen ve varyantın iki sette birden bulunmadığını otomatik testler doğrular.
 - **Açıklama:** her tahminde servis, özellik gruplarını tek tek 32 eğitim varyantının değerleriyle değiştirir ve
-  kalibre log-odds'un ne kadar oynadığını gösterir. Kararı hangi kanıtın ittiği böylece görülür.
+  kalibre log-odds'un ne kadar oynadığını gösterir. Web arayüzü bu değişimleri çubuk grafik olarak çizer.
 
 ### Veri kaynakları ve lisanslar
 
@@ -466,7 +460,7 @@ da aynı ayrımı elde ettiğinizi doğrular. İlk aşamadaki çift kule hiperpa
 
 ### Modeli kullanma
 
-**Komut satırı** — genomik konum (VCF biçiminde; indel'ler otomatik sola hizalanır) ya da protein değişimi:
+**Komut satırı.** Genomik konum (VCF biçiminde; indel'ler otomatik sola hizalanır) ya da protein değişimi verin:
 
 ```bash
 uv run healthcare predict "17:43063931 G>A"
@@ -477,7 +471,7 @@ uv run healthcare predict BRCA1 p.Arg1699Trp
 Çıktıda varyant türü, kalibre olasılık, üç yollu karar ve sonucu en çok etkileyen kanıt grupları yer alır.
 Kodlayan bölge dışındaki varyantlar için açık bir "kapsam dışı" mesajı verilir.
 
-**API** — yalnızca `127.0.0.1`'e bağlanır; etkileşimli belgeler `http://127.0.0.1:8000/docs` adresindedir:
+**API.** Yalnızca `127.0.0.1`'e bağlanır; etkileşimli belgeler `http://127.0.0.1:8000/docs` adresinde açılır.
 
 ```bash
 uv run healthcare serve
@@ -486,7 +480,7 @@ uv run healthcare serve
 Uç noktalar: `/api/health`, `/api/predict`, `/api/predict/batch` (düz metin VCF, en fazla 2 MB ve 500 varyant;
 bellekte okunur, asla kaydedilmez), `/api/model-card`.
 
-**Web arayüzü** — API çalışırken ikinci bir terminalde başlatıp `http://127.0.0.1:5173` adresini açın:
+**Web arayüzü.** API çalışırken ikinci bir terminalde başlatıp `http://127.0.0.1:5173` adresini açın:
 
 ```bash
 cd web
@@ -507,7 +501,7 @@ değiştiğinde `uv run healthcare openapi` ve `web/` içinde `npm run gen:api` 
 - **Kapsam:** yalnızca GRCh38, MANE Select transkriptleri, kodlayan SNV'ler ve küçük indel'ler. Derin intronik,
   kanonik olmayan splice, UTR, düzenleyici, mitokondriyal, yapısal ve somatik varyantlar kapsam dışıdır: bu projenin
   kullanmadığı splice ve düzenleyici bölge tahmin araçları olmadan bunlar için güvenilir bir sinyal yok.
-- **Etiketler ClinVar'ındır.** ClinVar hata içerir ve işlev kaybı varyantlarındaki benign etiketler büyük ölçüde
+- **Etiketler:** ClinVar hata içerir ve işlev kaybı varyantlarındaki benign etiketler büyük ölçüde
   toplumdaki sıklığı yansıtır; ölçülen başarının bir kısmı modelin bu kuralı öğrenmesidir.
 - **Popülasyon yanlılığı:** gnomAD ve ClinVar'da Avrupa kökenli bireyler fazla temsil edilir; az temsil edilen
   gruplarda frekansa dayalı kanıt daha zayıftır.
@@ -515,7 +509,7 @@ değiştiğinde `uv run healthcare openapi` ve `web/` içinde `npm run gen:api` 
   güven aralıkları geniş. Start kaybı, stop kaybı ve in-frame delins hiç skorlanamadı.
 - **Kalibrasyon kayması:** eğitim sürümünden sonra eklenen varyantlarda olasılıklar orta aralıkta fazla emin.
 - **Gen başına tek transkript:** diğer izoformlar üzerindeki etkiler göz ardı edilir.
-- **Klinik bir araç değildir.** Klinik doğrulama yapılmadı. Çıktı bir araştırma tahminidir, ACMG sınıflandırması
+- **Klinik kullanım:** yok. Klinik doğrulama yapılmadı. Çıktı bir araştırma tahminidir, ACMG sınıflandırması
   değildir.
 
 > **Sorumluluk reddi:** Bu proje yalnızca araştırma ve eğitim amaçlıdır; klinik tanı veya tedavi kararları için

@@ -477,8 +477,8 @@ P = patojenik, B = benign. Start kaybı, stop kaybı ve in-frame delins'te bir s
 - İlk, yalnızca missense modeli (v1) aynı test genlerinde 0,990 aldı; bkz.
   [`reports/missense_v1.md`](reports/missense_v1.md).
 
-Kullanıcıya gösterilen karar, kalibre edilmiş olasılık üzerinde üç yollu: **Muhtemelen patojenik** (≥ 0,90),
-**Muhtemelen benign** (≤ 0,10), aksi halde **Belirsiz**. Eşikler ve kalibrasyon doğrulama setinde sabitlendi.
+Kullanıcıya gösterilen karar, kalibre edilmiş olasılık üzerinde üç yollu: **Olası patojenik** (≥ 0,90),
+**Olası benign** (≤ 0,10), aksi halde **Önemi belirsiz**. Eşikler ve kalibrasyon doğrulama setinde sabitlendi.
 
 ### AlphaMissense ve REVEL ile karşılaştırma
 
@@ -496,7 +496,7 @@ girdi olmadı. Tam rapor (İngilizce): [`reports/external_comparison.md`](report
 - Tam v2 modeli her sette iki araçtan da daha iyi sıralıyor; %95 gen bootstrap aralıkları örtüşmüyor.
 - Bu farkın önemli kısmı alel frekansından geliyor. Frekanssız LightGBM'imiz gen bazında ayrık setlerde iki aracın
   biraz altında, zamansal sette ise REVEL ile başa baş ve AlphaMissense'in üstünde.
-- v2 bir varyanta "muhtemelen patojenik" dediğinde %96–98 haklı; AlphaMissense'in kendi "muhtemelen patojenik"
+- v2 bir varyanta "olası patojenik" dediğinde %96–98 haklı; AlphaMissense'in kendi "olası patojenik"
   sınıfında bu oran %88–90. v2 daha fazla varyantı belirsiz bırakıyor (%11–14'e karşı %5).
 - Dış araçların lehine işleyen uyarılar: bu varyant ve genlerle eğitilmiş ya da kalibre edilmiş olabilirler; 2022'den
   beri ClinVar'a bildirim yapanlar REVEL ve AlphaMissense'i kanıt olarak gösterebildiği için bazı yeni etiketler

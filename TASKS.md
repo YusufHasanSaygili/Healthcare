@@ -295,6 +295,9 @@ Rules:
 - [ ] **O.5 Targeted gnomAD genome frequencies:** fetch genome records for MANE CDS ±20 bp with the tabix reader
   (`data/tabix.py`) and in-window bisection over BGZF blocks (16 kb leaf bins are ~3 MB each, so whole-bin fetching
   is not viable). Only worth it if results are poor at low-coverage positions (<1% of labeled missense).
+- [x] **O.6 External comparison** 🔍: AlphaMissense and REVEL scored next to the frozen v2 model on the same locked
+  missense variants (gene-disjoint test, temporal, temporal test genes); evaluation only, never a model input
+  (CLAUDE.md Section 2 exception). `healthcare compare-external` → `reports/external_comparison.md`.
 
 ---
 
@@ -336,3 +339,5 @@ Rules:
 - 2026-10-18 · 9.1 · README rewritten (EN + TR): per-type v2 test and temporal results, Mermaid architecture, data licenses, full reproduction steps (~240 GB; `build-split --force` on a fresh clone, empty `git diff` confirms the split), limitations; `reports/model_card.md`; 3 screenshots via headless Edge. Fresh clone: `uv sync`, `doctor`, 231 pytest, ruff, 25 Vitest and `vite build` pass.
 - 2026-10-18 · 9.1 · UniProt 2026_03 is still UniProt's current release (no archive URL), so `uniprot_human` is pinned by sha256; switch to `previous_releases/release-2026_03` (all species, tar) after 2026_04 ships. UI tagline/batch hint updated to model v2 and indels.
 - 2026-10-20 · 9.2 · `build-demo`: v2 ONNX + lookup tables for 14 genes (26 with overlaps; genome stored as padded regions, 111 MB zip); `predict/serve --demo` read only `demo/`, other variants get "outside the demo pack". Parity with full data on 200 open-split variants: 0 feature / 0 decision diffs. Release v2.0 with the zip; repository made public.
+- 2026-10-22 · O.6 · Same locked missense variants, frozen models (hashes unchanged; leakage audit PASS). ROC-AUC v2 / no-AF LightGBM / AlphaMissense / REVEL: test 0.990 / 0.960 / 0.972 / 0.977; temporal 0.989 / 0.973 / 0.965 / 0.973; temporal test genes 0.988 / 0.966 / 0.971 / 0.974. v2 likely-pathogenic calls 96–98% correct vs AlphaMissense 88–90%, with 11–14% uncertain vs 5%.
+- 2026-10-22 · O.6 · External scores only via `compare-external` (CLAUDE.md Section 2 exception, `config/external_sources.toml`); report lists caveats that favour them (possible training overlap, ClinVar PP3/BP4 use, AlphaMissense frequency-derived labels).

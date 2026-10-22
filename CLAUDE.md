@@ -40,6 +40,11 @@ SIFT, PolyPhen-2, MutationTaster, MutationAssessor, PROVEAN, FATHMM, MetaSVM, Me
 VEST, DANN, Eigen, M-CAP, MVP, gMVP, VARITY, and every other variant-effect predictor.
 **dbNSFP** (the database aggregating these scores) is not used at all. Score-adding Ensembl VEP plugins are not used.
 
+**Single exception (decided 2026-10-22):** AlphaMissense and REVEL precomputed scores (pinned in
+`config/external_sources.toml`) are downloaded only by `healthcare compare-external`, to score them next to our frozen
+model on the same locked missense variants (`reports/external_comparison.md`). They are never a model input, feature,
+label, filter, ensemble member or a reason to change the model.
+
 ## Allowed sources
 
 | Source | Purpose | Note |
@@ -511,6 +516,7 @@ A task is complete only when:
 | 2026-10-16 | Phase 2 joint training: synonymous variants are not subsampled; a variant scored (missense or Phase 2) in more than one MANE gene is dropped from joint training (listed in `splits/multi_gene_keys.parquet`; the pinned missense table is unchanged); joint models are selected by the mean per-type validation ROC-AUC and always reported per type. | Subsampling would distort per-type priors and calibration; one multi-gene rule for all types; variant type alone nearly separates labels, so a pooled score would mislead. |
 | 2026-10-18 | Final v2 model: per-type route between the joint LightGBM and its average with the joint dual tower (chosen by validation ROC-AUC; types without 20 per class use LightGBM), then per-type Platt (small types pooled); thresholds unchanged (0.90 / 0.10). | Dual tower overfits the few LoF benigns; averaging helps only where it wins on validation. |
 | 2026-10-20 | Repository made public; v2.0 release carries the demo pack (14 genes, 111 MB zip). Commit author email stays visible. | User's decision after task 9.2. |
+| 2026-10-22 | External comparison: AlphaMissense and REVEL scores are allowed for evaluation only, on the same locked missense variants; frozen models, hashes checked. | Advisor asked for evidence against published tools; a fair comparison needs the same variants. |
 | 2026-10-11 | Environment: Windows 11, uv, Docker available / no WSL2, data on A: (990 Pro). | User's hardware. |
 
 ## graphify

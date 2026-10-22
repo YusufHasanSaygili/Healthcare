@@ -1,0 +1,343 @@
+{
+  "scope": "missense SNVs; every scorer evaluated on the same variants",
+  "external_scores_used_for": "evaluation only; never an input, feature, label or filter",
+  "sources": {
+    "alphamissense": {
+      "file": "AlphaMissense_hg38.tsv.gz",
+      "sha256": "0516cfd71c0767ac8f9c469252d429000e94e02c008b6e3a46d4b4646fcd3475",
+      "license": "CC BY-NC-SA 4.0"
+    },
+    "revel": {
+      "file": "revel-v1.3_all_chromosomes.zip",
+      "sha256": "815801d832e4ab76922dddfd901d7f24a755df57078a7138aa14f615da86a8a2",
+      "license": "free for non-commercial use"
+    }
+  },
+  "alphamissense_thresholds": [
+    0.34,
+    0.564
+  ],
+  "model_hashes": {
+    "v2_final.json": "cfbba2ccfe581e5cf38c93fe64cf47b84d1119c1b33ce61175c806128fb29c6e",
+    "joint_lightgbm.txt": "c7f47169b3119c9757aa1d81c960cc7a26f90f3d6abc1c1f974030657d8ec679",
+    "joint_dual_tower.pt": "e692e8cee095e0d6c26bebd24ac6af8dc32a54c1bf11bbf1ee5d2687ad21a373",
+    "joint_lightgbm_no_frequency.txt": "274ac07324d82783adfe25bfa6eb716749171edd31804efacfd3fffb421139bf",
+    "joint_lightgbm_no_esm.txt": "40b235692ee7bbb535f2b60c2d6c1b54230041f6c2b4108476e4d7ca02c1452b"
+  },
+  "model_changed": false,
+  "results": {
+    "test": {
+      "variants": 27500,
+      "with_alphamissense": 26774,
+      "with_revel": 27213,
+      "common": 26522,
+      "common_pathogenic": 7802,
+      "common_genes": 4329,
+      "alphamissense_from_other_transcript": 7136,
+      "revel_from_other_transcript": 3557,
+      "missing_by_class": {
+        "alphamissense": {
+          "0": 545,
+          "1": 181
+        },
+        "revel": {
+          "1": 24,
+          "0": 263
+        }
+      },
+      "metrics": {
+        "v2": {
+          "roc_auc": 0.9903,
+          "pr_auc": 0.977,
+          "n": 26522,
+          "positives": 7802,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9882,
+              0.9919
+            ],
+            "pr_auc": [
+              0.972,
+              0.9808
+            ]
+          }
+        },
+        "v2_no_frequency": {
+          "roc_auc": 0.9602,
+          "pr_auc": 0.9059,
+          "n": 26522,
+          "positives": 7802,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.955,
+              0.9639
+            ],
+            "pr_auc": [
+              0.8923,
+              0.9147
+            ]
+          }
+        },
+        "alphamissense": {
+          "roc_auc": 0.9721,
+          "pr_auc": 0.9375,
+          "n": 26522,
+          "positives": 7802,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9693,
+              0.9748
+            ],
+            "pr_auc": [
+              0.9289,
+              0.9448
+            ]
+          }
+        },
+        "revel": {
+          "roc_auc": 0.9765,
+          "pr_auc": 0.9464,
+          "n": 26522,
+          "positives": 7802,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.974,
+              0.979
+            ],
+            "pr_auc": [
+              0.9375,
+              0.9539
+            ]
+          }
+        }
+      },
+      "three_way": {
+        "v2": {
+          "decided_share": 0.8875,
+          "uncertain_share": 0.1125,
+          "likely_pathogenic_precision": 0.9789,
+          "likely_benign_precision": 0.9912,
+          "pathogenic_found": 0.7854,
+          "benign_found": 0.9149
+        },
+        "alphamissense": {
+          "decided_share": 0.95,
+          "uncertain_share": 0.05,
+          "likely_pathogenic_precision": 0.9014,
+          "likely_benign_precision": 0.9578,
+          "pathogenic_found": 0.8097,
+          "benign_found": 0.9305
+        }
+      }
+    },
+    "temporal_all": {
+      "variants": 18197,
+      "with_alphamissense": 17785,
+      "with_revel": 18048,
+      "common": 17671,
+      "common_pathogenic": 6010,
+      "common_genes": 5925,
+      "alphamissense_from_other_transcript": 4865,
+      "revel_from_other_transcript": 2722,
+      "missing_by_class": {
+        "alphamissense": {
+          "0": 319,
+          "1": 93
+        },
+        "revel": {
+          "0": 135,
+          "1": 14
+        }
+      },
+      "metrics": {
+        "v2": {
+          "roc_auc": 0.9886,
+          "pr_auc": 0.9793,
+          "n": 17671,
+          "positives": 6010,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9865,
+              0.9903
+            ],
+            "pr_auc": [
+              0.9743,
+              0.9833
+            ]
+          }
+        },
+        "v2_no_frequency": {
+          "roc_auc": 0.9726,
+          "pr_auc": 0.952,
+          "n": 17671,
+          "positives": 6010,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9692,
+              0.9757
+            ],
+            "pr_auc": [
+              0.9403,
+              0.9608
+            ]
+          }
+        },
+        "alphamissense": {
+          "roc_auc": 0.9646,
+          "pr_auc": 0.9326,
+          "n": 17671,
+          "positives": 6010,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9602,
+              0.9697
+            ],
+            "pr_auc": [
+              0.918,
+              0.944
+            ]
+          }
+        },
+        "revel": {
+          "roc_auc": 0.9731,
+          "pr_auc": 0.9521,
+          "n": 17671,
+          "positives": 6010,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9685,
+              0.9765
+            ],
+            "pr_auc": [
+              0.9396,
+              0.9619
+            ]
+          }
+        }
+      },
+      "three_way": {
+        "v2": {
+          "decided_share": 0.859,
+          "uncertain_share": 0.141,
+          "likely_pathogenic_precision": 0.9635,
+          "likely_benign_precision": 0.9932,
+          "pathogenic_found": 0.8641,
+          "benign_found": 0.8337
+        },
+        "alphamissense": {
+          "decided_share": 0.946,
+          "uncertain_share": 0.054,
+          "likely_pathogenic_precision": 0.8807,
+          "likely_benign_precision": 0.9548,
+          "pathogenic_found": 0.8502,
+          "benign_found": 0.8937
+        }
+      }
+    },
+    "temporal_test_gene": {
+      "variants": 2919,
+      "with_alphamissense": 2831,
+      "with_revel": 2887,
+      "common": 2800,
+      "common_pathogenic": 888,
+      "common_genes": 1536,
+      "alphamissense_from_other_transcript": 738,
+      "revel_from_other_transcript": 407,
+      "missing_by_class": {
+        "alphamissense": {
+          "0": 59,
+          "1": 29
+        },
+        "revel": {
+          "0": 30,
+          "1": 2
+        }
+      },
+      "metrics": {
+        "v2": {
+          "roc_auc": 0.9878,
+          "pr_auc": 0.9722,
+          "n": 2800,
+          "positives": 888,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9833,
+              0.9916
+            ],
+            "pr_auc": [
+              0.9599,
+              0.9809
+            ]
+          }
+        },
+        "v2_no_frequency": {
+          "roc_auc": 0.9659,
+          "pr_auc": 0.923,
+          "n": 2800,
+          "positives": 888,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9578,
+              0.9722
+            ],
+            "pr_auc": [
+              0.9006,
+              0.9405
+            ]
+          }
+        },
+        "alphamissense": {
+          "roc_auc": 0.9714,
+          "pr_auc": 0.9415,
+          "n": 2800,
+          "positives": 888,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9651,
+              0.9775
+            ],
+            "pr_auc": [
+              0.9289,
+              0.9534
+            ]
+          }
+        },
+        "revel": {
+          "roc_auc": 0.974,
+          "pr_auc": 0.9436,
+          "n": 2800,
+          "positives": 888,
+          "gene_bootstrap_95ci": {
+            "roc_auc": [
+              0.9679,
+              0.9795
+            ],
+            "pr_auc": [
+              0.9289,
+              0.9563
+            ]
+          }
+        }
+      },
+      "three_way": {
+        "v2": {
+          "decided_share": 0.8625,
+          "uncertain_share": 0.1375,
+          "likely_pathogenic_precision": 0.9583,
+          "likely_benign_precision": 0.9964,
+          "pathogenic_found": 0.8288,
+          "benign_found": 0.8583
+        },
+        "alphamissense": {
+          "decided_share": 0.9539,
+          "uncertain_share": 0.0461,
+          "likely_pathogenic_precision": 0.9037,
+          "likely_benign_precision": 0.953,
+          "pathogenic_found": 0.8345,
+          "benign_found": 0.9226
+        }
+      }
+    }
+  },
+  "seconds": 25.7
+}

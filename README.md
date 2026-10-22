@@ -13,11 +13,12 @@ A model trained from scratch that predicts whether a germline genetic variant in
 **pathogenic** or **benign**, plus a web interface that runs on your own machine.
 
 It uses no precomputed pathogenicity scores. CADD, REVEL, AlphaMissense, SpliceAI, SIFT, PolyPhen-2, dbNSFP and
-every other variant-effect predictor are left out as features, labels, filters and benchmarks. The model learns only from raw public data and from features computed in this repository, including
+every other variant-effect predictor are left out as features, labels and filters; AlphaMissense and REVEL appear only as an external yardstick, scored next to the finished model. The model learns only from raw public data and from features computed in this repository, including
 ESM-2 protein language model outputs run locally. Variant consequences (codon, amino acid change, frameshift, NMD)
 come from our own annotator built on MANE Select, not from VEP.
 
-Contents: [Try the demo](#try-the-demo) · [Screenshots](#screenshots) · [Results](#results) · [How it works](#how-it-works) ·
+Contents: [Try the demo](#try-the-demo) · [Screenshots](#screenshots) · [Results](#results) ·
+[Comparison with AlphaMissense and REVEL](#comparison-with-alphamissense-and-revel) · [How it works](#how-it-works) ·
 [Data sources and licenses](#data-sources-and-licenses) · [Reproduce from scratch](#reproduce-from-scratch) ·
 [Use the model](#use-the-model) · [Limitations](#limitations) · [Model card](reports/model_card.md)
 
@@ -93,6 +94,29 @@ release):
 
 The decision shown to users is three-way, on the calibrated probability: **Likely pathogenic** (≥ 0.90),
 **Likely benign** (≤ 0.10), otherwise **Uncertain**. Thresholds and calibration were fixed on the validation set.
+
+### Comparison with AlphaMissense and REVEL
+
+All four scorers were measured on the same locked missense variants, after our models were frozen (model files
+hashed before and after). The external scores were used for this evaluation only, never as an input. Full report:
+[`reports/external_comparison.md`](reports/external_comparison.md).
+
+| Missense ROC-AUC | Gene-disjoint test (26,522) | Temporal, all genes (17,671) | Temporal, test genes (2,800) |
+|---|---|---|---|
+| Ours: v2 | **0.990** | **0.989** | **0.988** |
+| Ours: LightGBM without allele frequency | 0.960 | 0.973 | 0.966 |
+| AlphaMissense (2023) | 0.972 | 0.965 | 0.971 |
+| REVEL (2016) | 0.977 | 0.973 | 0.974 |
+
+- The full v2 model ranks variants better than both tools on every set, with non-overlapping 95% gene-bootstrap
+  intervals.
+- Much of that lead comes from allele frequency. Without it our LightGBM sits slightly below both tools on the
+  gene-disjoint sets, and level with REVEL and above AlphaMissense on the temporal set.
+- When v2 calls a variant likely pathogenic it is right 96–98% of the time, against 88–90% for AlphaMissense's own
+  likely-pathogenic class. v2 leaves more variants uncertain (11–14% against 5%).
+- Caveats that favour the external tools: they may have been trained or calibrated with these variants and genes,
+  and since 2022 ClinVar submitters can cite REVEL and AlphaMissense as evidence, so some newer labels partly rest
+  on their scores. AlphaMissense is also frequency-informed through its training labels.
 
 ### How it works
 
@@ -171,6 +195,11 @@ all species, ~1.6 GB) will then be the source.
 | [ESM-2](https://github.com/facebookresearch/esm) | `facebook/esm2_t33_650M_UR50D`, pinned revision | Protein tower (weights only, run locally) | MIT |
 | Amino acid tables | Grantham 1974, BLOSUM62 (Henikoff 1992), Kyte–Doolittle 1982 | Physicochemistry | Published literature |
 
+Used only by `healthcare compare-external`, never by the model ([`config/external_sources.toml`](config/external_sources.toml)):
+[AlphaMissense](https://github.com/google-deepmind/alphamissense) hg38 scores (CC BY-NC-SA 4.0; Cheng et al., *Science*
+2023) and [REVEL](https://sites.google.com/site/revelgenomics/) v1.3 (free for non-commercial use; Ioannidis et al.,
+*Am J Hum Genet* 2016). No per-variant external score is stored in this repository.
+
 ### Reproduce from scratch
 
 Everything below runs on one desktop machine. Developed on Windows 11 with an RTX 4070 Ti (12 GB), an i5-13600KF
@@ -220,6 +249,9 @@ uv run healthcare evaluate-final-v2 --force
 
 # 6. Optional: build the demo pack (artifacts/demo/healthcare-demo-v2.zip)
 uv run healthcare build-demo
+
+# 7. Optional: score AlphaMissense and REVEL on the same locked variants (downloads ~1.3 GB)
+uv run healthcare compare-external
 ```
 
 `build-demo` also checks the pack against the full data on 200 open-split variants of the pack genes and writes the
@@ -301,11 +333,12 @@ Protein kodlayan bir gendeki germline genetik varyantın **patojenik** mi **beni
 sıfırdan eğitilmiş bir model ve kendi bilgisayarında çalışan bir web arayüzü.
 
 Hiçbir hazır patojenite skoru kullanılmaz. CADD, REVEL, AlphaMissense, SpliceAI, SIFT, PolyPhen-2, dbNSFP ve diğer
-tüm varyant etkisi tahmin araçları özellik, etiket, filtre ya da kıyas olarak dışarıda bırakıldı. Model yalnızca ham açık verilerden ve bu depoda hesaplanan özelliklerden öğrenir; ESM-2 protein dil
+tüm varyant etkisi tahmin araçları özellik, etiket ya da filtre olarak dışarıda bırakıldı; AlphaMissense ve REVEL yalnızca bitmiş modelin yanında dış ölçüt olarak puanlandı. Model yalnızca ham açık verilerden ve bu depoda hesaplanan özelliklerden öğrenir; ESM-2 protein dil
 modelinin çıktıları da yerelde hesaplanır. Varyant etkileri (kodon, amino asit değişimi, frameshift, NMD) VEP'ten
 değil, MANE Select üzerine kurulu kendi anotatörümüzden gelir.
 
-İçerik: [Demoyu deneyin](#demoyu-deneyin) · [Ekran görüntüleri](#ekran-görüntüleri) · [Sonuçlar](#sonuçlar) · [Nasıl çalışır](#nasıl-çalışır) ·
+İçerik: [Demoyu deneyin](#demoyu-deneyin) · [Ekran görüntüleri](#ekran-görüntüleri) · [Sonuçlar](#sonuçlar) ·
+[AlphaMissense ve REVEL ile karşılaştırma](#alphamissense-ve-revel-ile-karşılaştırma) · [Nasıl çalışır](#nasıl-çalışır) ·
 [Veri kaynakları ve lisanslar](#veri-kaynakları-ve-lisanslar) · [Sıfırdan yeniden üretme](#sıfırdan-yeniden-üretme) ·
 [Modeli kullanma](#modeli-kullanma) · [Sınırlamalar](#sınırlamalar) · [Model kartı](reports/model_card.md)
 
@@ -382,6 +415,28 @@ P = patojenik, B = benign. Start kaybı, stop kaybı ve in-frame delins'te bir s
 Kullanıcıya gösterilen karar, kalibre edilmiş olasılık üzerinde üç yollu: **Muhtemelen patojenik** (≥ 0,90),
 **Muhtemelen benign** (≤ 0,10), aksi halde **Belirsiz**. Eşikler ve kalibrasyon doğrulama setinde sabitlendi.
 
+### AlphaMissense ve REVEL ile karşılaştırma
+
+Dört skorlayıcı da aynı kilitli missense varyantlarında, modellerimiz dondurulduktan sonra ölçüldü (model dosyalarının
+hash'i öncesinde ve sonrasında kontrol edildi). Dış skorlar yalnızca bu değerlendirmede kullanıldı, hiçbir zaman
+girdi olmadı. Tam rapor (İngilizce): [`reports/external_comparison.md`](reports/external_comparison.md).
+
+| Missense ROC-AUC | Gen bazında ayrık test (26.522) | Zamansal, tüm genler (17.671) | Zamansal, test genleri (2.800) |
+|---|---|---|---|
+| Bizim: v2 | **0,990** | **0,989** | **0,988** |
+| Bizim: alel frekansı olmadan LightGBM | 0,960 | 0,973 | 0,966 |
+| AlphaMissense (2023) | 0,972 | 0,965 | 0,971 |
+| REVEL (2016) | 0,977 | 0,973 | 0,974 |
+
+- Tam v2 modeli her sette iki araçtan da daha iyi sıralıyor; %95 gen bootstrap aralıkları örtüşmüyor.
+- Bu farkın önemli kısmı alel frekansından geliyor. Frekanssız LightGBM'imiz gen bazında ayrık setlerde iki aracın
+  biraz altında, zamansal sette ise REVEL ile başa baş ve AlphaMissense'in üstünde.
+- v2 bir varyanta "muhtemelen patojenik" dediğinde %96–98 haklı; AlphaMissense'in kendi "muhtemelen patojenik"
+  sınıfında bu oran %88–90. v2 daha fazla varyantı belirsiz bırakıyor (%11–14'e karşı %5).
+- Dış araçların lehine işleyen uyarılar: bu varyant ve genlerle eğitilmiş ya da kalibre edilmiş olabilirler; 2022'den
+  beri ClinVar'a bildirim yapanlar REVEL ve AlphaMissense'i kanıt olarak gösterebildiği için bazı yeni etiketler
+  kısmen bu skorlara dayanıyor. AlphaMissense eğitim etiketleri üzerinden nüfus sıklığını da dolaylı olarak kullanıyor.
+
 ### Nasıl çalışır
 
 Mimari şeması İngilizce bölümde ([How it works](#how-it-works)).
@@ -431,6 +486,12 @@ sağlama toplamı hatasıyla durur; o zaman kaynak 2026_03 arşivi olacaktır
 | [ESM-2](https://github.com/facebookresearch/esm) | `facebook/esm2_t33_650M_UR50D`, sabit revizyon | Protein kulesi (yalnızca ağırlıklar, yerelde) | MIT |
 | Amino asit tabloları | Grantham 1974, BLOSUM62 (Henikoff 1992), Kyte–Doolittle 1982 | Fizikokimya | Yayımlanmış literatür |
 
+Yalnızca `healthcare compare-external` tarafından kullanılır, model tarafından asla
+([`config/external_sources.toml`](config/external_sources.toml)): [AlphaMissense](https://github.com/google-deepmind/alphamissense)
+hg38 skorları (CC BY-NC-SA 4.0; Cheng vd., *Science* 2023) ve [REVEL](https://sites.google.com/site/revelgenomics/) v1.3
+(ticari olmayan kullanım için ücretsiz; Ioannidis vd., *Am J Hum Genet* 2016). Depoda varyant başına hiçbir dış skor
+saklanmaz.
+
 ### Sıfırdan yeniden üretme
 
 Aşağıdaki her şey tek bir masaüstü bilgisayarda çalışır. Windows 11, RTX 4070 Ti (12 GB), i5-13600KF ve NVMe disk
@@ -448,7 +509,8 @@ aynıdır ve aynı sırayla çalıştırılır. Her komut çıktısı zaten vars
 altına bir log ve `logs/summaries/` altına küçük bir özet JSON yazar. Çoğu adım önce tek kromozomda denemek için
 `--chrom 22` kabul eder.
 
-İsteğe bağlı son adım `uv run healthcare build-demo` demo paketini (`artifacts/demo/healthcare-demo-v2.zip`)
+İsteğe bağlı `uv run healthcare compare-external` adımı AlphaMissense ve REVEL skorlarını (~1,3 GB) indirip aynı kilitli
+varyantlarda bizim modelimizle karşılaştırır. İsteğe bağlı son adım `uv run healthcare build-demo` demo paketini (`artifacts/demo/healthcare-demo-v2.zip`)
 üretir. Paket, kendi genlerindeki 200 açık set varyantında tam veriyle karşılaştırılır ve sonuç
 `logs/summaries/build-demo.json` dosyasına yazılır (beklenen: 0 özellik ve 0 karar farkı).
 

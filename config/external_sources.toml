@@ -1,0 +1,9 @@
+[sources.alphamissense]
+url = "https://storage.googleapis.com/dm_alphamissense/AlphaMissense_hg38.tsv.gz"
+version = "AlphaMissense hg38 (2023-08-03), CC BY-NC-SA 4.0"
+sha256 = "0516cfd71c0767ac8f9c469252d429000e94e02c008b6e3a46d4b4646fcd3475"
+
+[sources.revel]
+url = "https://rothsj06.dmz.hpc.mssm.edu/revel-v1.3_all_chromosomes.zip"
+version = "REVEL v1.3 (2021-05-03), free for non-commercial use"
+sha256 = "815801d832e4ab76922dddfd901d7f24a755df57078a7138aa14f615da86a8a2"

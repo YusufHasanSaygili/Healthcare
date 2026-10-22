@@ -14,7 +14,7 @@ from healthcare.data.download import ChecksumMismatch, download
 from healthcare.data.sources import load_sources
 from healthcare.features import missense, phase2
 from healthcare.models import baseline
-from healthcare.paths import ARTIFACTS_DIR, DATA_DIR, PROJECT_ROOT, REPORTS_DIR
+from healthcare.paths import ARTIFACTS_DIR, CONFIG_DIR, DATA_DIR, PROJECT_ROOT, REPORTS_DIR
 from healthcare.runlog import start_log, write_summary
 from healthcare.split import genes as gene_split
 
@@ -764,6 +764,42 @@ def run_serve(port: int, demo_dir: Path | None) -> int:
     return 0
 
 
+def run_compare_external() -> int:
+    from healthcare.evaluate import external
+
+    sources = load_sources(CONFIG_DIR / "external_sources.toml")
+    try:
+        for source in sources.values():
+            download(source.url, source.path, source.sha256)
+    except (ChecksumMismatch, OSError) as error:
+        print(error)
+        return 1
+    log_path = start_log("compare-external")
+    report = external.run(
+        DATA_DIR / "processed" / "splits",
+        ARTIFACTS_DIR / "models",
+        ARTIFACTS_DIR / "esm_variants" / "joint_locked.npy",
+        sources["alphamissense"].path,
+        sources["revel"].path,
+        DATA_DIR / "interim" / "revel",
+        REPORTS_DIR,
+    )
+    summary = {
+        name: {k: r[k] for k in ("variants", "common")}
+        | {scorer: m["roc_auc"] for scorer, m in r["metrics"].items()}
+        for name, r in report["results"].items()
+    }
+    summary_path = write_summary(
+        "compare-external",
+        {"log": log_path, "model_changed": report["model_changed"], "seconds": report["seconds"]}
+        | summary,
+    )
+    print(f"model changed: {report['model_changed']}")
+    print(f"report: {REPORTS_DIR / 'external_comparison.md'}")
+    print(f"summary: {summary_path}")
+    return 1 if report["model_changed"] else 0
+
+
 def run_build_demo(genes: str | None, force: bool) -> int:
     import json
 
@@ -994,6 +1030,10 @@ def main(argv: list[str] | None = None) -> int:
         demo_parser.add_argument(
             "--demo", action="store_true", help="Use the demo pack in demo/, not the full data"
         )
+    commands.add_parser(
+        "compare-external",
+        help="Score the locked missense sets with AlphaMissense and REVEL next to ours",
+    )
     build_demo_parser = commands.add_parser(
         "build-demo", help="Build the demo pack (model + lookup tables for a few genes)"
     )
@@ -1074,6 +1114,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_serve(args.port, DEMO_DIR if args.demo else None)
     if args.command == "build-demo":
         return run_build_demo(args.genes, args.force)
+    if args.command == "compare-external":
+        return run_compare_external()
     if args.command == "openapi":
         return run_openapi()
     if args.command == "serve-check":

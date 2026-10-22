@@ -74,3 +74,48 @@ def test_three_way_reports_precision_of_each_confident_call():
     assert result["likely_benign_precision"] == 1.0
     assert result["pathogenic_found"] == round(2 / 3, 4)
     assert result["benign_found"] == round(1 / 3, 4)
+
+
+def test_dbnsfp_scan_keeps_only_wanted_variants_and_stops_at_the_next_chromosome(tmp_path):
+    from healthcare.evaluate import dbnsfp
+
+    path = tmp_path / "db.gz"
+    rows = [
+        "#chr\tpos(1-based)\tref\talt\tREVEL_rankscore",
+        "17\t100\tG\tA\t0.9",
+        "17\t100\tG\tC\t0.1",
+        "17\t200\tC\tT\t.",
+        "18\t100\tG\tA\t0.5",
+    ]
+    with gzip.open(path, "wb") as handle:
+        handle.write(("\n".join(rows) + "\n").encode())
+    start = len(rows[0]) + 1
+    found = dbnsfp.scan(path, "17", start, {(100, "G", "A"), (200, "C", "T")}, [4])
+    assert found == [["17", 100, "G", "A", "0.9"], ["17", 200, "C", "T", "."]]
+
+
+def test_broad_scores_ours_on_exactly_the_variants_each_tool_covers():
+    from healthcare.evaluate import dbnsfp
+
+    rng = np.random.default_rng(1)
+    n = 400
+    labels = rng.integers(0, 2, n)
+    table = pl.DataFrame(
+        {
+            "label": labels,
+            "gene_name": [f"G{i % 40}" for i in range(n)],
+            "v2": labels * 0.8 + rng.random(n) * 0.2,
+            "v2_no_frequency": rng.random(n),
+            **{column: None for column in dbnsfp.TOOLS},
+        }
+    ).with_columns(
+        pl.Series("REVEL_rankscore", np.where(np.arange(n) < 300, rng.random(n), np.nan)).fill_nan(
+            None
+        )
+    )
+    rows = external.broad(table)
+    assert [row["tool"] for row in rows] == ["REVEL"]
+    assert rows[0]["variants"] == 300
+    low, high = rows[0]["difference_95ci"]
+    assert low <= rows[0]["difference"] <= high
+    assert rows[0]["difference"] > 0.3

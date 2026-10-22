@@ -40,8 +40,9 @@ SIFT, PolyPhen-2, MutationTaster, MutationAssessor, PROVEAN, FATHMM, MetaSVM, Me
 VEST, DANN, Eigen, M-CAP, MVP, gMVP, VARITY, and every other variant-effect predictor.
 **dbNSFP** (the database aggregating these scores) is not used at all. Score-adding Ensembl VEP plugins are not used.
 
-**Single exception (decided 2026-10-22):** AlphaMissense and REVEL precomputed scores (pinned in
-`config/external_sources.toml`) are downloaded only by `healthcare compare-external`, to score them next to our frozen
+**Single exception (decided 2026-10-22):** AlphaMissense and REVEL precomputed scores, and the dbNSFP 5.4a academic
+branch (all pinned in `config/external_sources.toml`; dbNSFP needs a free academic registration and its personal
+download link is never committed), are used only by `healthcare compare-external`, to score them next to our frozen
 model on the same locked missense variants (`reports/external_comparison.md`). They are never a model input, feature,
 label, filter, ensemble member or a reason to change the model.
 

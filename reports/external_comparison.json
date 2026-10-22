@@ -13,6 +13,10 @@
       "license": "free for non-commercial use"
     }
   },
+  "dbnsfp": {
+    "file": "dbNSFP5.4a_grch38.gz",
+    "license": "CC BY-NC-ND 4.0 (academic branch)"
+  },
   "alphamissense_thresholds": [
     0.34,
     0.564
@@ -37,8 +41,8 @@
       "revel_from_other_transcript": 3557,
       "missing_by_class": {
         "alphamissense": {
-          "0": 545,
-          "1": 181
+          "1": 181,
+          "0": 545
         },
         "revel": {
           "1": 24,
@@ -128,7 +132,490 @@
           "pathogenic_found": 0.8097,
           "benign_found": 0.9305
         }
-      }
+      },
+      "dbnsfp": [
+        {
+          "tool": "MetaRNN",
+          "column": "MetaRNN_rankscore",
+          "variants": 27236,
+          "tool_roc_auc": 0.9927,
+          "v2_roc_auc": 0.9902,
+          "v2_no_frequency_roc_auc": 0.9607,
+          "difference": -0.0025,
+          "difference_95ci": [
+            -0.0042,
+            -0.0013
+          ]
+        },
+        {
+          "tool": "ClinPred",
+          "column": "ClinPred_rankscore",
+          "variants": 27144,
+          "tool_roc_auc": 0.9919,
+          "v2_roc_auc": 0.9902,
+          "v2_no_frequency_roc_auc": 0.9605,
+          "difference": -0.0017,
+          "difference_95ci": [
+            -0.003,
+            -0.0005
+          ]
+        },
+        {
+          "tool": "BayesDel (with AF)",
+          "column": "BayesDel_addAF_rankscore",
+          "variants": 27317,
+          "tool_roc_auc": 0.9901,
+          "v2_roc_auc": 0.9902,
+          "v2_no_frequency_roc_auc": 0.9606,
+          "difference": 0.0001,
+          "difference_95ci": [
+            -0.0012,
+            0.0018
+          ]
+        },
+        {
+          "tool": "MutationTaster",
+          "column": "MutationTaster_rankscore",
+          "variants": 25666,
+          "tool_roc_auc": 0.9867,
+          "v2_roc_auc": 0.9909,
+          "v2_no_frequency_roc_auc": 0.9616,
+          "difference": 0.0042,
+          "difference_95ci": [
+            0.0021,
+            0.0062
+          ]
+        },
+        {
+          "tool": "PHACTboost",
+          "column": "PHACTboost_rankscore",
+          "variants": 26220,
+          "tool_roc_auc": 0.9845,
+          "v2_roc_auc": 0.9902,
+          "v2_no_frequency_roc_auc": 0.96,
+          "difference": 0.0057,
+          "difference_95ci": [
+            0.0038,
+            0.0074
+          ]
+        },
+        {
+          "tool": "MutScore",
+          "column": "MutScore_rankscore",
+          "variants": 27121,
+          "tool_roc_auc": 0.9791,
+          "v2_roc_auc": 0.9903,
+          "v2_no_frequency_roc_auc": 0.9607,
+          "difference": 0.0111,
+          "difference_95ci": [
+            0.0091,
+            0.0133
+          ]
+        },
+        {
+          "tool": "REVEL",
+          "column": "REVEL_rankscore",
+          "variants": 26190,
+          "tool_roc_auc": 0.976,
+          "v2_roc_auc": 0.9903,
+          "v2_no_frequency_roc_auc": 0.9608,
+          "difference": 0.0143,
+          "difference_95ci": [
+            0.0117,
+            0.0168
+          ]
+        },
+        {
+          "tool": "BayesDel (no AF)",
+          "column": "BayesDel_noAF_rankscore",
+          "variants": 27317,
+          "tool_roc_auc": 0.9756,
+          "v2_roc_auc": 0.9902,
+          "v2_no_frequency_roc_auc": 0.9606,
+          "difference": 0.0146,
+          "difference_95ci": [
+            0.012,
+            0.0177
+          ]
+        },
+        {
+          "tool": "VEST4",
+          "column": "VEST4_rankscore",
+          "variants": 26525,
+          "tool_roc_auc": 0.9725,
+          "v2_roc_auc": 0.9903,
+          "v2_no_frequency_roc_auc": 0.9614,
+          "difference": 0.0178,
+          "difference_95ci": [
+            0.0155,
+            0.0201
+          ]
+        },
+        {
+          "tool": "VARITY_R",
+          "column": "VARITY_R_rankscore",
+          "variants": 25698,
+          "tool_roc_auc": 0.9725,
+          "v2_roc_auc": 0.9903,
+          "v2_no_frequency_roc_auc": 0.9597,
+          "difference": 0.0178,
+          "difference_95ci": [
+            0.0152,
+            0.0211
+          ]
+        },
+        {
+          "tool": "AlphaMissense",
+          "column": "AlphaMissense_rankscore",
+          "variants": 27379,
+          "tool_roc_auc": 0.9712,
+          "v2_roc_auc": 0.9902,
+          "v2_no_frequency_roc_auc": 0.9605,
+          "difference": 0.019,
+          "difference_95ci": [
+            0.0163,
+            0.0223
+          ]
+        },
+        {
+          "tool": "VARITY_ER",
+          "column": "VARITY_ER_rankscore",
+          "variants": 25698,
+          "tool_roc_auc": 0.9679,
+          "v2_roc_auc": 0.9903,
+          "v2_no_frequency_roc_auc": 0.9597,
+          "difference": 0.0224,
+          "difference_95ci": [
+            0.0196,
+            0.025
+          ]
+        },
+        {
+          "tool": "gMVP",
+          "column": "gMVP_rankscore",
+          "variants": 25888,
+          "tool_roc_auc": 0.9672,
+          "v2_roc_auc": 0.9904,
+          "v2_no_frequency_roc_auc": 0.961,
+          "difference": 0.0232,
+          "difference_95ci": [
+            0.0205,
+            0.0257
+          ]
+        },
+        {
+          "tool": "MutPred2",
+          "column": "MutPred2_rankscore",
+          "variants": 27473,
+          "tool_roc_auc": 0.9633,
+          "v2_roc_auc": 0.9902,
+          "v2_no_frequency_roc_auc": 0.9607,
+          "difference": 0.0269,
+          "difference_95ci": [
+            0.024,
+            0.0299
+          ]
+        },
+        {
+          "tool": "Eigen",
+          "column": "Eigen-raw_coding_rankscore",
+          "variants": 26052,
+          "tool_roc_auc": 0.9543,
+          "v2_roc_auc": 0.9902,
+          "v2_no_frequency_roc_auc": 0.9609,
+          "difference": 0.0359,
+          "difference_95ci": [
+            0.0329,
+            0.0388
+          ]
+        },
+        {
+          "tool": "CADD",
+          "column": "CADD_raw_rankscore",
+          "variants": 27500,
+          "tool_roc_auc": 0.9526,
+          "v2_roc_auc": 0.9902,
+          "v2_no_frequency_roc_auc": 0.9607,
+          "difference": 0.0376,
+          "difference_95ci": [
+            0.0346,
+            0.0411
+          ]
+        },
+        {
+          "tool": "DEOGEN2",
+          "column": "DEOGEN2_rankscore",
+          "variants": 26503,
+          "tool_roc_auc": 0.9514,
+          "v2_roc_auc": 0.9902,
+          "v2_no_frequency_roc_auc": 0.9599,
+          "difference": 0.0388,
+          "difference_95ci": [
+            0.0327,
+            0.045
+          ]
+        },
+        {
+          "tool": "MutFormer",
+          "column": "MutFormer_rankscore",
+          "variants": 27115,
+          "tool_roc_auc": 0.9509,
+          "v2_roc_auc": 0.9903,
+          "v2_no_frequency_roc_auc": 0.9608,
+          "difference": 0.0394,
+          "difference_95ci": [
+            0.034,
+            0.0444
+          ]
+        },
+        {
+          "tool": "M-CAP",
+          "column": "M-CAP_rankscore",
+          "variants": 22881,
+          "tool_roc_auc": 0.9475,
+          "v2_roc_auc": 0.9879,
+          "v2_no_frequency_roc_auc": 0.9661,
+          "difference": 0.0404,
+          "difference_95ci": [
+            0.0348,
+            0.0448
+          ]
+        },
+        {
+          "tool": "MVP",
+          "column": "MVP_rankscore",
+          "variants": 25561,
+          "tool_roc_auc": 0.9469,
+          "v2_roc_auc": 0.9897,
+          "v2_no_frequency_roc_auc": 0.9616,
+          "difference": 0.0428,
+          "difference_95ci": [
+            0.0374,
+            0.048
+          ]
+        },
+        {
+          "tool": "MisFit",
+          "column": "MisFit_D_rankscore",
+          "variants": 26918,
+          "tool_roc_auc": 0.9467,
+          "v2_roc_auc": 0.9902,
+          "v2_no_frequency_roc_auc": 0.9604,
+          "difference": 0.0435,
+          "difference_95ci": [
+            0.0387,
+            0.0499
+          ]
+        },
+        {
+          "tool": "MetaLR",
+          "column": "MetaLR_rankscore",
+          "variants": 27148,
+          "tool_roc_auc": 0.9443,
+          "v2_roc_auc": 0.9902,
+          "v2_no_frequency_roc_auc": 0.9605,
+          "difference": 0.0459,
+          "difference_95ci": [
+            0.0408,
+            0.0529
+          ]
+        },
+        {
+          "tool": "MetaSVM",
+          "column": "MetaSVM_rankscore",
+          "variants": 27148,
+          "tool_roc_auc": 0.9431,
+          "v2_roc_auc": 0.9902,
+          "v2_no_frequency_roc_auc": 0.9605,
+          "difference": 0.0471,
+          "difference_95ci": [
+            0.0415,
+            0.0553
+          ]
+        },
+        {
+          "tool": "PolyPhen-2 HVAR",
+          "column": "Polyphen2_HVAR_rankscore",
+          "variants": 25985,
+          "tool_roc_auc": 0.9424,
+          "v2_roc_auc": 0.9907,
+          "v2_no_frequency_roc_auc": 0.9603,
+          "difference": 0.0483,
+          "difference_95ci": [
+            0.0439,
+            0.052
+          ]
+        },
+        {
+          "tool": "FATHMM-XF",
+          "column": "fathmm-XF_coding_rankscore",
+          "variants": 25976,
+          "tool_roc_auc": 0.9415,
+          "v2_roc_auc": 0.9902,
+          "v2_no_frequency_roc_auc": 0.9611,
+          "difference": 0.0487,
+          "difference_95ci": [
+            0.0433,
+            0.0529
+          ]
+        },
+        {
+          "tool": "GPN-MSA",
+          "column": "GPN_MSA_converted_rankscore",
+          "variants": 27500,
+          "tool_roc_auc": 0.9393,
+          "v2_roc_auc": 0.9902,
+          "v2_no_frequency_roc_auc": 0.9607,
+          "difference": 0.051,
+          "difference_95ci": [
+            0.0461,
+            0.0554
+          ]
+        },
+        {
+          "tool": "popEVE",
+          "column": "popEVE_converted_rankscore",
+          "variants": 26051,
+          "tool_roc_auc": 0.9389,
+          "v2_roc_auc": 0.9912,
+          "v2_no_frequency_roc_auc": 0.9614,
+          "difference": 0.0523,
+          "difference_95ci": [
+            0.0462,
+            0.0592
+          ]
+        },
+        {
+          "tool": "ESM1b",
+          "column": "ESM1b_converted_rankscore",
+          "variants": 27499,
+          "tool_roc_auc": 0.9372,
+          "v2_roc_auc": 0.9902,
+          "v2_no_frequency_roc_auc": 0.9607,
+          "difference": 0.053,
+          "difference_95ci": [
+            0.0459,
+            0.0603
+          ]
+        },
+        {
+          "tool": "PROVEAN",
+          "column": "PROVEAN_converted_rankscore",
+          "variants": 25892,
+          "tool_roc_auc": 0.9356,
+          "v2_roc_auc": 0.9903,
+          "v2_no_frequency_roc_auc": 0.9609,
+          "difference": 0.0547,
+          "difference_95ci": [
+            0.0506,
+            0.0588
+          ]
+        },
+        {
+          "tool": "SIFT",
+          "column": "SIFT_converted_rankscore",
+          "variants": 25580,
+          "tool_roc_auc": 0.9311,
+          "v2_roc_auc": 0.9904,
+          "v2_no_frequency_roc_auc": 0.9611,
+          "difference": 0.0593,
+          "difference_95ci": [
+            0.0547,
+            0.0635
+          ]
+        },
+        {
+          "tool": "PolyPhen-2 HDIV",
+          "column": "Polyphen2_HDIV_rankscore",
+          "variants": 25985,
+          "tool_roc_auc": 0.9297,
+          "v2_roc_auc": 0.9907,
+          "v2_no_frequency_roc_auc": 0.9603,
+          "difference": 0.0609,
+          "difference_95ci": [
+            0.0551,
+            0.0659
+          ]
+        },
+        {
+          "tool": "MutationAssessor",
+          "column": "MutationAssessor_rankscore",
+          "variants": 24623,
+          "tool_roc_auc": 0.9292,
+          "v2_roc_auc": 0.9907,
+          "v2_no_frequency_roc_auc": 0.9601,
+          "difference": 0.0614,
+          "difference_95ci": [
+            0.0548,
+            0.0686
+          ]
+        },
+        {
+          "tool": "SIFT4G",
+          "column": "SIFT4G_converted_rankscore",
+          "variants": 26551,
+          "tool_roc_auc": 0.9222,
+          "v2_roc_auc": 0.9903,
+          "v2_no_frequency_roc_auc": 0.9615,
+          "difference": 0.0681,
+          "difference_95ci": [
+            0.0625,
+            0.0739
+          ]
+        },
+        {
+          "tool": "LIST-S2",
+          "column": "LIST-S2_rankscore",
+          "variants": 26997,
+          "tool_roc_auc": 0.9167,
+          "v2_roc_auc": 0.9905,
+          "v2_no_frequency_roc_auc": 0.9605,
+          "difference": 0.0738,
+          "difference_95ci": [
+            0.0672,
+            0.0812
+          ]
+        },
+        {
+          "tool": "DANN",
+          "column": "DANN_rankscore",
+          "variants": 27366,
+          "tool_roc_auc": 0.9032,
+          "v2_roc_auc": 0.9902,
+          "v2_no_frequency_roc_auc": 0.9606,
+          "difference": 0.087,
+          "difference_95ci": [
+            0.0818,
+            0.0928
+          ]
+        },
+        {
+          "tool": "PrimateAI",
+          "column": "PrimateAI_rankscore",
+          "variants": 26744,
+          "tool_roc_auc": 0.8985,
+          "v2_roc_auc": 0.9903,
+          "v2_no_frequency_roc_auc": 0.9604,
+          "difference": 0.0917,
+          "difference_95ci": [
+            0.0838,
+            0.1009
+          ]
+        },
+        {
+          "tool": "MPC",
+          "column": "MPC_rankscore",
+          "variants": 24231,
+          "tool_roc_auc": 0.8869,
+          "v2_roc_auc": 0.9905,
+          "v2_no_frequency_roc_auc": 0.9608,
+          "difference": 0.1036,
+          "difference_95ci": [
+            0.0915,
+            0.1149
+          ]
+        }
+      ]
     },
     "temporal_all": {
       "variants": 18197,
@@ -232,7 +719,490 @@
           "pathogenic_found": 0.8502,
           "benign_found": 0.8937
         }
-      }
+      },
+      "dbnsfp": [
+        {
+          "tool": "MetaRNN",
+          "column": "MetaRNN_rankscore",
+          "variants": 18004,
+          "tool_roc_auc": 0.9847,
+          "v2_roc_auc": 0.9886,
+          "v2_no_frequency_roc_auc": 0.9727,
+          "difference": 0.0039,
+          "difference_95ci": [
+            0.0021,
+            0.0057
+          ]
+        },
+        {
+          "tool": "ClinPred",
+          "column": "ClinPred_rankscore",
+          "variants": 18009,
+          "tool_roc_auc": 0.981,
+          "v2_roc_auc": 0.9886,
+          "v2_no_frequency_roc_auc": 0.9726,
+          "difference": 0.0076,
+          "difference_95ci": [
+            0.0055,
+            0.0094
+          ]
+        },
+        {
+          "tool": "BayesDel (with AF)",
+          "column": "BayesDel_addAF_rankscore",
+          "variants": 18101,
+          "tool_roc_auc": 0.9807,
+          "v2_roc_auc": 0.9886,
+          "v2_no_frequency_roc_auc": 0.9726,
+          "difference": 0.0079,
+          "difference_95ci": [
+            0.0053,
+            0.0107
+          ]
+        },
+        {
+          "tool": "MutScore",
+          "column": "MutScore_rankscore",
+          "variants": 17923,
+          "tool_roc_auc": 0.9792,
+          "v2_roc_auc": 0.9886,
+          "v2_no_frequency_roc_auc": 0.9727,
+          "difference": 0.0095,
+          "difference_95ci": [
+            0.0069,
+            0.0123
+          ]
+        },
+        {
+          "tool": "MutationTaster",
+          "column": "MutationTaster_rankscore",
+          "variants": 16845,
+          "tool_roc_auc": 0.9771,
+          "v2_roc_auc": 0.9891,
+          "v2_no_frequency_roc_auc": 0.9733,
+          "difference": 0.012,
+          "difference_95ci": [
+            0.0093,
+            0.0147
+          ]
+        },
+        {
+          "tool": "PHACTboost",
+          "column": "PHACTboost_rankscore",
+          "variants": 16852,
+          "tool_roc_auc": 0.9748,
+          "v2_roc_auc": 0.9886,
+          "v2_no_frequency_roc_auc": 0.9724,
+          "difference": 0.0139,
+          "difference_95ci": [
+            0.0113,
+            0.017
+          ]
+        },
+        {
+          "tool": "REVEL",
+          "column": "REVEL_rankscore",
+          "variants": 17370,
+          "tool_roc_auc": 0.9734,
+          "v2_roc_auc": 0.9889,
+          "v2_no_frequency_roc_auc": 0.973,
+          "difference": 0.0154,
+          "difference_95ci": [
+            0.012,
+            0.0188
+          ]
+        },
+        {
+          "tool": "gMVP",
+          "column": "gMVP_rankscore",
+          "variants": 16847,
+          "tool_roc_auc": 0.9724,
+          "v2_roc_auc": 0.9885,
+          "v2_no_frequency_roc_auc": 0.9727,
+          "difference": 0.0162,
+          "difference_95ci": [
+            0.0138,
+            0.0194
+          ]
+        },
+        {
+          "tool": "BayesDel (no AF)",
+          "column": "BayesDel_noAF_rankscore",
+          "variants": 18101,
+          "tool_roc_auc": 0.9723,
+          "v2_roc_auc": 0.9886,
+          "v2_no_frequency_roc_auc": 0.9726,
+          "difference": 0.0163,
+          "difference_95ci": [
+            0.0134,
+            0.0195
+          ]
+        },
+        {
+          "tool": "VARITY_R",
+          "column": "VARITY_R_rankscore",
+          "variants": 16272,
+          "tool_roc_auc": 0.9712,
+          "v2_roc_auc": 0.9881,
+          "v2_no_frequency_roc_auc": 0.9715,
+          "difference": 0.0169,
+          "difference_95ci": [
+            0.0145,
+            0.0202
+          ]
+        },
+        {
+          "tool": "VARITY_ER",
+          "column": "VARITY_ER_rankscore",
+          "variants": 16272,
+          "tool_roc_auc": 0.9693,
+          "v2_roc_auc": 0.9881,
+          "v2_no_frequency_roc_auc": 0.9715,
+          "difference": 0.0188,
+          "difference_95ci": [
+            0.0163,
+            0.0217
+          ]
+        },
+        {
+          "tool": "MutPred2",
+          "column": "MutPred2_rankscore",
+          "variants": 18189,
+          "tool_roc_auc": 0.9677,
+          "v2_roc_auc": 0.9886,
+          "v2_no_frequency_roc_auc": 0.9727,
+          "difference": 0.0209,
+          "difference_95ci": [
+            0.0183,
+            0.0236
+          ]
+        },
+        {
+          "tool": "VEST4",
+          "column": "VEST4_rankscore",
+          "variants": 17648,
+          "tool_roc_auc": 0.9663,
+          "v2_roc_auc": 0.9887,
+          "v2_no_frequency_roc_auc": 0.9728,
+          "difference": 0.0223,
+          "difference_95ci": [
+            0.0194,
+            0.0254
+          ]
+        },
+        {
+          "tool": "AlphaMissense",
+          "column": "AlphaMissense_rankscore",
+          "variants": 17855,
+          "tool_roc_auc": 0.966,
+          "v2_roc_auc": 0.9887,
+          "v2_no_frequency_roc_auc": 0.9727,
+          "difference": 0.0227,
+          "difference_95ci": [
+            0.0199,
+            0.0263
+          ]
+        },
+        {
+          "tool": "MVP",
+          "column": "MVP_rankscore",
+          "variants": 17549,
+          "tool_roc_auc": 0.9541,
+          "v2_roc_auc": 0.9884,
+          "v2_no_frequency_roc_auc": 0.9726,
+          "difference": 0.0343,
+          "difference_95ci": [
+            0.0282,
+            0.0411
+          ]
+        },
+        {
+          "tool": "DEOGEN2",
+          "column": "DEOGEN2_rankscore",
+          "variants": 17297,
+          "tool_roc_auc": 0.9537,
+          "v2_roc_auc": 0.9888,
+          "v2_no_frequency_roc_auc": 0.9729,
+          "difference": 0.0351,
+          "difference_95ci": [
+            0.0308,
+            0.0404
+          ]
+        },
+        {
+          "tool": "MisFit",
+          "column": "MisFit_D_rankscore",
+          "variants": 17667,
+          "tool_roc_auc": 0.9499,
+          "v2_roc_auc": 0.9886,
+          "v2_no_frequency_roc_auc": 0.9726,
+          "difference": 0.0386,
+          "difference_95ci": [
+            0.0327,
+            0.0451
+          ]
+        },
+        {
+          "tool": "Eigen",
+          "column": "Eigen-raw_coding_rankscore",
+          "variants": 16767,
+          "tool_roc_auc": 0.9481,
+          "v2_roc_auc": 0.9883,
+          "v2_no_frequency_roc_auc": 0.9727,
+          "difference": 0.0402,
+          "difference_95ci": [
+            0.0327,
+            0.0502
+          ]
+        },
+        {
+          "tool": "MetaLR",
+          "column": "MetaLR_rankscore",
+          "variants": 18013,
+          "tool_roc_auc": 0.9426,
+          "v2_roc_auc": 0.9886,
+          "v2_no_frequency_roc_auc": 0.9726,
+          "difference": 0.046,
+          "difference_95ci": [
+            0.0402,
+            0.0544
+          ]
+        },
+        {
+          "tool": "MetaSVM",
+          "column": "MetaSVM_rankscore",
+          "variants": 18013,
+          "tool_roc_auc": 0.9423,
+          "v2_roc_auc": 0.9886,
+          "v2_no_frequency_roc_auc": 0.9726,
+          "difference": 0.0463,
+          "difference_95ci": [
+            0.0394,
+            0.0542
+          ]
+        },
+        {
+          "tool": "ESM1b",
+          "column": "ESM1b_converted_rankscore",
+          "variants": 18193,
+          "tool_roc_auc": 0.9416,
+          "v2_roc_auc": 0.9886,
+          "v2_no_frequency_roc_auc": 0.9727,
+          "difference": 0.047,
+          "difference_95ci": [
+            0.0414,
+            0.053
+          ]
+        },
+        {
+          "tool": "M-CAP",
+          "column": "M-CAP_rankscore",
+          "variants": 17389,
+          "tool_roc_auc": 0.9412,
+          "v2_roc_auc": 0.9881,
+          "v2_no_frequency_roc_auc": 0.9731,
+          "difference": 0.0469,
+          "difference_95ci": [
+            0.0409,
+            0.0545
+          ]
+        },
+        {
+          "tool": "PolyPhen-2 HVAR",
+          "column": "Polyphen2_HVAR_rankscore",
+          "variants": 16847,
+          "tool_roc_auc": 0.937,
+          "v2_roc_auc": 0.9887,
+          "v2_no_frequency_roc_auc": 0.9729,
+          "difference": 0.0517,
+          "difference_95ci": [
+            0.044,
+            0.0595
+          ]
+        },
+        {
+          "tool": "FATHMM-XF",
+          "column": "fathmm-XF_coding_rankscore",
+          "variants": 16669,
+          "tool_roc_auc": 0.9361,
+          "v2_roc_auc": 0.9883,
+          "v2_no_frequency_roc_auc": 0.9726,
+          "difference": 0.0522,
+          "difference_95ci": [
+            0.0428,
+            0.0639
+          ]
+        },
+        {
+          "tool": "CADD",
+          "column": "CADD_raw_rankscore",
+          "variants": 18197,
+          "tool_roc_auc": 0.9358,
+          "v2_roc_auc": 0.9886,
+          "v2_no_frequency_roc_auc": 0.9727,
+          "difference": 0.0528,
+          "difference_95ci": [
+            0.0472,
+            0.0578
+          ]
+        },
+        {
+          "tool": "PROVEAN",
+          "column": "PROVEAN_converted_rankscore",
+          "variants": 17202,
+          "tool_roc_auc": 0.9352,
+          "v2_roc_auc": 0.9891,
+          "v2_no_frequency_roc_auc": 0.9732,
+          "difference": 0.0539,
+          "difference_95ci": [
+            0.0465,
+            0.0611
+          ]
+        },
+        {
+          "tool": "MutationAssessor",
+          "column": "MutationAssessor_rankscore",
+          "variants": 16221,
+          "tool_roc_auc": 0.9347,
+          "v2_roc_auc": 0.9887,
+          "v2_no_frequency_roc_auc": 0.9729,
+          "difference": 0.054,
+          "difference_95ci": [
+            0.0456,
+            0.0621
+          ]
+        },
+        {
+          "tool": "popEVE",
+          "column": "popEVE_converted_rankscore",
+          "variants": 14457,
+          "tool_roc_auc": 0.9335,
+          "v2_roc_auc": 0.9894,
+          "v2_no_frequency_roc_auc": 0.9733,
+          "difference": 0.0558,
+          "difference_95ci": [
+            0.0464,
+            0.064
+          ]
+        },
+        {
+          "tool": "GPN-MSA",
+          "column": "GPN_MSA_converted_rankscore",
+          "variants": 18197,
+          "tool_roc_auc": 0.9334,
+          "v2_roc_auc": 0.9886,
+          "v2_no_frequency_roc_auc": 0.9727,
+          "difference": 0.0552,
+          "difference_95ci": [
+            0.0477,
+            0.0634
+          ]
+        },
+        {
+          "tool": "MutFormer",
+          "column": "MutFormer_rankscore",
+          "variants": 17965,
+          "tool_roc_auc": 0.9269,
+          "v2_roc_auc": 0.9886,
+          "v2_no_frequency_roc_auc": 0.9727,
+          "difference": 0.0617,
+          "difference_95ci": [
+            0.0459,
+            0.0861
+          ]
+        },
+        {
+          "tool": "SIFT4G",
+          "column": "SIFT4G_converted_rankscore",
+          "variants": 16936,
+          "tool_roc_auc": 0.92,
+          "v2_roc_auc": 0.9887,
+          "v2_no_frequency_roc_auc": 0.9727,
+          "difference": 0.0687,
+          "difference_95ci": [
+            0.0629,
+            0.0753
+          ]
+        },
+        {
+          "tool": "SIFT",
+          "column": "SIFT_converted_rankscore",
+          "variants": 17079,
+          "tool_roc_auc": 0.9187,
+          "v2_roc_auc": 0.9891,
+          "v2_no_frequency_roc_auc": 0.9732,
+          "difference": 0.0704,
+          "difference_95ci": [
+            0.0631,
+            0.0769
+          ]
+        },
+        {
+          "tool": "PolyPhen-2 HDIV",
+          "column": "Polyphen2_HDIV_rankscore",
+          "variants": 16847,
+          "tool_roc_auc": 0.9179,
+          "v2_roc_auc": 0.9887,
+          "v2_no_frequency_roc_auc": 0.9729,
+          "difference": 0.0708,
+          "difference_95ci": [
+            0.0616,
+            0.0792
+          ]
+        },
+        {
+          "tool": "LIST-S2",
+          "column": "LIST-S2_rankscore",
+          "variants": 17698,
+          "tool_roc_auc": 0.9,
+          "v2_roc_auc": 0.9884,
+          "v2_no_frequency_roc_auc": 0.972,
+          "difference": 0.0884,
+          "difference_95ci": [
+            0.0809,
+            0.0982
+          ]
+        },
+        {
+          "tool": "PrimateAI",
+          "column": "PrimateAI_rankscore",
+          "variants": 17666,
+          "tool_roc_auc": 0.8894,
+          "v2_roc_auc": 0.9885,
+          "v2_no_frequency_roc_auc": 0.9725,
+          "difference": 0.0991,
+          "difference_95ci": [
+            0.0864,
+            0.1095
+          ]
+        },
+        {
+          "tool": "DANN",
+          "column": "DANN_rankscore",
+          "variants": 18124,
+          "tool_roc_auc": 0.8705,
+          "v2_roc_auc": 0.9886,
+          "v2_no_frequency_roc_auc": 0.9726,
+          "difference": 0.1181,
+          "difference_95ci": [
+            0.1086,
+            0.1258
+          ]
+        },
+        {
+          "tool": "MPC",
+          "column": "MPC_rankscore",
+          "variants": 15455,
+          "tool_roc_auc": 0.8536,
+          "v2_roc_auc": 0.9893,
+          "v2_no_frequency_roc_auc": 0.9736,
+          "difference": 0.1357,
+          "difference_95ci": [
+            0.1117,
+            0.1593
+          ]
+        }
+      ]
     },
     "temporal_test_gene": {
       "variants": 2919,
@@ -249,8 +1219,8 @@
           "1": 29
         },
         "revel": {
-          "0": 30,
-          "1": 2
+          "1": 2,
+          "0": 30
         }
       },
       "metrics": {
@@ -336,8 +1306,491 @@
           "pathogenic_found": 0.8345,
           "benign_found": 0.9226
         }
-      }
+      },
+      "dbnsfp": [
+        {
+          "tool": "MetaRNN",
+          "column": "MetaRNN_rankscore",
+          "variants": 2887,
+          "tool_roc_auc": 0.9887,
+          "v2_roc_auc": 0.988,
+          "v2_no_frequency_roc_auc": 0.9663,
+          "difference": -0.0006,
+          "difference_95ci": [
+            -0.0038,
+            0.0027
+          ]
+        },
+        {
+          "tool": "ClinPred",
+          "column": "ClinPred_rankscore",
+          "variants": 2880,
+          "tool_roc_auc": 0.9885,
+          "v2_roc_auc": 0.988,
+          "v2_no_frequency_roc_auc": 0.9665,
+          "difference": -0.0004,
+          "difference_95ci": [
+            -0.0042,
+            0.0024
+          ]
+        },
+        {
+          "tool": "BayesDel (with AF)",
+          "column": "BayesDel_addAF_rankscore",
+          "variants": 2895,
+          "tool_roc_auc": 0.9844,
+          "v2_roc_auc": 0.9881,
+          "v2_no_frequency_roc_auc": 0.9668,
+          "difference": 0.0037,
+          "difference_95ci": [
+            -0.0002,
+            0.0076
+          ]
+        },
+        {
+          "tool": "MutScore",
+          "column": "MutScore_rankscore",
+          "variants": 2877,
+          "tool_roc_auc": 0.9825,
+          "v2_roc_auc": 0.988,
+          "v2_no_frequency_roc_auc": 0.9667,
+          "difference": 0.0055,
+          "difference_95ci": [
+            0.0017,
+            0.0095
+          ]
+        },
+        {
+          "tool": "PHACTboost",
+          "column": "PHACTboost_rankscore",
+          "variants": 2774,
+          "tool_roc_auc": 0.978,
+          "v2_roc_auc": 0.9876,
+          "v2_no_frequency_roc_auc": 0.9657,
+          "difference": 0.0096,
+          "difference_95ci": [
+            0.0051,
+            0.0142
+          ]
+        },
+        {
+          "tool": "MutationTaster",
+          "column": "MutationTaster_rankscore",
+          "variants": 2669,
+          "tool_roc_auc": 0.9773,
+          "v2_roc_auc": 0.9892,
+          "v2_no_frequency_roc_auc": 0.9679,
+          "difference": 0.012,
+          "difference_95ci": [
+            0.0066,
+            0.0171
+          ]
+        },
+        {
+          "tool": "VARITY_R",
+          "column": "VARITY_R_rankscore",
+          "variants": 2715,
+          "tool_roc_auc": 0.9759,
+          "v2_roc_auc": 0.9874,
+          "v2_no_frequency_roc_auc": 0.9655,
+          "difference": 0.0115,
+          "difference_95ci": [
+            0.0077,
+            0.0152
+          ]
+        },
+        {
+          "tool": "REVEL",
+          "column": "REVEL_rankscore",
+          "variants": 2768,
+          "tool_roc_auc": 0.9732,
+          "v2_roc_auc": 0.9882,
+          "v2_no_frequency_roc_auc": 0.9668,
+          "difference": 0.015,
+          "difference_95ci": [
+            0.0092,
+            0.0215
+          ]
+        },
+        {
+          "tool": "BayesDel (no AF)",
+          "column": "BayesDel_noAF_rankscore",
+          "variants": 2895,
+          "tool_roc_auc": 0.9732,
+          "v2_roc_auc": 0.9881,
+          "v2_no_frequency_roc_auc": 0.9668,
+          "difference": 0.0149,
+          "difference_95ci": [
+            0.0094,
+            0.0199
+          ]
+        },
+        {
+          "tool": "VARITY_ER",
+          "column": "VARITY_ER_rankscore",
+          "variants": 2715,
+          "tool_roc_auc": 0.9732,
+          "v2_roc_auc": 0.9874,
+          "v2_no_frequency_roc_auc": 0.9655,
+          "difference": 0.0142,
+          "difference_95ci": [
+            0.0099,
+            0.0186
+          ]
+        },
+        {
+          "tool": "VEST4",
+          "column": "VEST4_rankscore",
+          "variants": 2813,
+          "tool_roc_auc": 0.9731,
+          "v2_roc_auc": 0.9886,
+          "v2_no_frequency_roc_auc": 0.9676,
+          "difference": 0.0155,
+          "difference_95ci": [
+            0.0111,
+            0.0199
+          ]
+        },
+        {
+          "tool": "AlphaMissense",
+          "column": "AlphaMissense_rankscore",
+          "variants": 2910,
+          "tool_roc_auc": 0.9716,
+          "v2_roc_auc": 0.9882,
+          "v2_no_frequency_roc_auc": 0.9666,
+          "difference": 0.0165,
+          "difference_95ci": [
+            0.0117,
+            0.0216
+          ]
+        },
+        {
+          "tool": "MutPred2",
+          "column": "MutPred2_rankscore",
+          "variants": 2918,
+          "tool_roc_auc": 0.9687,
+          "v2_roc_auc": 0.9881,
+          "v2_no_frequency_roc_auc": 0.9668,
+          "difference": 0.0195,
+          "difference_95ci": [
+            0.0145,
+            0.0251
+          ]
+        },
+        {
+          "tool": "gMVP",
+          "column": "gMVP_rankscore",
+          "variants": 2748,
+          "tool_roc_auc": 0.9652,
+          "v2_roc_auc": 0.9877,
+          "v2_no_frequency_roc_auc": 0.9665,
+          "difference": 0.0225,
+          "difference_95ci": [
+            0.015,
+            0.0294
+          ]
+        },
+        {
+          "tool": "Eigen",
+          "column": "Eigen-raw_coding_rankscore",
+          "variants": 2750,
+          "tool_roc_auc": 0.9618,
+          "v2_roc_auc": 0.9881,
+          "v2_no_frequency_roc_auc": 0.9671,
+          "difference": 0.0262,
+          "difference_95ci": [
+            0.0199,
+            0.034
+          ]
+        },
+        {
+          "tool": "DEOGEN2",
+          "column": "DEOGEN2_rankscore",
+          "variants": 2811,
+          "tool_roc_auc": 0.9588,
+          "v2_roc_auc": 0.9879,
+          "v2_no_frequency_roc_auc": 0.9664,
+          "difference": 0.0291,
+          "difference_95ci": [
+            0.022,
+            0.0359
+          ]
+        },
+        {
+          "tool": "GPN-MSA",
+          "column": "GPN_MSA_converted_rankscore",
+          "variants": 2919,
+          "tool_roc_auc": 0.9556,
+          "v2_roc_auc": 0.9882,
+          "v2_no_frequency_roc_auc": 0.9668,
+          "difference": 0.0326,
+          "difference_95ci": [
+            0.0252,
+            0.0407
+          ]
+        },
+        {
+          "tool": "CADD",
+          "column": "CADD_raw_rankscore",
+          "variants": 2919,
+          "tool_roc_auc": 0.9538,
+          "v2_roc_auc": 0.9882,
+          "v2_no_frequency_roc_auc": 0.9668,
+          "difference": 0.0344,
+          "difference_95ci": [
+            0.0273,
+            0.0419
+          ]
+        },
+        {
+          "tool": "PolyPhen-2 HVAR",
+          "column": "Polyphen2_HVAR_rankscore",
+          "variants": 2766,
+          "tool_roc_auc": 0.9535,
+          "v2_roc_auc": 0.9876,
+          "v2_no_frequency_roc_auc": 0.9662,
+          "difference": 0.0341,
+          "difference_95ci": [
+            0.0252,
+            0.0408
+          ]
+        },
+        {
+          "tool": "MisFit",
+          "column": "MisFit_D_rankscore",
+          "variants": 2844,
+          "tool_roc_auc": 0.9508,
+          "v2_roc_auc": 0.9878,
+          "v2_no_frequency_roc_auc": 0.966,
+          "difference": 0.037,
+          "difference_95ci": [
+            0.0286,
+            0.0474
+          ]
+        },
+        {
+          "tool": "FATHMM-XF",
+          "column": "fathmm-XF_coding_rankscore",
+          "variants": 2746,
+          "tool_roc_auc": 0.9508,
+          "v2_roc_auc": 0.988,
+          "v2_no_frequency_roc_auc": 0.9669,
+          "difference": 0.0371,
+          "difference_95ci": [
+            0.0299,
+            0.0452
+          ]
+        },
+        {
+          "tool": "MVP",
+          "column": "MVP_rankscore",
+          "variants": 2769,
+          "tool_roc_auc": 0.9473,
+          "v2_roc_auc": 0.9881,
+          "v2_no_frequency_roc_auc": 0.9679,
+          "difference": 0.0409,
+          "difference_95ci": [
+            0.0319,
+            0.0497
+          ]
+        },
+        {
+          "tool": "PROVEAN",
+          "column": "PROVEAN_converted_rankscore",
+          "variants": 2737,
+          "tool_roc_auc": 0.9437,
+          "v2_roc_auc": 0.9888,
+          "v2_no_frequency_roc_auc": 0.9672,
+          "difference": 0.0451,
+          "difference_95ci": [
+            0.0376,
+            0.0532
+          ]
+        },
+        {
+          "tool": "popEVE",
+          "column": "popEVE_converted_rankscore",
+          "variants": 2775,
+          "tool_roc_auc": 0.9431,
+          "v2_roc_auc": 0.988,
+          "v2_no_frequency_roc_auc": 0.9671,
+          "difference": 0.0449,
+          "difference_95ci": [
+            0.0362,
+            0.0548
+          ]
+        },
+        {
+          "tool": "M-CAP",
+          "column": "M-CAP_rankscore",
+          "variants": 2721,
+          "tool_roc_auc": 0.9426,
+          "v2_roc_auc": 0.9871,
+          "v2_no_frequency_roc_auc": 0.9687,
+          "difference": 0.0445,
+          "difference_95ci": [
+            0.0352,
+            0.0564
+          ]
+        },
+        {
+          "tool": "ESM1b",
+          "column": "ESM1b_converted_rankscore",
+          "variants": 2919,
+          "tool_roc_auc": 0.9406,
+          "v2_roc_auc": 0.9882,
+          "v2_no_frequency_roc_auc": 0.9668,
+          "difference": 0.0475,
+          "difference_95ci": [
+            0.0368,
+            0.0594
+          ]
+        },
+        {
+          "tool": "SIFT",
+          "column": "SIFT_converted_rankscore",
+          "variants": 2693,
+          "tool_roc_auc": 0.9394,
+          "v2_roc_auc": 0.9891,
+          "v2_no_frequency_roc_auc": 0.9672,
+          "difference": 0.0498,
+          "difference_95ci": [
+            0.04,
+            0.06
+          ]
+        },
+        {
+          "tool": "MetaSVM",
+          "column": "MetaSVM_rankscore",
+          "variants": 2881,
+          "tool_roc_auc": 0.9394,
+          "v2_roc_auc": 0.988,
+          "v2_no_frequency_roc_auc": 0.9665,
+          "difference": 0.0486,
+          "difference_95ci": [
+            0.0378,
+            0.0619
+          ]
+        },
+        {
+          "tool": "PolyPhen-2 HDIV",
+          "column": "Polyphen2_HDIV_rankscore",
+          "variants": 2766,
+          "tool_roc_auc": 0.9391,
+          "v2_roc_auc": 0.9876,
+          "v2_no_frequency_roc_auc": 0.9662,
+          "difference": 0.0485,
+          "difference_95ci": [
+            0.0369,
+            0.0578
+          ]
+        },
+        {
+          "tool": "MetaLR",
+          "column": "MetaLR_rankscore",
+          "variants": 2881,
+          "tool_roc_auc": 0.9375,
+          "v2_roc_auc": 0.988,
+          "v2_no_frequency_roc_auc": 0.9665,
+          "difference": 0.0505,
+          "difference_95ci": [
+            0.0406,
+            0.0625
+          ]
+        },
+        {
+          "tool": "MutFormer",
+          "column": "MutFormer_rankscore",
+          "variants": 2872,
+          "tool_roc_auc": 0.9361,
+          "v2_roc_auc": 0.9881,
+          "v2_no_frequency_roc_auc": 0.967,
+          "difference": 0.052,
+          "difference_95ci": [
+            0.0423,
+            0.0626
+          ]
+        },
+        {
+          "tool": "SIFT4G",
+          "column": "SIFT4G_converted_rankscore",
+          "variants": 2813,
+          "tool_roc_auc": 0.9318,
+          "v2_roc_auc": 0.9886,
+          "v2_no_frequency_roc_auc": 0.9675,
+          "difference": 0.0568,
+          "difference_95ci": [
+            0.047,
+            0.0673
+          ]
+        },
+        {
+          "tool": "MutationAssessor",
+          "column": "MutationAssessor_rankscore",
+          "variants": 2571,
+          "tool_roc_auc": 0.9301,
+          "v2_roc_auc": 0.9877,
+          "v2_no_frequency_roc_auc": 0.9654,
+          "difference": 0.0577,
+          "difference_95ci": [
+            0.0454,
+            0.0719
+          ]
+        },
+        {
+          "tool": "LIST-S2",
+          "column": "LIST-S2_rankscore",
+          "variants": 2859,
+          "tool_roc_auc": 0.9286,
+          "v2_roc_auc": 0.9879,
+          "v2_no_frequency_roc_auc": 0.9658,
+          "difference": 0.0592,
+          "difference_95ci": [
+            0.048,
+            0.0721
+          ]
+        },
+        {
+          "tool": "DANN",
+          "column": "DANN_rankscore",
+          "variants": 2900,
+          "tool_roc_auc": 0.9104,
+          "v2_roc_auc": 0.9881,
+          "v2_no_frequency_roc_auc": 0.9668,
+          "difference": 0.0777,
+          "difference_95ci": [
+            0.0665,
+            0.0892
+          ]
+        },
+        {
+          "tool": "PrimateAI",
+          "column": "PrimateAI_rankscore",
+          "variants": 2818,
+          "tool_roc_auc": 0.9037,
+          "v2_roc_auc": 0.9881,
+          "v2_no_frequency_roc_auc": 0.9665,
+          "difference": 0.0845,
+          "difference_95ci": [
+            0.0747,
+            0.0972
+          ]
+        },
+        {
+          "tool": "MPC",
+          "column": "MPC_rankscore",
+          "variants": 2511,
+          "tool_roc_auc": 0.8775,
+          "v2_roc_auc": 0.9891,
+          "v2_no_frequency_roc_auc": 0.9676,
+          "difference": 0.1116,
+          "difference_95ci": [
+            0.0881,
+            0.1391
+          ]
+        }
+      ]
     }
   },
-  "seconds": 25.7
+  "seconds": 156.4
 }

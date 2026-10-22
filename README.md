@@ -118,6 +118,22 @@ hashed before and after). The external scores were used for this evaluation only
   and since 2022 ClinVar submitters can cite REVEL and AlphaMissense as evidence, so some newer labels partly rest
   on their scores. AlphaMissense is also frequency-informed through its training labels.
 
+**All 37 predictors in dbNSFP 5.4a.** Each tool was scored on the variants it covers and our v2 model on exactly the
+same variants; a tool counts as beaten or ahead only when the paired 95% gene-bootstrap interval of the difference
+excludes zero.
+
+| Set | We are ahead | No clear difference | Tool is ahead |
+|---|---|---|---|
+| Temporal, all genes (added to ClinVar after October 2025) | **37** | 0 | 0 |
+| Temporal, test genes only | 34 | 3 (ClinPred, MetaRNN, BayesDel with AF) | 0 |
+| Gene-disjoint test | 34 | 1 (BayesDel with AF) | 2 (MetaRNN −0.0025, ClinPred −0.0017) |
+
+The tools that come closest (MetaRNN, ClinPred, BayesDel with AF) use allele frequency and were trained on ClinVar
+labels, so on the gene-disjoint test set they may have seen our test variants; on the newer temporal variants our
+model is ahead of every one of them. Without allele frequency our LightGBM reaches 0.973 on the temporal set, level with
+the strongest frequency-free tools (REVEL, BayesDel without AF), but 0.960 on the gene-disjoint test set, where
+several frequency-free tools rank higher (REVEL and BayesDel without AF 0.976, VARITY 0.972).
+
 ### How it works
 
 ```mermaid
@@ -198,7 +214,8 @@ all species, ~1.6 GB) will then be the source.
 Used only by `healthcare compare-external`, never by the model ([`config/external_sources.toml`](config/external_sources.toml)):
 [AlphaMissense](https://github.com/google-deepmind/alphamissense) hg38 scores (CC BY-NC-SA 4.0; Cheng et al., *Science*
 2023) and [REVEL](https://sites.google.com/site/revelgenomics/) v1.3 (free for non-commercial use; Ioannidis et al.,
-*Am J Hum Genet* 2016). No per-variant external score is stored in this repository.
+*Am J Hum Genet* 2016), and the [dbNSFP](https://www.dbnsfp.org/) 5.4a academic branch (CC BY-NC-ND 4.0; free
+academic registration, then place `dbNSFP5.4a_grch38.gz` and its `.tbi` in `data/raw/dbnsfp/`). No per-variant external score is stored in this repository.
 
 ### Reproduce from scratch
 
@@ -437,6 +454,22 @@ girdi olmadı. Tam rapor (İngilizce): [`reports/external_comparison.md`](report
   beri ClinVar'a bildirim yapanlar REVEL ve AlphaMissense'i kanıt olarak gösterebildiği için bazı yeni etiketler
   kısmen bu skorlara dayanıyor. AlphaMissense eğitim etiketleri üzerinden nüfus sıklığını da dolaylı olarak kullanıyor.
 
+**dbNSFP 5.4a'daki 37 tahmin aracının hepsi.** Her araç kendi skorladığı varyantlarda, bizim v2 modelimiz de tam olarak
+aynı varyantlarda ölçüldü. Bir aracı geçtik ya da araç önde demek için farkın eşleştirilmiş %95 gen bootstrap
+aralığının sıfırı içermemesi gerekiyor.
+
+| Set | Biz öndeyiz | Belirgin fark yok | Araç önde |
+|---|---|---|---|
+| Zamansal, tüm genler (Ekim 2025'ten sonra ClinVar'a eklenen) | **37** | 0 | 0 |
+| Zamansal, yalnızca test genleri | 34 | 3 (ClinPred, MetaRNN, frekanslı BayesDel) | 0 |
+| Gen bazında ayrık test | 34 | 1 (frekanslı BayesDel) | 2 (MetaRNN −0,0025, ClinPred −0,0017) |
+
+Bize en çok yaklaşan araçlar (MetaRNN, ClinPred, frekanslı BayesDel) alel frekansını kullanıyor ve ClinVar
+etiketleriyle eğitildi; bu yüzden gen bazında ayrık test setinde test varyantlarımızı görmüş olabilirler. Daha yeni
+zamansal varyantlarda modelimiz hepsinin önünde. Alel frekansı olmadan LightGBM'imiz zamansal sette 0,973 alıyor ve frekans
+kullanmayan en güçlü araçlarla (REVEL, frekanssız BayesDel) başa baş. Gen bazında ayrık test setinde ise 0,960'ta kalıyor;
+orada birkaç frekanssız araç daha yüksek (REVEL ve frekanssız BayesDel 0,976, VARITY 0,972).
+
 ### Nasıl çalışır
 
 Mimari şeması İngilizce bölümde ([How it works](#how-it-works)).
@@ -489,8 +522,9 @@ sağlama toplamı hatasıyla durur; o zaman kaynak 2026_03 arşivi olacaktır
 Yalnızca `healthcare compare-external` tarafından kullanılır, model tarafından asla
 ([`config/external_sources.toml`](config/external_sources.toml)): [AlphaMissense](https://github.com/google-deepmind/alphamissense)
 hg38 skorları (CC BY-NC-SA 4.0; Cheng vd., *Science* 2023) ve [REVEL](https://sites.google.com/site/revelgenomics/) v1.3
-(ticari olmayan kullanım için ücretsiz; Ioannidis vd., *Am J Hum Genet* 2016). Depoda varyant başına hiçbir dış skor
-saklanmaz.
+(ticari olmayan kullanım için ücretsiz; Ioannidis vd., *Am J Hum Genet* 2016) ve [dbNSFP](https://www.dbnsfp.org/) 5.4a
+akademik sürümü (CC BY-NC-ND 4.0; ücretsiz akademik kayıt gerekir, ardından `dbNSFP5.4a_grch38.gz` ve `.tbi` dosyası
+`data/raw/dbnsfp/` altına konur). Depoda varyant başına hiçbir dış skor saklanmaz.
 
 ### Sıfırdan yeniden üretme
 

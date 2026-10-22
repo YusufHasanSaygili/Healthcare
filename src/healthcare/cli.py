@@ -774,6 +774,13 @@ def run_compare_external() -> int:
     except (ChecksumMismatch, OSError) as error:
         print(error)
         return 1
+    import tomllib
+
+    manual = tomllib.loads((CONFIG_DIR / "external_sources.toml").read_text(encoding="utf-8"))
+    dbnsfp = manual["manual"]["dbnsfp"]
+    dbnsfp_path = DATA_DIR / "raw" / "dbnsfp" / dbnsfp["file"]
+    if not dbnsfp_path.exists():
+        print(f"dbNSFP not found, skipping the broad comparison: {dbnsfp['obtain']}")
     log_path = start_log("compare-external")
     report = external.run(
         DATA_DIR / "processed" / "splits",
@@ -783,6 +790,8 @@ def run_compare_external() -> int:
         sources["revel"].path,
         DATA_DIR / "interim" / "revel",
         REPORTS_DIR,
+        dbnsfp_path if dbnsfp_path.exists() else None,
+        dbnsfp["md5"],
     )
     summary = {
         name: {k: r[k] for k in ("variants", "common")}

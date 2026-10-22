@@ -7,7 +7,10 @@ from pathlib import Path
 import duckdb
 import numpy as np
 import polars as pl
+from sklearn.metrics import roc_auc_score
 
+from healthcare.data.download import ChecksumMismatch, digests_of
+from healthcare.evaluate import dbnsfp
 from healthcare.evaluate.all_types import file_hash, predictions
 from healthcare.evaluate.metrics import classification_metrics, gene_bootstrap, rounded
 from healthcare.models.calibration import decide
@@ -138,6 +141,58 @@ def compare(table: pl.DataFrame) -> dict:
     }
 
 
+def paired_difference(
+    labels: np.ndarray, ours: np.ndarray, theirs: np.ndarray, genes: np.ndarray, rounds: int = 200
+) -> list[float]:
+    rng = np.random.default_rng(0)
+    unique, inverse = np.unique(genes, return_inverse=True)
+    members = [np.flatnonzero(inverse == i) for i in range(unique.size)]
+    differences = []
+    for _ in range(rounds):
+        index = np.concatenate([members[i] for i in rng.integers(0, unique.size, unique.size)])
+        y = labels[index]
+        if 0 < y.sum() < y.size:
+            differences.append(roc_auc_score(y, ours[index]) - roc_auc_score(y, theirs[index]))
+    return [round(float(np.percentile(differences, q)), 4) for q in (2.5, 97.5)]
+
+
+def broad(table: pl.DataFrame) -> list[dict]:
+    rows = []
+    for column, title in dbnsfp.TOOLS.items():
+        subset = table.filter(pl.col(column).is_not_null())
+        labels = subset["label"].to_numpy().astype(int)
+        if not 0 < labels.sum() < labels.size:
+            continue
+        theirs = subset[column].to_numpy()
+        ours = subset["v2"].to_numpy()
+        genes = subset["gene_name"].to_numpy()
+        tool_roc, our_roc = roc_auc_score(labels, theirs), roc_auc_score(labels, ours)
+        rows.append(
+            {
+                "tool": title,
+                "column": column,
+                "variants": subset.height,
+                "tool_roc_auc": round(float(tool_roc), 4),
+                "v2_roc_auc": round(float(our_roc), 4),
+                "v2_no_frequency_roc_auc": round(
+                    float(roc_auc_score(labels, subset["v2_no_frequency"].to_numpy())), 4
+                ),
+                "difference": round(float(our_roc - tool_roc), 4),
+                "difference_95ci": paired_difference(labels, ours, theirs, genes),
+            }
+        )
+    return sorted(rows, key=lambda row: -row["tool_roc_auc"])
+
+
+def dbnsfp_scores(path: Path, md5: str, keys: pl.DataFrame, cache: Path) -> pl.DataFrame:
+    if not cache.exists():
+        if digests_of(path)[1] != md5:
+            raise ChecksumMismatch(f"{path.name}: md5 does not match {md5}")
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        dbnsfp.extract(path, path.with_name(path.name + ".tbi"), keys).write_parquet(cache)
+    return pl.read_parquet(cache).group_by(KEY).agg(pl.col(column).max() for column in dbnsfp.TOOLS)
+
+
 def scored(table: pl.DataFrame, models_dir: Path, blocks_path: Path, final: dict) -> pl.DataFrame:
     scores = predictions(table, models_dir, blocks_path, final)
     return table.with_columns(
@@ -153,6 +208,8 @@ def run(
     revel_zip: Path,
     interim_dir: Path,
     reports_dir: Path,
+    dbnsfp_path: Path | None = None,
+    dbnsfp_md5: str = "",
 ) -> dict:
     started = time.monotonic()
     final = json.loads((models_dir / "v2_final.json").read_text())
@@ -169,6 +226,16 @@ def run(
     keys = pl.concat([t.select(*KEY, "transcript_id") for t in sets.values()]).unique(KEY)
     external = alphamissense_scores(alphamissense_path, keys).join(
         revel_scores(revel_csv(revel_zip, interim_dir), keys), on=KEY, how="full", coalesce=True
+    )
+    broad_scores = (
+        dbnsfp_scores(
+            dbnsfp_path,
+            dbnsfp_md5,
+            keys,
+            interim_dir.parent / "dbnsfp" / "scores.parquet",
+        )
+        if dbnsfp_path
+        else None
     )
     results = {}
     for name, table in sets.items():
@@ -196,6 +263,8 @@ def run(
                 for tool in ("alphamissense", "revel")
             },
         } | compare(common)
+        if broad_scores is not None:
+            results[name]["dbnsfp"] = broad(joined.join(broad_scores, on=KEY, how="left"))
     hashes_after = {name: file_hash(models_dir / name) for name in pinned}
     report = {
         "scope": "missense SNVs; every scorer evaluated on the same variants",
@@ -212,6 +281,9 @@ def run(
                 "license": "free for non-commercial use",
             },
         },
+        "dbnsfp": {"file": dbnsfp_path.name, "license": "CC BY-NC-ND 4.0 (academic branch)"}
+        if dbnsfp_path
+        else None,
         "alphamissense_thresholds": [ALPHAMISSENSE_BENIGN_BELOW, ALPHAMISSENSE_PATHOGENIC_ABOVE],
         "model_hashes": hashes_before,
         "model_changed": hashes_before != hashes_after,
@@ -263,6 +335,12 @@ def markdown(report: dict) -> str:
         "rest on these very scores. Both effects favour the external tools.",
         "- When a tool has no score on our MANE transcript, its highest score on another "
         "transcript is used; the count is given under each set.",
+        "- dbNSFP tables use each tool's rankscore (oriented so higher means more damaging, taken "
+        "from its most damaging transcript). Several tools there, such as ClinPred, MetaRNN and "
+        "BayesDel with AF, use allele frequency and were trained on ClinVar labels, so on the "
+        "gene-disjoint test set they may have seen our test variants. The temporal sets guard "
+        "against that only if a tool's training data predates October 2025, which we could not "
+        "verify tool by tool.",
     ]
     for name, result in report["results"].items():
         lines += [
@@ -301,4 +379,24 @@ def markdown(report: dict) -> str:
                 t["benign_found"],
             ]
             lines.append(f"| {title} | " + " | ".join(fmt(c) for c in cells) + " |")
+        if "dbnsfp" in result:
+            lines += [
+                "",
+                f"### {SET_TITLES[name]}: every predictor in dbNSFP 5.4a",
+                "",
+                "Each tool is scored on the variants it covers, and our model on exactly those "
+                "variants. The difference is ours minus the tool, with a paired 95% gene-bootstrap "
+                "interval.",
+                "",
+                "| Tool | Variants | Tool ROC-AUC | Ours v2 | Difference [95% CI] "
+                "| Ours without AF |",
+                "|---|---|---|---|---|---|",
+            ]
+            for row in result["dbnsfp"]:
+                low, high = row["difference_95ci"]
+                lines.append(
+                    f"| {row['tool']} | {row['variants']:,} | {row['tool_roc_auc']:.4f} | "
+                    f"{row['v2_roc_auc']:.4f} | {row['difference']:+.4f} "
+                    f"[{low:+.4f}, {high:+.4f}] | {row['v2_no_frequency_roc_auc']:.4f} |"
+                )
     return "\n".join(lines) + "\n"

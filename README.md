@@ -134,6 +134,54 @@ model is ahead of every one of them. Without allele frequency our LightGBM reach
 the strongest frequency-free tools (REVEL, BayesDel without AF), but 0.960 on the gene-disjoint test set, where
 several frequency-free tools rank higher (REVEL and BayesDel without AF 0.976, VARITY 0.972).
 
+<details>
+<summary>Every tool, set by set (missense ROC-AUC)</summary>
+
+Tool scores on the variants each tool covers. ✅ our v2 model is ahead, ➖ no clear difference, ❌ the tool is ahead (paired 95% gene-bootstrap interval of the difference). Our v2 scores 0.987–0.991 on each tool's variants. dbNSFP holds missense scores only, so the other variant types have no external comparison.
+
+| Tool | Gene-disjoint test | Temporal, all genes | Temporal, test genes |
+|---|---|---|---|
+| **Ours: v2** | **0.990** | **0.989** | **0.988** |
+| MetaRNN | 0.993 ❌ | 0.985 ✅ | 0.989 ➖ |
+| ClinPred | 0.992 ❌ | 0.981 ✅ | 0.989 ➖ |
+| BayesDel (with AF) | 0.990 ➖ | 0.981 ✅ | 0.984 ➖ |
+| MutationTaster | 0.987 ✅ | 0.977 ✅ | 0.977 ✅ |
+| PHACTboost | 0.985 ✅ | 0.975 ✅ | 0.978 ✅ |
+| MutScore | 0.979 ✅ | 0.979 ✅ | 0.983 ✅ |
+| REVEL | 0.976 ✅ | 0.973 ✅ | 0.973 ✅ |
+| BayesDel (no AF) | 0.976 ✅ | 0.972 ✅ | 0.973 ✅ |
+| VEST4 | 0.973 ✅ | 0.966 ✅ | 0.973 ✅ |
+| VARITY_R | 0.973 ✅ | 0.971 ✅ | 0.976 ✅ |
+| AlphaMissense | 0.971 ✅ | 0.966 ✅ | 0.972 ✅ |
+| VARITY_ER | 0.968 ✅ | 0.969 ✅ | 0.973 ✅ |
+| gMVP | 0.967 ✅ | 0.972 ✅ | 0.965 ✅ |
+| MutPred2 | 0.963 ✅ | 0.968 ✅ | 0.969 ✅ |
+| Eigen | 0.954 ✅ | 0.948 ✅ | 0.962 ✅ |
+| CADD | 0.953 ✅ | 0.936 ✅ | 0.954 ✅ |
+| DEOGEN2 | 0.951 ✅ | 0.954 ✅ | 0.959 ✅ |
+| MutFormer | 0.951 ✅ | 0.927 ✅ | 0.936 ✅ |
+| M-CAP | 0.948 ✅ | 0.941 ✅ | 0.943 ✅ |
+| MVP | 0.947 ✅ | 0.954 ✅ | 0.947 ✅ |
+| MisFit | 0.947 ✅ | 0.950 ✅ | 0.951 ✅ |
+| MetaLR | 0.944 ✅ | 0.943 ✅ | 0.938 ✅ |
+| MetaSVM | 0.943 ✅ | 0.942 ✅ | 0.939 ✅ |
+| PolyPhen-2 HVAR | 0.942 ✅ | 0.937 ✅ | 0.954 ✅ |
+| FATHMM-XF | 0.942 ✅ | 0.936 ✅ | 0.951 ✅ |
+| GPN-MSA | 0.939 ✅ | 0.933 ✅ | 0.956 ✅ |
+| popEVE | 0.939 ✅ | 0.933 ✅ | 0.943 ✅ |
+| ESM1b | 0.937 ✅ | 0.942 ✅ | 0.941 ✅ |
+| PROVEAN | 0.936 ✅ | 0.935 ✅ | 0.944 ✅ |
+| SIFT | 0.931 ✅ | 0.919 ✅ | 0.939 ✅ |
+| PolyPhen-2 HDIV | 0.930 ✅ | 0.918 ✅ | 0.939 ✅ |
+| MutationAssessor | 0.929 ✅ | 0.935 ✅ | 0.930 ✅ |
+| SIFT4G | 0.922 ✅ | 0.920 ✅ | 0.932 ✅ |
+| LIST-S2 | 0.917 ✅ | 0.900 ✅ | 0.929 ✅ |
+| DANN | 0.903 ✅ | 0.871 ✅ | 0.910 ✅ |
+| PrimateAI | 0.898 ✅ | 0.889 ✅ | 0.904 ✅ |
+| MPC | 0.887 ✅ | 0.854 ✅ | 0.877 ✅ |
+
+</details>
+
 ### How it works
 
 ```mermaid
@@ -469,6 +517,54 @@ etiketleriyle eğitildi; bu yüzden gen bazında ayrık test setinde test varyan
 zamansal varyantlarda modelimiz hepsinin önünde. Alel frekansı olmadan LightGBM'imiz zamansal sette 0,973 alıyor ve frekans
 kullanmayan en güçlü araçlarla (REVEL, frekanssız BayesDel) başa baş. Gen bazında ayrık test setinde ise 0,960'ta kalıyor;
 orada birkaç frekanssız araç daha yüksek (REVEL ve frekanssız BayesDel 0,976, VARITY 0,972).
+
+<details>
+<summary>Araç araç, set set tüm sonuçlar (missense ROC-AUC)</summary>
+
+Her aracın kendi kapsadığı varyantlardaki skoru. ✅ bizim v2 önde, ➖ belirgin fark yok, ❌ araç önde (farkın eşleştirilmiş %95 gen bootstrap aralığı). v2 her aracın varyantlarında 0,987–0,991 alıyor. dbNSFP yalnızca missense skorları içerdiği için diğer varyant türlerinin dış karşılaştırması yok.
+
+| Araç | Gen bazında ayrık test | Zamansal, tüm genler | Zamansal, test genleri |
+|---|---|---|---|
+| **Bizim: v2** | **0,990** | **0,989** | **0,988** |
+| MetaRNN | 0,993 ❌ | 0,985 ✅ | 0,989 ➖ |
+| ClinPred | 0,992 ❌ | 0,981 ✅ | 0,989 ➖ |
+| BayesDel (frekanslı) | 0,990 ➖ | 0,981 ✅ | 0,984 ➖ |
+| MutationTaster | 0,987 ✅ | 0,977 ✅ | 0,977 ✅ |
+| PHACTboost | 0,985 ✅ | 0,975 ✅ | 0,978 ✅ |
+| MutScore | 0,979 ✅ | 0,979 ✅ | 0,983 ✅ |
+| REVEL | 0,976 ✅ | 0,973 ✅ | 0,973 ✅ |
+| BayesDel (frekanssız) | 0,976 ✅ | 0,972 ✅ | 0,973 ✅ |
+| VEST4 | 0,973 ✅ | 0,966 ✅ | 0,973 ✅ |
+| VARITY_R | 0,973 ✅ | 0,971 ✅ | 0,976 ✅ |
+| AlphaMissense | 0,971 ✅ | 0,966 ✅ | 0,972 ✅ |
+| VARITY_ER | 0,968 ✅ | 0,969 ✅ | 0,973 ✅ |
+| gMVP | 0,967 ✅ | 0,972 ✅ | 0,965 ✅ |
+| MutPred2 | 0,963 ✅ | 0,968 ✅ | 0,969 ✅ |
+| Eigen | 0,954 ✅ | 0,948 ✅ | 0,962 ✅ |
+| CADD | 0,953 ✅ | 0,936 ✅ | 0,954 ✅ |
+| DEOGEN2 | 0,951 ✅ | 0,954 ✅ | 0,959 ✅ |
+| MutFormer | 0,951 ✅ | 0,927 ✅ | 0,936 ✅ |
+| M-CAP | 0,948 ✅ | 0,941 ✅ | 0,943 ✅ |
+| MVP | 0,947 ✅ | 0,954 ✅ | 0,947 ✅ |
+| MisFit | 0,947 ✅ | 0,950 ✅ | 0,951 ✅ |
+| MetaLR | 0,944 ✅ | 0,943 ✅ | 0,938 ✅ |
+| MetaSVM | 0,943 ✅ | 0,942 ✅ | 0,939 ✅ |
+| PolyPhen-2 HVAR | 0,942 ✅ | 0,937 ✅ | 0,954 ✅ |
+| FATHMM-XF | 0,942 ✅ | 0,936 ✅ | 0,951 ✅ |
+| GPN-MSA | 0,939 ✅ | 0,933 ✅ | 0,956 ✅ |
+| popEVE | 0,939 ✅ | 0,933 ✅ | 0,943 ✅ |
+| ESM1b | 0,937 ✅ | 0,942 ✅ | 0,941 ✅ |
+| PROVEAN | 0,936 ✅ | 0,935 ✅ | 0,944 ✅ |
+| SIFT | 0,931 ✅ | 0,919 ✅ | 0,939 ✅ |
+| PolyPhen-2 HDIV | 0,930 ✅ | 0,918 ✅ | 0,939 ✅ |
+| MutationAssessor | 0,929 ✅ | 0,935 ✅ | 0,930 ✅ |
+| SIFT4G | 0,922 ✅ | 0,920 ✅ | 0,932 ✅ |
+| LIST-S2 | 0,917 ✅ | 0,900 ✅ | 0,929 ✅ |
+| DANN | 0,903 ✅ | 0,871 ✅ | 0,910 ✅ |
+| PrimateAI | 0,898 ✅ | 0,889 ✅ | 0,904 ✅ |
+| MPC | 0,887 ✅ | 0,854 ✅ | 0,877 ✅ |
+
+</details>
 
 ### Nasıl çalışır
 

@@ -240,6 +240,8 @@ flowchart LR
 
 ### Data sources and licenses
 
+The code is released under the [MIT License](LICENSE). The data sources below keep their own licenses and terms.
+
 Versions, URLs and checksums are pinned in [`config/sources.toml`](config/sources.toml). Nothing is downloaded at
 "latest".
 
@@ -595,6 +597,8 @@ Mimari şeması İngilizce bölümde ([How it works](#how-it-works)).
   kalibre log-odds'un ne kadar oynadığını gösterir. Web arayüzü bu değişimleri çubuk grafik olarak çizer.
 
 ### Veri kaynakları ve lisanslar
+
+Kod [MIT Lisansı](LICENSE) ile yayımlanıyor. Aşağıdaki veri kaynaklarının kendi lisans ve kullanım koşulları geçerli.
 
 Sürümler, adresler ve sağlama toplamları [`config/sources.toml`](config/sources.toml) içinde sabitlenmiştir; hiçbir
 şey "en son sürüm" olarak indirilmez.

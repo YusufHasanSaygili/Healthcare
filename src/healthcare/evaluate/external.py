@@ -20,6 +20,7 @@ KEY = ["chrom", "pos", "ref", "alt"]
 REVEL_MEMBER = "revel_with_transcript_ids"
 ALPHAMISSENSE_BENIGN_BELOW = 0.34
 ALPHAMISSENSE_PATHOGENIC_ABOVE = 0.564
+BOOTSTRAP_ROUNDS = 2000
 RANKING_METRICS = ("roc_auc", "pr_auc", "n", "positives")
 SCORERS = {
     "v2": "Ours: v2 (all features)",
@@ -141,9 +142,9 @@ def compare(table: pl.DataFrame) -> dict:
     }
 
 
-def paired_difference(
-    labels: np.ndarray, ours: np.ndarray, theirs: np.ndarray, genes: np.ndarray, rounds: int = 200
-) -> list[float]:
+def paired_differences(
+    labels: np.ndarray, ours: np.ndarray, theirs: np.ndarray, genes: np.ndarray, rounds: int
+) -> np.ndarray:
     rng = np.random.default_rng(0)
     unique, inverse = np.unique(genes, return_inverse=True)
     members = [np.flatnonzero(inverse == i) for i in range(unique.size)]
@@ -153,10 +154,32 @@ def paired_difference(
         y = labels[index]
         if 0 < y.sum() < y.size:
             differences.append(roc_auc_score(y, ours[index]) - roc_auc_score(y, theirs[index]))
-    return [round(float(np.percentile(differences, q)), 4) for q in (2.5, 97.5)]
+    return np.asarray(differences)
 
 
-def broad(table: pl.DataFrame) -> list[dict]:
+def bootstrap_p_value(differences: np.ndarray) -> float:
+    below = (np.sum(differences <= 0) + 1) / (differences.size + 1)
+    above = (np.sum(differences >= 0) + 1) / (differences.size + 1)
+    return float(min(1.0, 2 * min(below, above)))
+
+
+def holm(p_values: list[float]) -> list[float]:
+    order = np.argsort(p_values)
+    adjusted = np.empty(len(p_values))
+    running = 0.0
+    for rank, i in enumerate(order):
+        running = max(running, min(1.0, (len(p_values) - rank) * p_values[i]))
+        adjusted[i] = running
+    return adjusted.tolist()
+
+
+def verdict(difference: float, p_holm: float, alpha: float = 0.05) -> str:
+    if p_holm >= alpha:
+        return "tie"
+    return "ahead" if difference > 0 else "behind"
+
+
+def broad(table: pl.DataFrame, rounds: int = BOOTSTRAP_ROUNDS) -> list[dict]:
     rows = []
     for column, title in dbnsfp.TOOLS.items():
         subset = table.filter(pl.col(column).is_not_null())
@@ -167,6 +190,7 @@ def broad(table: pl.DataFrame) -> list[dict]:
         ours = subset["v2"].to_numpy()
         genes = subset["gene_name"].to_numpy()
         tool_roc, our_roc = roc_auc_score(labels, theirs), roc_auc_score(labels, ours)
+        differences = paired_differences(labels, ours, theirs, genes, rounds)
         rows.append(
             {
                 "tool": title,
@@ -178,9 +202,15 @@ def broad(table: pl.DataFrame) -> list[dict]:
                     float(roc_auc_score(labels, subset["v2_no_frequency"].to_numpy())), 4
                 ),
                 "difference": round(float(our_roc - tool_roc), 4),
-                "difference_95ci": paired_difference(labels, ours, theirs, genes),
+                "difference_95ci": [
+                    round(float(np.percentile(differences, q)), 4) for q in (2.5, 97.5)
+                ],
+                "p_value": bootstrap_p_value(differences),
             }
         )
+    for row, p_holm in zip(rows, holm([row["p_value"] for row in rows]), strict=True):
+        row["p_holm"] = p_holm
+        row["verdict"] = verdict(row["difference"], p_holm)
     return sorted(rows, key=lambda row: -row["tool_roc_auc"])
 
 
@@ -299,6 +329,7 @@ THREE_WAY_TITLES = {
     "v2": "Ours: v2 (0.10 / 0.90)",
     "alphamissense": "AlphaMissense (0.34 / 0.564)",
 }
+VERDICT_TITLES = {"ahead": "ours ahead", "tie": "no clear difference", "behind": "tool ahead"}
 SET_TITLES = {
     "test": "Gene-disjoint test",
     "temporal_all": "Temporal (added to ClinVar after October 2025), all genes",
@@ -386,17 +417,30 @@ def markdown(report: dict) -> str:
                 "",
                 "Each tool is scored on the variants it covers, and our model on exactly those "
                 "variants. The difference is ours minus the tool, with a paired 95% gene-bootstrap "
-                "interval.",
+                "interval (unadjusted). The verdict uses the two-sided bootstrap p-value after "
+                f"Holm correction across all {len(result['dbnsfp'])} tools in this set "
+                f"(alpha 0.05). With {BOOTSTRAP_ROUNDS:,} resamples a p-value cannot fall below "
+                f"2/{BOOTSTRAP_ROUNDS + 1:,}, so the smallest Holm p here is "
+                f"{min(1.0, len(result['dbnsfp']) * 2 / (BOOTSTRAP_ROUNDS + 1)):.4f}: "
+                "no resample crossed zero.",
+                "",
+                "Verdicts: "
+                + ", ".join(
+                    f"{label} {sum(row['verdict'] == key for row in result['dbnsfp'])}"
+                    for key, label in VERDICT_TITLES.items()
+                )
+                + ".",
                 "",
                 "| Tool | Variants | Tool ROC-AUC | Ours v2 | Difference [95% CI] "
-                "| Ours without AF |",
-                "|---|---|---|---|---|---|",
+                "| Holm p | Verdict | Ours without AF |",
+                "|---|---|---|---|---|---|---|---|",
             ]
             for row in result["dbnsfp"]:
                 low, high = row["difference_95ci"]
                 lines.append(
                     f"| {row['tool']} | {row['variants']:,} | {row['tool_roc_auc']:.4f} | "
                     f"{row['v2_roc_auc']:.4f} | {row['difference']:+.4f} "
-                    f"[{low:+.4f}, {high:+.4f}] | {row['v2_no_frequency_roc_auc']:.4f} |"
+                    f"[{low:+.4f}, {high:+.4f}] | {row['p_holm']:.4f} | "
+                    f"{VERDICT_TITLES[row['verdict']]} | {row['v2_no_frequency_roc_auc']:.4f} |"
                 )
     return "\n".join(lines) + "\n"

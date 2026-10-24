@@ -119,8 +119,8 @@ hashed before and after). The external scores were used for this evaluation only
   on their scores. AlphaMissense is also frequency-informed through its training labels.
 
 **All 37 predictors in dbNSFP 5.4a.** Each tool was scored on the variants it covers and our v2 model on exactly the
-same variants; a tool counts as beaten or ahead only when the paired 95% gene-bootstrap interval of the difference
-excludes zero.
+same variants. A tool counts as beaten or ahead only when the paired gene-bootstrap test of the difference (2,000
+resamples) stays significant after Holm correction across all 37 tools (alpha 0.05).
 
 | Set | We are ahead | No clear difference | Tool is ahead |
 |---|---|---|---|
@@ -137,7 +137,7 @@ several frequency-free tools rank higher (REVEL and BayesDel without AF 0.976, V
 <details>
 <summary>Every tool, set by set (missense ROC-AUC)</summary>
 
-Tool scores on the variants each tool covers. ✅ our v2 model is ahead, ➖ no clear difference, ❌ the tool is ahead (paired 95% gene-bootstrap interval of the difference). Our v2 scores 0.987–0.991 on each tool's variants. dbNSFP holds missense scores only, so the other variant types have no external comparison.
+Tool scores on the variants each tool covers. ✅ our v2 model is ahead, ➖ no clear difference, ❌ the tool is ahead (paired gene-bootstrap test, Holm-corrected across the 37 tools). Our v2 scores 0.987–0.991 on each tool's variants. dbNSFP holds missense scores only, so the other variant types have no external comparison.
 
 | Tool | Gene-disjoint test | Temporal, all genes | Temporal, test genes |
 |---|---|---|---|
@@ -505,8 +505,8 @@ girdi olmadı. Tam rapor (İngilizce): [`reports/external_comparison.md`](report
   kısmen bu skorlara dayanıyor. AlphaMissense eğitim etiketleri üzerinden nüfus sıklığını da dolaylı olarak kullanıyor.
 
 **dbNSFP 5.4a'daki 37 tahmin aracının hepsi.** Her araç kendi skorladığı varyantlarda, bizim v2 modelimiz de tam olarak
-aynı varyantlarda ölçüldü. Bir aracı geçtik ya da araç önde demek için farkın eşleştirilmiş %95 gen bootstrap
-aralığının sıfırı içermemesi gerekiyor.
+aynı varyantlarda ölçüldü. Bir aracı geçtik ya da araç önde demek için farkın eşleştirilmiş gen bootstrap testinin
+(2.000 yeniden örnekleme) 37 araç üzerinden Holm düzeltmesinden sonra da anlamlı kalması gerekiyor (alfa 0,05).
 
 | Set | Biz öndeyiz | Belirgin fark yok | Araç önde |
 |---|---|---|---|
@@ -523,7 +523,7 @@ orada birkaç frekanssız araç daha yüksek (REVEL ve frekanssız BayesDel 0,97
 <details>
 <summary>Araç araç, set set tüm sonuçlar (missense ROC-AUC)</summary>
 
-Her aracın kendi kapsadığı varyantlardaki skoru. ✅ bizim v2 önde, ➖ belirgin fark yok, ❌ araç önde (farkın eşleştirilmiş %95 gen bootstrap aralığı). v2 her aracın varyantlarında 0,987–0,991 alıyor. dbNSFP yalnızca missense skorları içerdiği için diğer varyant türlerinin dış karşılaştırması yok.
+Her aracın kendi kapsadığı varyantlardaki skoru. ✅ bizim v2 önde, ➖ belirgin fark yok, ❌ araç önde (eşleştirilmiş gen bootstrap testi, 37 araç üzerinden Holm düzeltmeli). v2 her aracın varyantlarında 0,987–0,991 alıyor. dbNSFP yalnızca missense skorları içerdiği için diğer varyant türlerinin dış karşılaştırması yok.
 
 | Araç | Gen bazında ayrık test | Zamansal, tüm genler | Zamansal, test genleri |
 |---|---|---|---|

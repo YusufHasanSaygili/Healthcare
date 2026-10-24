@@ -3,6 +3,7 @@ import zipfile
 
 import numpy as np
 import polars as pl
+import pytest
 
 from healthcare.evaluate import external
 
@@ -113,9 +114,25 @@ def test_broad_scores_ours_on_exactly_the_variants_each_tool_covers():
             None
         )
     )
-    rows = external.broad(table)
+    rows = external.broad(table, rounds=200)
     assert [row["tool"] for row in rows] == ["REVEL"]
     assert rows[0]["variants"] == 300
     low, high = rows[0]["difference_95ci"]
     assert low <= rows[0]["difference"] <= high
     assert rows[0]["difference"] > 0.3
+    assert rows[0]["verdict"] == "ahead"
+
+
+def test_holm_adjusts_in_rank_order_and_stays_monotone():
+    assert external.holm([0.01, 0.04, 0.03, 0.005]) == pytest.approx([0.03, 0.06, 0.06, 0.02])
+
+
+def test_verdict_needs_a_holm_adjusted_p_below_alpha():
+    assert external.verdict(0.01, 0.01) == "ahead"
+    assert external.verdict(-0.01, 0.01) == "behind"
+    assert external.verdict(-0.01, 0.2) == "tie"
+
+
+def test_bootstrap_p_value_is_two_sided_and_never_zero():
+    assert external.bootstrap_p_value(np.full(999, 0.02)) == pytest.approx(2 / 1000)
+    assert external.bootstrap_p_value(np.array([-1.0, 1.0])) == 1.0
